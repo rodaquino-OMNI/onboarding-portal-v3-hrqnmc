@@ -1,0 +1,41 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "enrollment-service.fullname" . }}
+  labels:
+    {{- include "enrollment-service.labels" . | nindent 4 }}
+  annotations:
+    # Azure Monitor integration for metrics collection
+    azure.monitor/scrape: "true"
+    azure.monitor/scrape-port: "{{ .Values.service.managementPort }}"
+    azure.monitor/path: "/actuator/prometheus"
+    # Service metadata
+    service.beta.kubernetes.io/azure-load-balancer-internal: "true"
+    service.beta.kubernetes.io/azure-load-balancer-tcp-idle-timeout: "4"
+    # Health monitoring
+    health.monitor/enabled: "true"
+    health.monitor/path: "/actuator/health"
+    health.monitor/port: "{{ .Values.service.managementPort }}"
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    # Main application port
+    - port: {{ .Values.service.port }}
+      targetPort: 8080
+      protocol: TCP
+      name: http
+    # Management port for metrics and health checks
+    - port: {{ .Values.service.managementPort }}
+      targetPort: 8081
+      protocol: TCP
+      name: management
+  selector:
+    {{- include "enrollment-service.selectorLabels" . | nindent 4 }}
+  # Ensure high availability with proper load balancing
+  sessionAffinity: None
+  # Don't route traffic to pods that aren't ready
+  publishNotReadyAddresses: false
+  # Ensure proper service discovery
+  internalTrafficPolicy: Cluster
+  # Enable endpoint slices for better scalability
+  enableEndpointSlices: true
