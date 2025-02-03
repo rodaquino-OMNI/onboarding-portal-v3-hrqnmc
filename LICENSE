@@ -1,0 +1,146 @@
+AUSTA HEALTHCARE PROPRIETARY SOFTWARE LICENSE
+Version 1.0
+
+1. DEFINITIONS
+
+1.1. "Software" means the Pre-paid Health Plan Onboarding Portal software system and all its components.
+1.2. "AUSTA" means AUSTA Healthcare, the copyright holder and licensor.
+1.3. "Licensee" means the authorized entity granted rights to use the Software.
+1.4. "LGPD" means Lei Geral de Proteção de Dados (Brazilian General Data Protection Law).
+1.5. "Healthcare Data" means any personal health information processed by the Software.
+1.6. "AUSTA Ecosystem" means AUSTA's Datalake, EMR, and SuperApp systems.
+1.7. "AI Components" means artificial intelligence and machine learning features including health assessment algorithms.
+
+2. GRANT OF LICENSE
+
+2.1. Subject to the terms and conditions of this License, AUSTA grants Licensee a non-transferable, non-exclusive license to:
+   a) Deploy the Software within AUSTA's healthcare environment
+   b) Integrate with authorized AUSTA Ecosystem components
+   c) Process healthcare enrollments and related data
+   d) Utilize AI Components for health assessments
+
+2.2. Restrictions:
+   a) No modification of source code without written authorization
+   b) No redistribution or sublicensing
+   c) No reverse engineering
+   d) No unauthorized system integration
+
+3. DATA PROTECTION AND PRIVACY
+
+3.1. LGPD Compliance:
+   a) Mandatory implementation of all LGPD requirements
+   b) Appointment of Data Protection Officer
+   c) Regular privacy impact assessments
+   d) Maintenance of processing records
+
+3.2. Healthcare Data Handling:
+   a) Encryption of all health-related data
+   b) Strict access controls based on role
+   c) Audit logging of all data access
+   d) Secure data disposal procedures
+
+3.3. Privacy Requirements:
+   a) Explicit consent management
+   b) Data subject rights fulfillment
+   c) Privacy by design implementation
+   d) Cross-border data transfer controls
+
+4. INTEGRATION REQUIREMENTS
+
+4.1. AUSTA Ecosystem Integration:
+   a) Mandatory security protocols
+   b) Authorized API usage only
+   c) Real-time data synchronization
+   d) Error handling procedures
+
+4.2. Technical Requirements:
+   a) Encrypted communication channels
+   b) Authentication mechanism compliance
+   c) Performance SLA adherence
+   d) Data integrity verification
+
+5. AI AND AUTOMATION
+
+5.1. AI Component Usage:
+   a) Ethical AI principles adherence
+   b) Bias monitoring and mitigation
+   c) Transparency in automated decisions
+   d) Human oversight requirements
+
+5.2. Health Assessment Requirements:
+   a) Clinical validation procedures
+   b) Algorithm version control
+   c) Decision audit trails
+   d) Override mechanisms
+
+6. SECURITY REQUIREMENTS
+
+6.1. Mandatory Security Measures:
+   a) Multi-factor authentication
+   b) Regular security assessments
+   c) Vulnerability management
+   d) Incident response procedures
+
+6.2. Breach Notification:
+   a) Immediate AUSTA notification
+   b) 24-hour regulatory reporting
+   c) Affected party notification
+   d) Incident documentation
+
+7. WARRANTY AND SUPPORT
+
+7.1. Limited Warranty:
+   a) 99.9% system availability
+   b) Security compliance warranty
+   c) Integration functionality
+   d) Performance standards
+
+7.2. Support Obligations:
+   a) 24/7 critical issue support
+   b) Regular maintenance
+   c) Security patch management
+   d) Technical assistance
+
+8. LIABILITY AND INDEMNIFICATION
+
+8.1. Limitation of Liability:
+   a) Healthcare data breach damages
+   b) Service interruption impacts
+   c) Integration failure consequences
+   d) Regulatory compliance violations
+
+8.2. Indemnification:
+   a) Third-party claim protection
+   b) Regulatory violation defense
+   c) Data breach compensation
+   d) Integration dispute resolution
+
+9. TERM AND TERMINATION
+
+9.1. License Term:
+   a) Initial term of 12 months
+   b) Automatic renewal provisions
+   c) Termination notice requirements
+   d) Emergency termination rights
+
+9.2. Post-Termination:
+   a) Data return procedures
+   b) System decommissioning
+   c) Confidentiality obligations
+   d) Transition assistance
+
+10. GOVERNING LAW AND JURISDICTION
+
+10.1. This License shall be governed by the laws of Brazil.
+10.2. Exclusive jurisdiction in the courts of São Paulo, Brazil.
+
+11. ACKNOWLEDGMENT
+
+By using the Software, Licensee acknowledges reading and agreeing to all terms and conditions of this License.
+
+Copyright © 2024 AUSTA Healthcare. All rights reserved.
+
+For detailed compliance requirements, refer to:
+- SECURITY.md
+- CONTRIBUTING.md
+- LGPD_COMPLIANCE.md
