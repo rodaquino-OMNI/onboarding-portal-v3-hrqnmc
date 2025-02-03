@@ -1,0 +1,28 @@
+apiVersion: v1
+kind: Service
+
+metadata:
+  name: {{ include "health-service.fullname" . }}
+  labels:
+    {{- include "health-service.labels" . | nindent 4 }}
+  annotations:
+    # Prometheus monitoring annotations
+    prometheus.io/scrape: {{ .Values.monitoring.enabled | default "true" | quote }}
+    prometheus.io/port: {{ .Values.service.port | quote }}
+    prometheus.io/path: "/metrics"
+    # Istio service mesh injection
+    sidecar.istio.io/inject: "true"
+    # Azure internal load balancer annotation
+    {{- if .Values.service.annotations }}
+    {{- toYaml .Values.service.annotations | nindent 4 }}
+    {{- end }}
+
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: {{ .Values.service.targetPort }}
+      protocol: TCP
+      name: http-health
+  selector:
+    {{- include "health-service.selectorLabels" . | nindent 4 }}
