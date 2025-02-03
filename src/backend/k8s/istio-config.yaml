@@ -1,0 +1,216 @@
+# Istio Service Mesh Configuration v1.19+
+# Purpose: Define comprehensive service mesh configuration for AUSTA Health Portal
+# Includes: Traffic management, security policies, and observability settings
+
+# Global mesh configuration
+apiVersion: install.istio.io/v1alpha1
+kind: IstioOperator
+metadata:
+  name: austa-mesh-config
+  namespace: istio-system
+spec:
+  profile: default
+  meshConfig:
+    enableTracing: true
+    defaultConfig:
+      tracing:
+        sampling: 100.0
+        zipkin:
+          address: jaeger-collector:9411
+    trustDomain: austa.health
+    accessLogFile: /dev/stdout
+    enableAutoMtls: true
+    defaultServiceSettings:
+      healthCheck:
+        rewriteAppHTTPProbers: true
+
+---
+# Gateway configuration for external access
+apiVersion: networking.istio.io/v1beta1
+kind: Gateway
+metadata:
+  name: austa-gateway
+  namespace: default
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+    - port:
+        number: 443
+        name: https
+        protocol: HTTPS
+      tls:
+        mode: SIMPLE
+        credentialName: austa-tls-cert
+        minProtocolVersion: TLSV1_3
+      hosts:
+        - "*.austa.health"
+
+---
+# Global mTLS policy
+apiVersion: security.istio.io/v1beta1
+kind: PeerAuthentication
+metadata:
+  name: default
+  namespace: default
+spec:
+  mtls:
+    mode: STRICT
+
+---
+# JWT Authentication Policy
+apiVersion: security.istio.io/v1beta1
+kind: RequestAuthentication
+metadata:
+  name: jwt-auth
+  namespace: default
+spec:
+  jwtRules:
+    - issuer: "austa-auth"
+      jwksUri: "https://auth.austa.health/.well-known/jwks.json"
+      forwardOriginalToken: true
+      audiences:
+        - "austa.health"
+
+---
+# Default Authorization Policy
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: default-auth-policy
+  namespace: default
+spec:
+  action: ALLOW
+  rules:
+    - from:
+        - source:
+            principals: ["cluster.local/ns/default/sa/*"]
+      to:
+        - operation:
+            methods: ["GET", "POST", "PUT", "DELETE"]
+      when:
+        - key: request.auth.claims[iss]
+          values: ["austa-auth"]
+
+---
+# Circuit Breaker Configuration
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: circuit-breaker-policy
+  namespace: default
+spec:
+  host: "*"
+  trafficPolicy:
+    connectionPool:
+      tcp:
+        maxConnections: 100
+        connectTimeout: 10s
+      http:
+        maxRequestsPerConnection: 10
+        http1MaxPendingRequests: 1
+    outlierDetection:
+      consecutive5xxErrors: 5
+      interval: 30s
+      baseEjectionTime: 30s
+      maxEjectionPercent: 50
+
+---
+# Telemetry Configuration
+apiVersion: telemetry.istio.io/v1alpha1
+kind: Telemetry
+metadata:
+  name: austa-telemetry
+  namespace: default
+spec:
+  tracing:
+    - customTags:
+        healthcare:
+          literal:
+            value: "true"
+        lgpd_compliant:
+          literal:
+            value: "true"
+    - providers:
+        - name: jaeger
+      sampling:
+        random: 100.0
+  metrics:
+    - providers:
+        - name: prometheus
+      overrides:
+        - match:
+            metric: REQUEST_COUNT
+            mode: CLIENT_AND_SERVER
+          tagOverrides:
+            healthcare:
+              value: "true"
+    - metrics:
+        - name: health_data_access
+          type: COUNTER
+        - name: encryption_status
+          type: GAUGE
+
+---
+# Retry Policy
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: retry-policy
+  namespace: default
+spec:
+  hosts:
+    - "*"
+  http:
+    - timeout: 5s
+      retries:
+        attempts: 3
+        perTryTimeout: 2s
+        retryOn: "connect-failure,refused-stream,unavailable,cancelled,resource-exhausted"
+      fault:
+        delay:
+          percentage:
+            value: 0.1
+          fixedDelay: 100ms
+
+---
+# Service-to-Service Access Policy
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: service-access-policy
+  namespace: default
+spec:
+  action: ALLOW
+  rules:
+    - from:
+        - source:
+            principals: ["cluster.local/ns/default/sa/*"]
+      to:
+        - operation:
+            methods: ["GET", "POST", "PUT", "DELETE"]
+            paths: ["/*"]
+      when:
+        - key: request.auth.claims[roles]
+          values: ["admin", "service"]
+        - key: connection.sni
+          values: ["*.austa.health"]
+
+---
+# Monitoring Configuration
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: istio-monitor
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      istio: ingressgateway
+  endpoints:
+    - port: http-monitoring
+      interval: 15s
+      scrapeTimeout: 10s
+  namespaceSelector:
+    matchNames:
+      - default
