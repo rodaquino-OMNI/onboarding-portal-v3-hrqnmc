@@ -1,0 +1,292 @@
+openapi: 3.1.0
+info:
+  title: AUSTA Health Portal Authentication Service
+  version: 1.0.0
+  description: Authentication and authorization service for the Pre-paid Health Plan Onboarding Portal
+  contact:
+    name: AUSTA Development Team
+    email: dev-team@austa.com.br
+
+servers:
+  - url: /api/v1/auth
+    description: Authentication service API endpoint
+
+components:
+  schemas:
+    LoginDto:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          example: user@example.com
+        password:
+          type: string
+          format: password
+          minLength: 8
+          example: "********"
+
+    RegisterDto:
+      type: object
+      required:
+        - email
+        - password
+        - confirmPassword
+        - firstName
+        - lastName
+        - cpf
+        - role
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+          minLength: 8
+        confirmPassword:
+          type: string
+          format: password
+        firstName:
+          type: string
+          minLength: 2
+        lastName:
+          type: string
+          minLength: 2
+        cpf:
+          type: string
+          pattern: ^\d{3}\.\d{3}\.\d{3}-\d{2}$
+        phoneNumber:
+          type: string
+          pattern: ^\+55\d{2}\d{8,9}$
+        role:
+          type: string
+          enum:
+            - ADMINISTRATOR
+            - UNDERWRITER
+            - BROKER
+            - HR_PERSONNEL
+            - BENEFICIARY
+            - PARENT_GUARDIAN
+
+    MfaVerificationDto:
+      type: object
+      required:
+        - token
+        - method
+      properties:
+        token:
+          type: string
+          minLength: 6
+          maxLength: 6
+          pattern: ^\d{6}$
+        method:
+          type: string
+          enum:
+            - sms
+            - totp
+            - backup
+
+    PasswordResetDto:
+      type: object
+      required:
+        - email
+        - token
+        - newPassword
+        - confirmPassword
+      properties:
+        email:
+          type: string
+          format: email
+        token:
+          type: string
+        newPassword:
+          type: string
+          format: password
+          minLength: 8
+        confirmPassword:
+          type: string
+          format: password
+
+    SessionInfo:
+      type: object
+      properties:
+        accessToken:
+          type: string
+        refreshToken:
+          type: string
+        expiresIn:
+          type: integer
+          format: int32
+        inactivityTimeout:
+          type: integer
+          format: int32
+        requiresMfa:
+          type: boolean
+
+    ErrorResponse:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        details:
+          type: object
+        traceId:
+          type: string
+          format: uuid
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    rateLimiting:
+      type: apiKey
+      name: X-Rate-Limit
+      in: header
+
+paths:
+  /login:
+    post:
+      summary: User login endpoint
+      operationId: login
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginDto'
+      responses:
+        '200':
+          description: Successful login
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionInfo'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '423':
+          description: Account locked
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Rate limit exceeded
+          headers:
+            X-Rate-Limit-Reset:
+              schema:
+                type: integer
+                format: int32
+
+  /register:
+    post:
+      summary: User registration endpoint
+      operationId: register
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterDto'
+      responses:
+        '201':
+          description: User successfully registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionInfo'
+        '400':
+          description: Invalid registration data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: User already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Rate limit exceeded
+
+  /mfa/verify:
+    post:
+      summary: MFA verification endpoint
+      operationId: verifyMfa
+      tags:
+        - Authentication
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MfaVerificationDto'
+      responses:
+        '200':
+          description: MFA verification successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionInfo'
+        '401':
+          description: Invalid MFA token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Too many verification attempts
+
+  /password/reset:
+    post:
+      summary: Password reset endpoint
+      operationId: resetPassword
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PasswordResetDto'
+      responses:
+        '200':
+          description: Password successfully reset
+        '400':
+          description: Invalid reset data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Invalid reset token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Rate limit exceeded
+
+security:
+  - rateLimiting: []
+
+tags:
+  - name: Authentication
+    description: Authentication and authorization endpoints
