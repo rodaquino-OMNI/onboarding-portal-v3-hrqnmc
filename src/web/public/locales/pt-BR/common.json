@@ -1,0 +1,136 @@
+{
+  "common": {
+    "buttons": {
+      "submit": "Enviar",
+      "cancel": "Cancelar",
+      "back": "Voltar",
+      "next": "Próximo",
+      "save": "Salvar",
+      "delete": "Excluir",
+      "upload": "Enviar arquivo",
+      "download": "Baixar",
+      "view": "Visualizar",
+      "edit": "Editar",
+      "confirm": "Confirmar",
+      "tryAgain": "Tentar novamente",
+      "close": "Fechar",
+      "print": "Imprimir",
+      "search": "Buscar"
+    },
+    "navigation": {
+      "dashboard": "Painel",
+      "enrollments": "Inscrições",
+      "documents": "Documentos",
+      "health": "Avaliação de Saúde",
+      "policies": "Apólices",
+      "settings": "Configurações",
+      "profile": "Perfil",
+      "logout": "Sair",
+      "help": "Ajuda",
+      "notifications": "Notificações",
+      "language": "Idioma"
+    },
+    "roles": {
+      "admin": "Administrador",
+      "broker": "Corretor",
+      "beneficiary": "Beneficiário",
+      "guardian": "Pai/Responsável",
+      "underwriter": "Subscritor",
+      "hr": "RH",
+      "ariaRoleLabel": "Seu perfil atual é {{role}}"
+    },
+    "status": {
+      "pending": "Pendente",
+      "inProgress": "Em Andamento",
+      "completed": "Concluído",
+      "approved": "Aprovado",
+      "rejected": "Rejeitado",
+      "review": "Em Análise",
+      "expired": "Expirado",
+      "cancelled": "Cancelado",
+      "suspended": "Suspenso",
+      "ariaStatusLabel": "Status atual: {{status}}"
+    },
+    "forms": {
+      "required": "Campo obrigatório",
+      "invalid": "Valor inválido",
+      "success": "Salvo com sucesso",
+      "error": "Ocorreu um erro",
+      "minLength": "Mínimo de {{count}} caracteres",
+      "maxLength": "Máximo de {{count}} caracteres",
+      "invalidCPF": "CPF inválido",
+      "invalidEmail": "E-mail inválido",
+      "invalidPhone": "Telefone inválido",
+      "passwordMismatch": "As senhas não conferem",
+      "ariaRequired": "Este campo é obrigatório",
+      "ariaInvalid": "Este campo contém um erro"
+    },
+    "health": {
+      "questionnaire": "Questionário de Saúde",
+      "assessment": "Avaliação de Risco",
+      "preExisting": "Condições Pré-existentes",
+      "medications": "Medicamentos Atuais",
+      "history": "Histórico Médico",
+      "conditions": {
+        "diabetes": "Diabetes",
+        "hypertension": "Hipertensão",
+        "cardiac": "Condições Cardíacas",
+        "cancer": "Câncer",
+        "respiratory": "Doenças Respiratórias"
+      },
+      "ariaHealthLabel": "Seção de avaliação de saúde"
+    },
+    "documents": {
+      "idDocument": "Documento de Identidade",
+      "proofOfAddress": "Comprovante de Residência",
+      "medicalRecords": "Registros Médicos",
+      "uploadSuccess": "Documento enviado com sucesso",
+      "uploadError": "Erro ao enviar documento",
+      "processing": "Processando documento",
+      "verification": "Em verificação",
+      "ariaUpload": "Área para upload de documentos",
+      "maxSize": "Tamanho máximo: {{size}}MB"
+    },
+    "enrollment": {
+      "newEnrollment": "Nova Inscrição",
+      "personalInfo": "Informações Pessoais",
+      "contactInfo": "Informações de Contato",
+      "healthInfo": "Informações de Saúde",
+      "review": "Revisar Inscrição",
+      "confirmation": "Confirmação",
+      "ariaStepLabel": "Etapa {{current}} de {{total}}"
+    },
+    "policy": {
+      "details": "Detalhes da Apólice",
+      "coverage": "Detalhes da Cobertura",
+      "waiting": "Períodos de Carência",
+      "premium": "Valor do Prêmio",
+      "terms": "Termos e Condições",
+      "ariaPolicy": "Informações da apólice"
+    },
+    "errors": {
+      "notFound": "Página não encontrada",
+      "serverError": "Erro no servidor",
+      "unauthorized": "Acesso não autorizado",
+      "validation": "Erro de validação",
+      "timeout": "Tempo limite excedido",
+      "offline": "Sem conexão com internet",
+      "ariaError": "Mensagem de erro: {{message}}"
+    },
+    "accessibility": {
+      "skipToMain": "Pular para o conteúdo principal",
+      "mainContent": "Conteúdo principal",
+      "navigation": "Menu de navegação",
+      "closeMenu": "Fechar menu",
+      "openMenu": "Abrir menu",
+      "loading": "Carregando, por favor aguarde"
+    },
+    "lgpd": {
+      "consent": "Consentimento LGPD",
+      "dataUsage": "Uso de dados pessoais",
+      "privacyPolicy": "Política de Privacidade",
+      "dataRights": "Seus direitos sobre os dados",
+      "ariaPrivacy": "Informações sobre privacidade"
+    }
+  }
+}
