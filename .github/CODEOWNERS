@@ -1,0 +1,42 @@
+# Unless a later match takes precedence, @project-leads will be requested for
+# review when someone opens a pull request.
+*       @project-leads
+
+# GitHub configurations and workflows
+.github/**      @devops-team @security-team
+
+# Authentication service - requires security, backend, and compliance review
+src/backend/auth-service/**       @security-team @backend-team @compliance-team
+
+# Health assessment service - requires domain expert, backend, and compliance review
+src/backend/health-service/**     @backend-team @health-domain-experts @compliance-team
+
+# Document handling service - requires security, backend, and compliance review
+src/backend/document-service/**   @backend-team @security-team @compliance-team
+
+# Enrollment service - requires business logic, backend, and compliance review
+src/backend/enrollment-service/** @backend-team @business-analysts @compliance-team
+
+# Policy service - requires business logic, backend, and compliance review
+src/backend/policy-service/**     @backend-team @business-analysts @compliance-team
+
+# Frontend applications - requires accessibility, security, and frontend review
+src/web/**      @frontend-team @accessibility-team @security-team
+
+# Infrastructure configurations
+infrastructure/**       @devops-team @security-team @compliance-team
+
+# Database migrations and schemas
+src/backend/db/migrations/**      @database-team @security-team @compliance-team
+
+# Security-related files
+**/security*       @security-team @compliance-team
+
+# Container configurations
+**/Dockerfile      @devops-team @security-team
+
+# Test files
+**/*.test.*        @qa-team @security-team
+
+# LGPD (Brazilian Data Protection Law) related files
+**/lgpd*          @compliance-team @security-team @legal-team
