@@ -1,0 +1,261 @@
+/**
+ * AUSTA Health Portal Global Styles
+ * Version: 1.0.0
+ * 
+ * Global CSS styles implementing WCAG 2.1 AA compliance,
+ * responsive design, and AUSTA brand guidelines.
+ */
+
+@import './variables.css';
+
+/* ==========================================================================
+   CSS Reset & Base Styles
+   ========================================================================== */
+
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Document Root Styles */
+html {
+  font-size: var(--font-size-base);
+  font-family: var(--font-family-primary);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  scroll-behavior: smooth;
+  text-size-adjust: 100%;
+  height: 100%;
+}
+
+/* Body Base Styles */
+body {
+  background-color: var(--color-background-primary);
+  color: var(--color-text-primary);
+  min-height: 100vh;
+  text-rendering: optimizeSpeed;
+  font-synthesis: none;
+}
+
+/* ==========================================================================
+   Layout & Container Styles
+   ========================================================================== */
+
+.container {
+  width: 100%;
+  max-width: var(--container-max-width);
+  margin: 0 auto;
+  padding: 0 var(--spacing-md);
+  contain: layout style paint;
+}
+
+/* ==========================================================================
+   Accessibility Utilities
+   ========================================================================== */
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.skip-to-main {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background: var(--color-primary);
+  color: var(--color-text-inverse);
+  padding: var(--spacing-xs);
+  z-index: var(--z-index-fixed);
+  transition: top var(--transition-speed-fast);
+}
+
+.skip-to-main:focus {
+  top: 0;
+}
+
+/* Enhanced focus styles for keyboard navigation */
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  box-shadow: var(--box-shadow-focus);
+  border-radius: var(--border-radius-sm);
+}
+
+/* Ensure sufficient touch target size */
+button,
+[role="button"],
+input,
+select,
+textarea {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* ==========================================================================
+   Media Queries - Responsive Design
+   ========================================================================== */
+
+/* Mobile Breakpoint */
+@media screen and (max-width: 768px) {
+  html {
+    font-size: calc(var(--font-size-base) * 0.875);
+  }
+
+  .container {
+    padding: 0 var(--spacing-sm);
+  }
+}
+
+/* Tablet Breakpoint */
+@media screen and (min-width: 769px) and (max-width: 1024px) {
+  html {
+    font-size: calc(var(--font-size-base) * 0.9375);
+  }
+
+  .container {
+    padding: 0 var(--spacing-md);
+  }
+}
+
+/* Reduced Motion Preferences */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+  }
+
+  body {
+    background-color: var(--color-background-dark);
+    color: var(--color-text-dark);
+  }
+}
+
+/* Print Styles */
+@media print {
+  body {
+    background: none;
+    color: black;
+  }
+
+  .no-print {
+    display: none;
+  }
+
+  a[href]::after {
+    content: " (" attr(href) ")";
+  }
+
+  .container {
+    max-width: none;
+    padding: 0;
+  }
+}
+
+/* ==========================================================================
+   Helper Classes
+   ========================================================================== */
+
+.text-center {
+  text-align: center;
+}
+
+.text-left {
+  text-align: left;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* ==========================================================================
+   Form Element Base Styles
+   ========================================================================== */
+
+input,
+select,
+textarea {
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  border: 1px solid var(--color-text-tertiary);
+  border-radius: var(--border-radius-sm);
+  padding: var(--spacing-xs);
+}
+
+/* High contrast focus states for form elements */
+input:focus,
+select:focus,
+textarea:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  box-shadow: var(--box-shadow-focus);
+}
+
+/* ==========================================================================
+   Image Handling
+   ========================================================================== */
+
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* ==========================================================================
+   List Reset
+   ========================================================================== */
+
+ul,
+ol {
+  list-style: none;
+}
+
+/* ==========================================================================
+   Link Styles
+   ========================================================================== */
+
+a {
+  color: var(--color-primary);
+  text-decoration: none;
+  transition: color var(--transition-speed-fast);
+}
+
+a:hover {
+  color: var(--color-primary-dark);
+  text-decoration: underline;
+}
+
+/* ==========================================================================
+   Selection Styles
+   ========================================================================== */
+
+::selection {
+  background-color: var(--color-primary);
+  color: var(--color-text-inverse);
+}
