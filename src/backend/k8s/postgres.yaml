@@ -1,0 +1,214 @@
+---
+# ConfigMap for PostgreSQL configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-config
+  namespace: default
+  labels:
+    app: postgres
+    component: database
+    part-of: health-portal
+data:
+  postgresql.conf: |
+    max_connections=200
+    shared_buffers=4GB
+    effective_cache_size=12GB
+    maintenance_work_mem=1GB
+    checkpoint_completion_target=0.9
+    wal_buffers=16MB
+    default_statistics_target=100
+    random_page_cost=1.1
+    effective_io_concurrency=200
+    work_mem=8MB
+    min_wal_size=2GB
+    max_wal_size=8GB
+    max_worker_processes=8
+    max_parallel_workers_per_gather=4
+    max_parallel_workers=8
+    max_parallel_maintenance_workers=4
+    ssl=on
+    ssl_cert_file='/etc/ssl/certs/postgres.crt'
+    ssl_key_file='/etc/ssl/private/postgres.key'
+    log_destination='csvlog'
+    logging_collector=on
+    log_directory='pg_log'
+    log_filename='postgresql-%Y-%m-%d_%H%M%S.log'
+    log_rotation_age=1d
+    log_rotation_size=100MB
+    log_statement='mod'
+    log_min_duration_statement=1000
+    autovacuum=on
+    autovacuum_max_workers=5
+    autovacuum_naptime=1min
+    autovacuum_vacuum_threshold=50
+    autovacuum_analyze_threshold=50
+    archive_mode=on
+    archive_command='/usr/local/bin/wal-archive.sh %p %f'
+    wal_level=replica
+    max_wal_senders=10
+    max_replication_slots=10
+    hot_standby=on
+    synchronous_commit=on
+    synchronous_standby_names='*'
+    full_page_writes=on
+    wal_compression=on
+    data_encryption=on
+    encryption_key_file='/etc/postgres/keys/master.key'
+    column_encryption_keys='/etc/postgres/keys/column_keys.conf'
+
+---
+# Secret for PostgreSQL credentials and encryption keys
+apiVersion: v1
+kind: Secret
+metadata:
+  name: postgres-secrets
+  namespace: default
+  labels:
+    app: postgres
+    component: database
+    part-of: health-portal
+type: Opaque
+data:
+  POSTGRES_PASSWORD: <encrypted_password>
+  POSTGRES_REPLICATION_PASSWORD: <encrypted_password>
+  ENCRYPTION_MASTER_KEY: <encrypted_key>
+  COLUMN_ENCRYPTION_KEYS: <encrypted_keys>
+
+---
+# StatefulSet for PostgreSQL deployment
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres
+  namespace: default
+  labels:
+    app: postgres
+    component: database
+    part-of: health-portal
+spec:
+  serviceName: postgres
+  replicas: 3
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+        component: database
+        part-of: health-portal
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9187"
+    spec:
+      securityContext:
+        runAsUser: 999
+        runAsGroup: 999
+        fsGroup: 999
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      initContainers:
+        - name: init-encryption
+          image: postgres:15.0
+          command: ["/scripts/init-encryption.sh"]
+          volumeMounts:
+            - name: encryption-keys
+              mountPath: /etc/postgres/keys
+              readOnly: true
+            - name: init-scripts
+              mountPath: /scripts
+              readOnly: true
+      containers:
+        - name: postgres
+          image: postgres:15.0
+          ports:
+            - containerPort: 5432
+              name: postgres
+          resources:
+            requests:
+              memory: "8Gi"
+              cpu: "4"
+            limits:
+              memory: "16Gi"
+              cpu: "8"
+          volumeMounts:
+            - name: postgres-data
+              mountPath: /var/lib/postgresql/data
+            - name: postgres-config
+              mountPath: /etc/postgresql
+            - name: postgres-certs
+              mountPath: /etc/ssl
+            - name: encryption-keys
+              mountPath: /etc/postgres/keys
+              readOnly: true
+          env:
+            - name: POSTGRES_DB
+              value: austa_health
+            - name: POSTGRES_USER
+              value: austa_admin
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secrets
+                  key: POSTGRES_PASSWORD
+          livenessProbe:
+            exec:
+              command:
+                - pg_isready
+                - -U
+                - austa_admin
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+          readinessProbe:
+            exec:
+              command:
+                - pg_isready
+                - -U
+                - austa_admin
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+        - name: metrics-exporter
+          image: prometheuscommunity/postgres-exporter:v0.10.1
+          ports:
+            - containerPort: 9187
+              name: metrics
+          env:
+            - name: DATA_SOURCE_URI
+              value: localhost:5432/austa_health?sslmode=disable
+            - name: DATA_SOURCE_USER
+              value: austa_admin
+            - name: DATA_SOURCE_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secrets
+                  key: POSTGRES_PASSWORD
+      volumes:
+        - name: postgres-config
+          configMap:
+            name: postgres-config
+        - name: postgres-certs
+          secret:
+            secretName: postgres-certs
+        - name: encryption-keys
+          secret:
+            secretName: postgres-secrets
+        - name: init-scripts
+          configMap:
+            name: postgres-init-scripts
+  volumeClaimTemplates:
+    - metadata:
+        name: postgres-data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        storageClassName: premium-rwo
+        resources:
+          requests:
+            storage: 200Gi
