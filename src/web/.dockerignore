@@ -1,0 +1,83 @@
+node_modules
+package-lock.json
+yarn.lock
+
+# Build outputs
+dist
+build
+coverage
+
+# Version control
+.git
+.gitignore
+.husky/*
+
+# IDE configurations
+.vscode/*
+.idea/*
+*.sublime-*
+
+# Environment and secrets
+.env*
+*.key
+*.pem
+.npmrc
+
+# Test files
+**/*.test.*
+**/*.spec.*
+**/__tests__/*
+**/__mocks__/*
+jest.config.*
+coverage/*
+
+# Development configs
+.eslintrc*
+.prettierrc*
+tsconfig*.json
+.babelrc*
+webpack.config.*
+
+# Documentation
+*.md
+docs/*
+CHANGELOG
+LICENSE
+
+# Logs and debugging
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+debug.log
+
+# Editor files
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Docker files
+.dockerignore
+Dockerfile*
+docker-compose*
+
+# Development tools
+.editorconfig
+.stylelintrc*
+.browserslistrc
+postcss.config.*
+cypress/*
+cypress.config.*
+storybook/*
+.storybook/*
+
+# Temporary files
+*.tmp
+*.temp
+.cache
+.next
+
+# Miscellaneous development assets
+src/assets/dev/*
+public/dev/*
