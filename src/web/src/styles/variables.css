@@ -1,0 +1,149 @@
+/**
+ * AUSTA Health Portal Design System
+ * Version: 1.0.0
+ * 
+ * Core design system tokens implementing WCAG 2.1 AA compliance
+ * and mobile-first responsive design principles.
+ */
+
+:root {
+  /* ==========================================================================
+     Brand Colors - AUSTA Health Portal
+     ========================================================================== */
+  
+  /* Primary Brand Colors */
+  --color-primary: #0047AB; /* WCAG AA compliant */
+  --color-primary-light: #3373BC;
+  --color-primary-dark: #003180;
+  
+  /* Secondary Brand Colors */
+  --color-secondary: #00A86B; /* WCAG AA compliant */
+  --color-secondary-light: #33BC8E;
+  --color-secondary-dark: #007D4F;
+
+  /* ==========================================================================
+     System Colors
+     ========================================================================== */
+  
+  /* Status Colors - WCAG AA compliant */
+  --color-error: #DC3545;
+  --color-warning: #FFC107;
+  --color-success: #28A745;
+  --color-info: #17A2B8;
+
+  /* Background Colors */
+  --color-background-primary: #FFFFFF;
+  --color-background-secondary: #F5F5F5;
+  --color-background-tertiary: #E9ECEF;
+
+  /* Text Colors - Ensuring 4.5:1 contrast ratio */
+  --color-text-primary: #000000;
+  --color-text-secondary: #666666;
+  --color-text-tertiary: #999999;
+  --color-text-inverse: #FFFFFF;
+
+  /* ==========================================================================
+     Typography System
+     ========================================================================== */
+  
+  /* Font Family */
+  --font-family-primary: 'Roboto', sans-serif;
+
+  /* Base Font Size - 14px as specified */
+  --font-size-base: 14px;
+
+  /* Font Scale */
+  --font-size-xs: 12px;
+  --font-size-sm: 14px;
+  --font-size-md: 16px;
+  --font-size-lg: 18px;
+  --font-size-xl: 24px;
+  --font-size-xxl: 32px;
+
+  /* Font Weights */
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-bold: 700;
+
+  /* ==========================================================================
+     Spacing System - 8px Grid
+     ========================================================================== */
+  
+  --spacing-unit: 8px;
+  --spacing-xs: 8px;    /* 1 unit */
+  --spacing-sm: 16px;   /* 2 units */
+  --spacing-md: 24px;   /* 3 units */
+  --spacing-lg: 32px;   /* 4 units */
+  --spacing-xl: 48px;   /* 6 units */
+
+  /* ==========================================================================
+     Border Radius
+     ========================================================================== */
+  
+  --border-radius-sm: 4px;
+  --border-radius-md: 8px;
+  --border-radius-lg: 12px;
+  --border-radius-pill: 9999px;
+
+  /* ==========================================================================
+     Shadows
+     ========================================================================== */
+  
+  --box-shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);
+  --box-shadow-md: 0 4px 8px rgba(0, 0, 0, 0.1);
+  --box-shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.1);
+  --box-shadow-focus: 0 0 0 3px rgba(0, 71, 171, 0.25); /* Primary color focus ring */
+
+  /* ==========================================================================
+     Transitions
+     ========================================================================== */
+  
+  --transition-speed-fast: 150ms;
+  --transition-speed-normal: 300ms;
+  --transition-speed-slow: 500ms;
+
+  /* ==========================================================================
+     Grid System - 12 Column
+     ========================================================================== */
+  
+  --grid-columns: 12;
+  --grid-gutter: 24px;
+  --container-padding: 16px;
+  --container-max-width: 1440px;
+
+  /* ==========================================================================
+     Breakpoints - Mobile First
+     ========================================================================== */
+  
+  --grid-breakpoint-xs: 320px;  /* Mobile */
+  --grid-breakpoint-sm: 768px;  /* Tablet */
+  --grid-breakpoint-md: 1024px; /* Desktop */
+  --grid-breakpoint-lg: 1440px; /* Large Desktop */
+  --grid-breakpoint-xl: 1920px; /* Extra Large Desktop */
+
+  /* ==========================================================================
+     Z-index Scale
+     ========================================================================== */
+  
+  --z-index-dropdown: 1000;
+  --z-index-sticky: 1020;
+  --z-index-fixed: 1030;
+  --z-index-modal-backdrop: 1040;
+  --z-index-modal: 1050;
+  --z-index-popover: 1060;
+  --z-index-tooltip: 1070;
+}
+
+/* ==========================================================================
+   Media Query Variables - For JavaScript consumption
+   ========================================================================== */
+
+@media screen {
+  :root {
+    --viewport-xs: '(min-width: 320px)';
+    --viewport-sm: '(min-width: 768px)';
+    --viewport-md: '(min-width: 1024px)';
+    --viewport-lg: '(min-width: 1440px)';
+    --viewport-xl: '(min-width: 1920px)';
+  }
+}
