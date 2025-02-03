@@ -1,0 +1,22 @@
+Format: ICO (Windows Icon)
+Dimensions: Multi-resolution icon containing:
+- 16x16 pixels
+- 32x32 pixels
+- 48x48 pixels
+- 64x64 pixels
+
+Color Properties:
+- Primary color: #0047AB (AUSTA brand blue)
+- Background: Transparent
+- Color depth: 32-bit RGBA
+- Anti-aliasing: Enabled
+
+Technical Details:
+- Format: Microsoft ICO
+- Bit depth: 32-bit (True Color with Alpha)
+- Total file size: Optimized (<10KB)
+- Compression: RLE when applicable
+
+Each resolution variant should be created as a square icon with the AUSTA brand blue (#0047AB) as the primary color against a transparent background, with anti-aliasing enabled for optimal visibility at small sizes.
+
+The icon should be generated using professional icon creation software (e.g., Adobe Photoshop, Affinity Designer) and exported as a multi-resolution ICO file to ensure maximum compatibility and optimal display across all specified contexts.
