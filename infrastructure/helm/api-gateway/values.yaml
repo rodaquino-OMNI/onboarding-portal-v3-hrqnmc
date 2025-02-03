@@ -1,0 +1,227 @@
+# Default values for api-gateway
+# This is a YAML-formatted file.
+
+# Number of API Gateway replicas for high availability
+replicaCount: 3
+
+# Container image configuration
+image:
+  repository: kong # kong:3.4
+  tag: "3.4"
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+# Service account configuration
+serviceAccount:
+  create: true
+  annotations:
+    azure.workload.identity/client-id: system:serviceaccount:kong
+  name: ""
+
+# Pod annotations for monitoring
+podAnnotations:
+  prometheus.io/scrape: "true"
+  prometheus.io/port: "8100"
+  prometheus.io/path: "/metrics"
+
+# Security context for pods
+podSecurityContext:
+  runAsUser: 1000
+  runAsGroup: 1000
+  fsGroup: 1000
+  runAsNonRoot: true
+  seccompProfile:
+    type: RuntimeDefault
+
+# Security context for containers
+securityContext:
+  capabilities:
+    drop: ["ALL"]
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  runAsUser: 1000
+  allowPrivilegeEscalation: false
+
+# Service configuration
+service:
+  type: ClusterIP
+  port: 443
+  targetPort: 8443
+  annotations:
+    service.beta.kubernetes.io/azure-load-balancer-internal: "true"
+
+# Resource requests and limits
+resources:
+  requests:
+    cpu: 1000m
+    memory: 2Gi
+  limits:
+    cpu: 2000m
+    memory: 4Gi
+
+# Horizontal pod autoscaling
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 75
+  targetMemoryUtilizationPercentage: 75
+
+# Node selector for pod scheduling
+nodeSelector:
+  kubernetes.io/os: linux
+
+# Pod tolerations
+tolerations: []
+
+# Pod affinity rules for high availability
+affinity:
+  podAntiAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      - labelSelector:
+          matchExpressions:
+            - key: app.kubernetes.io/name
+              operator: In
+              values:
+                - api-gateway
+        topologyKey: kubernetes.io/hostname
+
+# Kong specific configuration
+kong:
+  # Plugin configurations
+  plugins:
+    # CORS configuration
+    cors:
+      enabled: true
+      config:
+        origins: ["https://*.austa.com.br"]
+        methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+        headers: ["Authorization", "Content-Type", "Accept", "Origin", "X-Requested-With", "X-CSRF-Token"]
+        exposed_headers: ["X-Auth-Token"]
+        credentials: true
+        max_age: 3600
+        preflight_continue: false
+
+    # Rate limiting configuration
+    rate_limiting:
+      enabled: true
+      config:
+        minute: 1000
+        hour: 10000
+        policy: redis
+        fault_tolerant: true
+        redis_host: redis-master
+        redis_port: 6379
+        redis_timeout: 2000
+        hide_client_headers: false
+
+    # JWT authentication configuration
+    jwt:
+      enabled: true
+      config:
+        uri_param_names: ["jwt"]
+        cookie_names: []
+        key_claim_name: kid
+        secret_is_base64: true
+        claims_to_verify: ["exp", "nbf", "iss"]
+        maximum_expiration: 3600
+
+    # Request transformer for adding headers
+    request_transformer:
+      enabled: true
+      config:
+        add:
+          headers: ["X-Request-ID:$(request_id)"]
+
+  # Service configurations
+  services:
+    # Authentication service
+    auth:
+      host: auth-service
+      port: 3001
+      path: /api/v1/auth
+      retries: 5
+      connect_timeout: 60000
+      write_timeout: 60000
+      read_timeout: 60000
+      protocol: https
+
+    # Enrollment service
+    enrollment:
+      host: enrollment-service
+      port: 3002
+      path: /api/v1/enrollments
+      retries: 3
+      connect_timeout: 60000
+      write_timeout: 60000
+      read_timeout: 60000
+      protocol: https
+
+    # Health assessment service
+    health:
+      host: health-service
+      port: 3003
+      path: /api/v1/health
+      retries: 3
+      connect_timeout: 120000
+      write_timeout: 120000
+      read_timeout: 120000
+      protocol: https
+
+    # Document service
+    document:
+      host: document-service
+      port: 3004
+      path: /api/v1/documents
+      retries: 3
+      connect_timeout: 120000
+      write_timeout: 120000
+      read_timeout: 120000
+      protocol: https
+
+    # Policy service
+    policy:
+      host: policy-service
+      port: 3005
+      path: /api/v1/policies
+      retries: 3
+      connect_timeout: 60000
+      write_timeout: 60000
+      read_timeout: 60000
+      protocol: https
+
+# Health probe configurations
+probes:
+  liveness:
+    httpGet:
+      path: /health
+      port: 8100
+      scheme: HTTPS
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+    successThreshold: 1
+  readiness:
+    httpGet:
+      path: /health
+      port: 8100
+      scheme: HTTPS
+    initialDelaySeconds: 20
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+    successThreshold: 1
+  startup:
+    httpGet:
+      path: /health
+      port: 8100
+      scheme: HTTPS
+    initialDelaySeconds: 10
+    periodSeconds: 5
+    timeoutSeconds: 5
+    failureThreshold: 30
+    successThreshold: 1
