@@ -1,0 +1,40 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "auth-service.fullname" . }}
+  labels:
+    {{- include "auth-service.labels" . | nindent 4 }}
+  annotations:
+    # Prometheus monitoring annotations
+    prometheus.io/scrape: "{{ .Values.monitoring.enabled }}"
+    prometheus.io/port: "{{ .Values.service.port }}"
+    prometheus.io/path: "/metrics"
+    # Istio service mesh integration
+    sidecar.istio.io/inject: "true"
+    # Service mesh telemetry
+    service.istio.io/canonical-name: {{ include "auth-service.name" . }}
+    service.istio.io/canonical-revision: "{{ .Values.image.tag }}"
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: {{ .Values.service.targetPort }}
+      protocol: {{ .Values.service.protocol }}
+      name: {{ .Values.service.name }}
+      # Add health check port for probes
+      {{- if .Values.probes }}
+    - port: {{ .Values.service.port }}
+      targetPort: {{ .Values.service.targetPort }}
+      protocol: TCP
+      name: health
+      {{- end }}
+  selector:
+    app.kubernetes.io/name: {{ include "auth-service.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/component: auth-service
+    app.kubernetes.io/part-of: onboarding-portal
+  # Enable session affinity for stateful auth sessions
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 10800 # 3 hour timeout
