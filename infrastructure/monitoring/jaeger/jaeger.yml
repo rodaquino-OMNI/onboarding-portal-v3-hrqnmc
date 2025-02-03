@@ -1,0 +1,143 @@
+# Jaeger Distributed Tracing Configuration v1.45.0
+# Implements distributed tracing for AUSTA Health Plan Onboarding Portal
+# with Elasticsearch storage and OAuth security integration
+
+apiVersion: jaegertracing.io/v1
+kind: Jaeger
+metadata:
+  name: austa-jaeger
+  namespace: monitoring
+  labels:
+    app: austa-jaeger
+    component: tracing
+spec:
+  strategy: production
+  
+  # Storage configuration using Elasticsearch
+  storage:
+    type: elasticsearch
+    options:
+      es.server-urls: http://elasticsearch:9200
+      es.index-prefix: austa-jaeger
+      es.num-shards: "5"
+      es.num-replicas: "1"
+      es.retention: "7d"
+
+  # Collector configuration with autoscaling
+  collector:
+    replicas: 2
+    resources:
+      limits:
+        cpu: "1"
+        memory: 1Gi
+      requests:
+        cpu: 500m
+        memory: 512Mi
+    autoscaling:
+      enabled: true
+      minReplicas: 2
+      maxReplicas: 5
+      targetCPUUtilizationPercentage: 80
+
+  # Query service configuration
+  query:
+    replicas: 2
+    resources:
+      limits:
+        cpu: 500m
+        memory: 512Mi
+      requests:
+        cpu: 250m
+        memory: 256Mi
+
+  # Agent configuration as DaemonSet
+  agent:
+    strategy: DaemonSet
+    resources:
+      limits:
+        cpu: 200m
+        memory: 256Mi
+      requests:
+        cpu: 100m
+        memory: 128Mi
+
+  # Ingress configuration with OAuth proxy
+  ingress:
+    enabled: true
+    security: oauth-proxy
+    annotations:
+      kubernetes.io/ingress.class: nginx
+      nginx.ingress.kubernetes.io/ssl-redirect: "true"
+      nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+      nginx.ingress.kubernetes.io/backend-protocol: HTTPS
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+
+  # Sampling configuration with focus on critical operations
+  sampling:
+    type: probabilistic
+    param: 1.0
+    operationStrategies:
+      - operation: health.assessment
+        probabilistic:
+          samplingRate: 1.0
+      - operation: document.upload
+        probabilistic:
+          samplingRate: 1.0
+
+  # Security configuration with TLS and OAuth
+  security:
+    tls:
+      enabled: true
+      ca: austa-ca
+      cert: austa-jaeger-tls
+    oauth:
+      enabled: true
+      clientId: ${OAUTH_CLIENT_ID}
+      clientSecret: ${OAUTH_CLIENT_SECRET}
+      cookieSecret: ${COOKIE_SECRET}
+
+---
+# Service Account for Jaeger components
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: jaeger-sa
+  namespace: monitoring
+  annotations:
+    azure.workload.identity/client-id: ${JAEGER_CLIENT_ID}
+    azure.workload.identity/tenant-id: ${AZURE_TENANT_ID}
+    security.austa.local/audit-enabled: "true"
+
+---
+# Role for Jaeger components
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: jaeger-role
+  namespace: monitoring
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "services", "endpoints"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["apps"]
+    resources: ["deployments", "daemonsets"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["monitoring.coreos.com"]
+    resources: ["servicemonitors"]
+    verbs: ["get", "create"]
+
+---
+# Role Binding for Jaeger
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: jaeger-binding
+  namespace: monitoring
+subjects:
+  - kind: ServiceAccount
+    name: jaeger-sa
+    namespace: monitoring
+roleRef:
+  kind: Role
+  name: jaeger-role
+  apiGroup: rbac.authorization.k8s.io
