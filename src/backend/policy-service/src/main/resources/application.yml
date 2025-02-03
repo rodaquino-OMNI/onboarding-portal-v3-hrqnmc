@@ -1,0 +1,150 @@
+# Spring Boot application configuration for Policy Service
+# Version: 3.0.0 (spring-boot-starter-web, spring-boot-starter-data-jpa, spring-boot-starter-cache)
+# Version: 4.0.0 (spring-cloud-starter-netflix-eureka-client)
+
+spring:
+  application:
+    name: policy-service
+
+  # Database Configuration with Enhanced Security and Performance
+  datasource:
+    url: ${POSTGRES_URL:jdbc:postgresql://localhost:5432/austa_health}
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      idle-timeout: 300000
+      connection-timeout: 20000
+      max-lifetime: 1200000
+      validation-timeout: 5000
+      leak-detection-threshold: 60000
+
+  # JPA Configuration with Optimized Performance Settings
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        jdbc:
+          batch_size: 50
+        order_inserts: true
+        order_updates: true
+        generate_statistics: true
+        cache:
+          use_second_level_cache: true
+          region:
+            factory_class: org.hibernate.cache.redis.hibernate.RedisRegionFactory
+
+  # Redis Cache Configuration
+  cache:
+    type: redis
+    redis:
+      time-to-live: 900000
+      cache-null-values: false
+      use-key-prefix: true
+      key-prefix: "policy:"
+      enable-statistics: true
+
+  # Redis Connection Settings
+  redis:
+    host: ${REDIS_HOST:localhost}
+    port: ${REDIS_PORT:6379}
+    password: ${REDIS_PASSWORD}
+    timeout: 2000
+    ssl: true
+    database: 0
+    lettuce:
+      pool:
+        max-active: 8
+        max-idle: 8
+        min-idle: 2
+        max-wait: 1000
+
+  # Security Configuration
+  security:
+    require-ssl: true
+    encryption:
+      key-store-location: classpath:keystore.jks
+      key-store-password: ${KEYSTORE_PASSWORD}
+      key-alias: policy-service
+      key-password: ${KEY_PASSWORD}
+
+# Service Discovery Configuration
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: ${EUREKA_URL:http://localhost:8761/eureka}
+    register-with-eureka: true
+    fetch-registry: true
+    registry-fetch-interval-seconds: 30
+  instance:
+    prefer-ip-address: true
+    lease-renewal-interval-in-seconds: 30
+    lease-expiration-duration-in-seconds: 90
+    metadata-map:
+      instanceId: ${spring.application.name}:${random.value}
+
+# Monitoring and Management Configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,metrics,prometheus,info,cache
+    health:
+      show-details: always
+  metrics:
+    tags:
+      application: policy-service
+    export:
+      prometheus:
+        enabled: true
+  info:
+    git:
+      mode: full
+
+# Resilience Patterns Configuration
+resilience4j:
+  circuitbreaker:
+    instances:
+      policyService:
+        failureRateThreshold: 50
+        waitDurationInOpenState: 30s
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        eventConsumerBufferSize: 10
+  retry:
+    instances:
+      policyService:
+        maxAttempts: 3
+        waitDuration: 1s
+        enableExponentialBackoff: true
+        exponentialBackoffMultiplier: 2
+        retryExceptions:
+          - org.springframework.web.client.ResourceAccessException
+          - java.util.concurrent.TimeoutException
+  bulkhead:
+    instances:
+      policyService:
+        maxConcurrentCalls: 20
+        maxWaitDuration: 1s
+
+# Logging Configuration
+logging:
+  level:
+    root: INFO
+    com.austa.policy: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: logs/policy-service.log
+    max-size: 10MB
+    max-history: 30
