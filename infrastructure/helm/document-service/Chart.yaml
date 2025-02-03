@@ -1,0 +1,46 @@
+apiVersion: v2
+name: document-service
+description: Helm chart for AUSTA Health Plan document service
+type: application
+version: 1.0.0
+appVersion: 1.0.0
+
+# Dependencies section
+dependencies:
+  - name: minio
+    version: 12.0.0
+    repository: https://charts.bitnami.com/bitnami
+    condition: minio.enabled
+  - name: redis
+    version: 17.0.0
+    repository: https://charts.bitnami.com/bitnami
+    condition: redis.enabled
+
+# Maintainers information
+maintainers:
+  - name: AUSTA Health
+    email: devops@austa.health
+
+# Keywords for chart discovery
+keywords:
+  - document-service
+  - health-plan
+  - storage
+  - ocr
+
+# Template engine
+engine: gotpl
+
+# Additional annotations
+annotations:
+  category: Application
+  licenses: Apache-2.0
+  support: https://austa.health/support
+
+# Home URL and documentation
+home: https://austa.health
+sources:
+  - https://github.com/austa/document-service
+
+# Minimum Kubernetes version
+kubeVersion: ">=1.19.0-0"
