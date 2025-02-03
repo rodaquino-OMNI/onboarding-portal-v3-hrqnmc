@@ -1,0 +1,40 @@
+apiVersion: v2
+name: policy-service
+description: Helm chart for the Policy Service microservice in the Pre-paid Health Plan Onboarding Portal, managing policy lifecycle, underwriting decisions, and integration with AUSTA's healthcare ecosystem
+type: application
+version: 1.0.0
+appVersion: 1.0.0
+
+# Dependencies
+dependencies:
+  - name: common
+    repository: https://charts.bitnami.com/bitnami
+    version: 2.x.x
+    condition: common.enabled
+
+# Keywords for chart discovery and categorization
+keywords:
+  - policy
+  - health-plan
+  - microservice
+  - java
+  - spring-boot
+  - austa-health
+  - policy-management
+  - underwriting
+  - healthcare
+
+# Maintainer information
+maintainers:
+  - name: AUSTA Health DevOps Team
+    email: devops@austa.health
+
+# Additional metadata annotations
+annotations:
+  artifacthub.io/changes: Initial release of Policy Service Helm chart with production-grade configuration
+  artifacthub.io/containsSecurityUpdates: "false"
+  artifacthub.io/prerelease: "false"
+  artifacthub.io/license: Apache-2.0
+  artifacthub.io/recommendations: "true"
+  artifacthub.io/signKey: "fingerprint: 0123456789ABCDEF"
+  deployment.kubernetes.io/revision: "1"
