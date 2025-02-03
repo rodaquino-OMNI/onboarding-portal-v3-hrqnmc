@@ -1,0 +1,70 @@
+apiVersion: v2
+name: auth-service
+description: Authentication Service for Pre-paid Health Plan Onboarding Portal with LGPD compliance, MFA support, and comprehensive security features. Provides secure user authentication, authorization, session management, and integration with AUSTA's healthcare ecosystem.
+
+# Chart type and version information
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+kubeVersion: ">=1.27.0"
+
+# Maintainer information
+maintainers:
+  - name: AUSTA Health
+    email: devops@austa.health
+
+# Keywords for chart discovery and categorization
+keywords:
+  - authentication
+  - authorization
+  - security
+  - healthcare
+  - lgpd-compliant
+  - mfa
+  - oauth2
+  - jwt
+  - high-availability
+
+# Chart dependencies with specific versions
+dependencies:
+  - name: nginx-ingress
+    version: 4.7.1
+    repository: https://kubernetes.github.io/ingress-nginx
+    condition: ingress.enabled
+    tags:
+      - routing
+      - security
+
+  - name: prometheus-operator
+    version: 51.2.0
+    repository: https://prometheus-community.github.io/helm-charts
+    condition: metrics.enabled
+    tags:
+      - monitoring
+      - observability
+
+  - name: cert-manager
+    version: 1.12.3
+    repository: https://charts.jetstack.io
+    condition: tls.enabled
+    tags:
+      - security
+      - certificates
+
+# Annotations for additional metadata
+annotations:
+  category: Security
+  compliance: LGPD
+  deploymentType: StatefulSet
+  securityTier: Critical
+  availabilityTarget: "99.9"
+  componentType: Authentication
+  partOf: health-portal
+
+# Home URL and documentation references
+home: https://austa.health/auth-service
+sources:
+  - https://github.com/austa/health-portal/auth-service
+
+# Icon for visual identification
+icon: https://austa.health/icons/auth-service.png
