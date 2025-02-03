@@ -1,0 +1,187 @@
+name: Continuous Deployment
+
+on:
+  workflow_run:
+    workflows: ["CI", "Security Scan"]
+    types:
+      - completed
+    branches: [main, develop]
+
+env:
+  AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
+  AZURE_SUBSCRIPTION: ${{ secrets.AZURE_SUBSCRIPTION }}
+  REGISTRY_LOGIN_SERVER: ${{ secrets.REGISTRY_LOGIN_SERVER }}
+  REGISTRY_USERNAME: ${{ secrets.REGISTRY_USERNAME }}
+  REGISTRY_PASSWORD: ${{ secrets.REGISTRY_PASSWORD }}
+  TERRAFORM_STATE_ACCESS_KEY: ${{ secrets.TERRAFORM_STATE_ACCESS_KEY }}
+
+jobs:
+  deploy_staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    environment: staging
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Azure login
+        uses: azure/login@v1
+        with:
+          creds: ${{ env.AZURE_CREDENTIALS }}
+
+      - name: Set AKS context
+        uses: azure/aks-set-context@v3
+        with:
+          resource-group: austa-health-staging-rg
+          cluster-name: austa-health-staging-aks
+          subscription: ${{ env.AZURE_SUBSCRIPTION }}
+
+      - name: Setup Helm
+        uses: helm/kind-action@v1
+        with:
+          version: v3.12.3
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.5.7
+
+      - name: Deploy Blue Environment
+        uses: azure/k8s-deploy@v4
+        with:
+          namespace: staging-blue
+          manifests: |
+            infrastructure/k8s/staging/
+          images: |
+            ${{ env.REGISTRY_LOGIN_SERVER }}/auth-service:${{ github.sha }}
+            ${{ env.REGISTRY_LOGIN_SERVER }}/health-service:${{ github.sha }}
+            ${{ env.REGISTRY_LOGIN_SERVER }}/enrollment-service:${{ github.sha }}
+            ${{ env.REGISTRY_LOGIN_SERVER }}/policy-service:${{ github.sha }}
+            ${{ env.REGISTRY_LOGIN_SERVER }}/document-service:${{ github.sha }}
+          strategy: blue-green
+          timeout: 5m
+
+      - name: Run Health Checks
+        run: |
+          for i in {1..30}; do
+            if curl -s https://staging-blue.austa-health.com.br/health | grep -q '"status":"UP"'; then
+              echo "Health check passed"
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "Health check failed"
+          exit 1
+
+      - name: Validate LGPD Compliance
+        run: |
+          chmod +x ./scripts/validate-lgpd-compliance.sh
+          ./scripts/validate-lgpd-compliance.sh staging-blue
+
+      - name: Switch Traffic
+        if: success()
+        uses: azure/k8s-deploy@v4
+        with:
+          namespace: staging
+          manifests: |
+            infrastructure/k8s/staging/ingress.yaml
+          images: |
+            ${{ env.REGISTRY_LOGIN_SERVER }}/api-gateway:${{ github.sha }}
+          strategy: blue-green
+          route-method: istio
+          percentage: 100
+
+      - name: Cleanup Green Environment
+        if: success()
+        run: |
+          kubectl delete namespace staging-green --ignore-not-found
+
+  deploy_production:
+    name: Deploy to Production
+    needs: deploy_staging
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Azure login
+        uses: azure/login@v1
+        with:
+          creds: ${{ env.AZURE_CREDENTIALS }}
+
+      - name: Set AKS context
+        uses: azure/aks-set-context@v3
+        with:
+          resource-group: austa-health-prod-rg
+          cluster-name: austa-health-prod-aks
+          subscription: ${{ env.AZURE_SUBSCRIPTION }}
+
+      - name: Deploy Canary (10%)
+        uses: azure/k8s-deploy@v4
+        with:
+          namespace: production
+          manifests: |
+            infrastructure/k8s/production/
+          images: |
+            ${{ env.REGISTRY_LOGIN_SERVER }}/auth-service:${{ github.sha }}
+            ${{ env.REGISTRY_LOGIN_SERVER }}/health-service:${{ github.sha }}
+            ${{ env.REGISTRY_LOGIN_SERVER }}/enrollment-service:${{ github.sha }}
+            ${{ env.REGISTRY_LOGIN_SERVER }}/policy-service:${{ github.sha }}
+            ${{ env.REGISTRY_LOGIN_SERVER }}/document-service:${{ github.sha }}
+          strategy: canary
+          percentage: 10
+          timeout: 10m
+
+      - name: Monitor Canary Health
+        run: |
+          ./scripts/monitor-canary-health.sh 10
+          ./scripts/validate-error-rates.sh 10
+
+      - name: Deploy Canary (50%)
+        if: success()
+        uses: azure/k8s-deploy@v4
+        with:
+          namespace: production
+          manifests: |
+            infrastructure/k8s/production/
+          strategy: canary
+          percentage: 50
+          timeout: 10m
+
+      - name: Monitor Canary Health (50%)
+        run: |
+          ./scripts/monitor-canary-health.sh 50
+          ./scripts/validate-error-rates.sh 50
+
+      - name: Complete Rollout
+        if: success()
+        uses: azure/k8s-deploy@v4
+        with:
+          namespace: production
+          manifests: |
+            infrastructure/k8s/production/
+          strategy: canary
+          percentage: 100
+          timeout: 15m
+
+      - name: Verify Production Health
+        run: |
+          ./scripts/verify-production-health.sh
+          ./scripts/validate-lgpd-compliance.sh production
+
+      - name: Update Deployment Status
+        if: always()
+        run: |
+          if [ "${{ job.status }}" = "success" ]; then
+            echo "Deployment completed successfully"
+            ./scripts/notify-deployment-success.sh
+          else
+            echo "Deployment failed"
+            ./scripts/notify-deployment-failure.sh
+            ./scripts/trigger-rollback.sh
+            exit 1
+          fi
