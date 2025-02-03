@@ -1,0 +1,38 @@
+apiVersion: v2
+name: enrollment-service
+description: Helm chart for AUSTA Health Plan Enrollment Service providing secure, scalable, and highly available enrollment processing
+type: application
+version: 1.0.0
+appVersion: 1.0.0
+
+# Dependencies required for the enrollment service
+dependencies:
+  - name: postgresql
+    version: 12.5.3
+    repository: https://charts.bitnami.com/bitnami
+    condition: postgresql.enabled
+  - name: redis
+    version: 17.11.3
+    repository: https://charts.bitnami.com/bitnami
+    condition: redis.enabled
+
+# Chart metadata
+maintainers:
+  - name: AUSTA Health
+    email: devops@austa.health
+
+keywords:
+  - enrollment
+  - healthcare
+  - spring-boot
+  - java
+  - austa-health
+  - high-availability
+
+home: https://github.com/austa/health-plan-onboarding
+sources:
+  - https://github.com/austa/health-plan-onboarding
+
+# Helm and Kubernetes version requirements
+engine: ">=3.12.0"
+kubeVersion: ">=1.19.0"
