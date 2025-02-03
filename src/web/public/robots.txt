@@ -1,0 +1,49 @@
+# Version: 1.0
+# Last Updated: 2024
+
+# Default rules for all crawlers
+User-agent: *
+# Protect sensitive routes and API endpoints
+Disallow: /api/
+Disallow: /admin/
+Disallow: /broker/
+Disallow: /underwriter/
+Disallow: /beneficiary/
+Disallow: /hr/
+Disallow: /auth/
+Disallow: /health/
+Disallow: /documents/
+Disallow: /payment/
+Disallow: /profile/
+Disallow: /enrollment/
+Disallow: /questionnaire/
+# Allow public informational pages
+Allow: /
+Allow: /about
+Allow: /contact
+Allow: /terms
+Allow: /privacy
+Allow: /faq
+Allow: /plans
+Allow: /support
+# Conservative rate limiting
+Crawl-delay: 10
+
+# Specific rules for Googlebot
+User-agent: Googlebot
+Disallow: /api/
+Disallow: /admin/
+Disallow: /broker/
+Disallow: /underwriter/
+Disallow: /beneficiary/
+Disallow: /hr/
+Disallow: /auth/
+Disallow: /health/
+Disallow: /documents/
+Disallow: /payment/
+Disallow: /profile/
+Disallow: /enrollment/
+Disallow: /questionnaire/
+
+# XML Sitemap location
+Sitemap: https://onboarding.austa.health/sitemap.xml
