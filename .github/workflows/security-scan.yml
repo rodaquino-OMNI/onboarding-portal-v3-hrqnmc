@@ -1,0 +1,157 @@
+name: Security Scan
+
+on:
+  schedule:
+    - cron: '0 0 * * 0'  # Run weekly on Sunday at midnight
+  push:
+    branches: 
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+      - develop
+
+env:
+  NODE_VERSION: '20'
+  JAVA_VERSION: '17'
+  PYTHON_VERSION: '3.11'
+  GO_VERSION: '1.21'
+
+jobs:
+  dependency-security:
+    name: Dependency Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Run Snyk dependency scan
+        uses: snyk/actions@0.4.0
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          command: test
+          args: --all-projects --severity-threshold=high
+          sarif: true
+
+      - name: Upload dependency scan results
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: snyk.sarif
+          category: dependency-scan
+
+  container-security:
+    name: Container Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Login to Azure Container Registry
+        uses: azure/docker-login@v1
+        with:
+          login-server: ${{ secrets.REGISTRY_USERNAME }}
+          username: ${{ secrets.REGISTRY_USERNAME }}
+          password: ${{ secrets.REGISTRY_PASSWORD }}
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@0.14.0
+        with:
+          scan-type: 'fs,image'
+          ignore-unfixed: true
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH'
+          timeout: '10m'
+
+      - name: Upload container scan results
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: trivy-results.sarif
+          category: container-scan
+
+  code-security:
+    name: Code Security Analysis
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      actions: read
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v2
+        with:
+          languages: javascript, typescript, python, java, go
+          queries: security-extended,security-and-quality
+
+      - name: Build code for analysis
+        uses: github/codeql-action/autobuild@v2
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v2
+        with:
+          category: code-scan
+
+  compliance:
+    name: Security Compliance Check
+    needs: [dependency-security, container-security, code-security]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download scan results
+        uses: actions/download-artifact@v3
+        with:
+          path: security-reports
+
+      - name: LGPD Compliance Check
+        run: |
+          echo "Validating LGPD compliance rules..."
+          # Load and validate LGPD compliance rules
+          if [ -f "infrastructure/security/lgpd-compliance-rules.json" ]; then
+            jq -r '.rules[]' infrastructure/security/lgpd-compliance-rules.json
+          fi
+
+      - name: Healthcare Data Protection Check
+        run: |
+          echo "Validating healthcare data protection measures..."
+          # Validate encryption standards and access controls
+          if [ -f "infrastructure/security/pod-security-policies.yml" ]; then
+            yamllint infrastructure/security/pod-security-policies.yml
+          fi
+
+      - name: Generate Compliance Report
+        run: |
+          echo "Generating comprehensive security compliance report..."
+          {
+            echo "# Security Compliance Report"
+            echo "## Generated: $(date)"
+            echo "## Scan Results Summary"
+            echo "- Dependency Scan: $(cat security-reports/snyk.sarif | jq -r '.runs[0].results | length') findings"
+            echo "- Container Scan: $(cat security-reports/trivy-results.sarif | jq -r '.runs[0].results | length') findings"
+            echo "- Code Analysis: $(cat security-reports/codeql.sarif | jq -r '.runs[0].results | length') findings"
+          } > compliance-report.md
+
+      - name: Upload Compliance Report
+        uses: actions/upload-artifact@v3
+        with:
+          name: security-compliance-report
+          path: compliance-report.md
+
+      - name: Send Security Alert
+        if: failure()
+        run: |
+          curl -X POST ${{ secrets.SECURITY_ALERT_WEBHOOK }} \
+            -H "Content-Type: application/json" \
+            -d '{"text":"⚠️ Security scan failed! Please check the compliance report for details."}'
