@@ -1,0 +1,116 @@
+node_modules
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+
+# Python
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+.pytest_cache
+.coverage
+htmlcov
+pytest.ini
+mypy.ini
+*.egg-info
+
+# Java/Gradle
+.gradle/
+gradle/
+build/
+target/
+*.jar
+gradlew
+gradlew.bat
+build.gradle
+settings.gradle
+.mvn/
+
+# Go
+vendor/
+*.exe
+*.test
+go.sum
+go.mod
+Makefile
+
+# IDE
+.vscode/
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# Build outputs
+dist/
+build/
+target/
+
+# Development artifacts
+.git/
+.gitignore
+.env
+.env.*
+*.log
+coverage/
+**/tests/
+**/*.test.*
+**/__tests__/
+
+# Documentation
+*.md
+README*
+CHANGELOG*
+LICENSE*
+
+# Docker
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# Auth Service specific
+auth-service/coverage/
+auth-service/*.js.map
+auth-service/*.d.ts
+auth-service/jest.config.js
+auth-service/tsconfig.json
+auth-service/tsconfig.build.json
+
+# Health Service specific
+health-service/.pytest_cache/
+health-service/.coverage
+health-service/htmlcov/
+health-service/pytest.ini
+health-service/mypy.ini
+health-service/*.egg-info
+
+# Enrollment Service specific
+enrollment-service/.gradle/
+enrollment-service/gradle/
+enrollment-service/*.jar
+enrollment-service/gradlew*
+enrollment-service/build.gradle
+enrollment-service/settings.gradle
+
+# Policy Service specific
+policy-service/.gradle/
+policy-service/gradle/
+policy-service/*.jar
+policy-service/gradlew*
+policy-service/build.gradle
+policy-service/settings.gradle
+
+# Document Service specific
+document-service/vendor/
+document-service/*.exe
+document-service/*.test
+document-service/go.sum
+document-service/go.mod
+document-service/Makefile
+
+# System files
+.DS_Store
+**/.DS_Store
+Thumbs.db
