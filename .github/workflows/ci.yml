@@ -1,0 +1,205 @@
+name: Continuous Integration
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+env:
+  NODE_VERSION: '20.x'
+  JAVA_VERSION: '17'
+  GO_VERSION: '1.21'
+  PYTHON_VERSION: '3.11'
+
+jobs:
+  setup:
+    name: Setup Environment
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: 'maven'
+
+      - name: Setup Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+  build:
+    needs: setup
+    name: Build Services
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: [auth, health, enrollment, policy, document, web]
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Cache Dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            **/node_modules
+            ~/.m2/repository
+            ~/.cache/pip
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-${{ matrix.service }}-${{ hashFiles('**/package-lock.json', '**/pom.xml', '**/requirements.txt', '**/go.sum') }}
+
+      - name: Install Dependencies
+        run: |
+          if [ "${{ matrix.service }}" = "web" ]; then
+            cd src/web
+            npm ci
+          else
+            cd src/backend
+            npm ci
+          fi
+
+      - name: Build Service
+        run: |
+          if [ "${{ matrix.service }}" = "web" ]; then
+            cd src/web
+            npm run build
+          else
+            cd src/backend
+            npm run build
+          fi
+
+      - name: Cache Build Artifacts
+        uses: actions/cache@v3
+        with:
+          path: |
+            src/web/dist
+            src/backend/dist
+          key: build-${{ github.sha }}-${{ matrix.service }}
+
+  test:
+    needs: build
+    name: Run Tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: [auth, health, enrollment, policy, document, web]
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Restore Build Cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            src/web/dist
+            src/backend/dist
+          key: build-${{ github.sha }}-${{ matrix.service }}
+
+      - name: Run Tests
+        run: |
+          if [ "${{ matrix.service }}" = "web" ]; then
+            cd src/web
+            npm ci
+            npm run test:coverage
+          else
+            cd src/backend
+            npm ci
+            npm run test:ci
+          fi
+
+      - name: Upload Coverage Reports
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage-${{ matrix.service }}
+          path: |
+            src/web/coverage
+            src/backend/coverage
+
+  analyze:
+    needs: test
+    name: Code Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Download Coverage Reports
+        uses: actions/download-artifact@v3
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@v1.9
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+      - name: Security Scan Backend
+        uses: snyk/actions/node@v3
+        with:
+          args: --all-projects
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+      - name: Security Scan Frontend
+        uses: snyk/actions/node@v3
+        with:
+          command: test
+          args: --severity-threshold=high
+          file: ./src/web/package.json
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+      - name: Check Quality Gates
+        run: |
+          if [ -f ".scannerwork/report-task.txt" ]; then
+            SONAR_CE_TASK=$(cat .scannerwork/report-task.txt | grep "ceTaskId" | cut -d'=' -f2)
+            curl -u ${{ secrets.SONAR_TOKEN }}: \
+              "https://sonarcloud.io/api/qualitygates/project_status?analysisId=$SONAR_CE_TASK" \
+              -o quality_gates_response.json
+
+            QUALITY_GATE_STATUS=$(cat quality_gates_response.json | jq -r '.projectStatus.status')
+            
+            if [ "$QUALITY_GATE_STATUS" != "OK" ]; then
+              echo "Quality Gate failed!"
+              exit 1
+            fi
+          fi
+
+  notify:
+    needs: [analyze]
+    name: Notification
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Check Build Status
+        if: ${{ needs.analyze.result != 'success' }}
+        run: exit 1
