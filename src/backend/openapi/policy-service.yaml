@@ -1,0 +1,423 @@
+openapi: 3.0.3
+info:
+  title: AUSTA Pre-paid Health Plan Policy Service API
+  description: |
+    API specification for the Policy Service component of AUSTA's Pre-paid Health Plan Onboarding Portal.
+    Implements secure policy management with LGPD compliance and performance monitoring.
+  version: 1.0.0
+  contact:
+    name: AUSTA Healthcare Technology Team
+    email: tech@austa.health
+  license:
+    name: Proprietary
+    
+servers:
+  - url: https://api.austa.health/v1
+    description: Production environment
+  - url: https://staging-api.austa.health/v1
+    description: Staging environment
+
+security:
+  - BearerAuth: []
+  - RolesAllowed: []
+
+paths:
+  /policies:
+    post:
+      summary: Create new policy
+      description: Creates a new policy based on enrollment and health assessment data
+      operationId: createPolicy
+      security:
+        - BearerAuth: []
+        - RolesAllowed: ['ROLE_UNDERWRITER']
+      tags:
+        - Policy Management
+      parameters:
+        - name: X-LGPD-Consent
+          in: header
+          required: true
+          schema:
+            type: boolean
+        - name: X-Correlation-ID
+          in: header
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PolicyRequest'
+      responses:
+        '201':
+          description: Policy created successfully
+          headers:
+            X-Response-Time:
+              schema:
+                type: integer
+                description: Response time in milliseconds
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Policy'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /policies/{policyId}:
+    get:
+      summary: Retrieve policy details
+      description: Retrieves detailed information about a specific policy
+      operationId: getPolicy
+      security:
+        - BearerAuth: []
+        - RolesAllowed: ['ROLE_UNDERWRITER', 'ROLE_BROKER', 'ROLE_BENEFICIARY']
+      tags:
+        - Policy Management
+      parameters:
+        - name: policyId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: X-LGPD-Consent
+          in: header
+          required: true
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Policy details retrieved successfully
+          headers:
+            X-Response-Time:
+              schema:
+                type: integer
+            X-Data-Retention:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Policy'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /policies/{policyId}/status:
+    patch:
+      summary: Update policy status
+      description: Updates the status of an existing policy
+      operationId: updatePolicyStatus
+      security:
+        - BearerAuth: []
+        - RolesAllowed: ['ROLE_UNDERWRITER']
+      tags:
+        - Policy Management
+      parameters:
+        - name: policyId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StatusUpdateRequest'
+      responses:
+        '204':
+          description: Policy status updated successfully
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /policies/{policyId}/underwriting:
+    post:
+      summary: Process underwriting decision
+      description: Records underwriting decision for a policy
+      operationId: processUnderwritingDecision
+      security:
+        - BearerAuth: []
+        - RolesAllowed: ['ROLE_UNDERWRITER']
+      tags:
+        - Policy Management
+      parameters:
+        - name: policyId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UnderwritingDecision'
+      responses:
+        '200':
+          description: Underwriting decision processed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Policy'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /policies/pending:
+    get:
+      summary: Retrieve pending policies
+      description: Retrieves a paginated list of policies pending underwriting review
+      operationId: getPendingPolicies
+      security:
+        - BearerAuth: []
+        - RolesAllowed: ['ROLE_UNDERWRITER']
+      tags:
+        - Policy Management
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - name: size
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        '200':
+          description: List of pending policies retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  content:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Policy'
+                  totalElements:
+                    type: integer
+                  totalPages:
+                    type: integer
+                  pageNumber:
+                    type: integer
+                  pageSize:
+                    type: integer
+
+components:
+  schemas:
+    Policy:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        enrollmentId:
+          type: string
+          format: uuid
+        policyNumber:
+          type: string
+        status:
+          type: string
+          enum: [DRAFT, PENDING_ACTIVATION, ACTIVE, SUSPENDED, CANCELLED, EXPIRED, PENDING_RENEWAL]
+        monthlyPremium:
+          type: number
+          format: decimal
+        coverageDetails:
+          type: object
+          additionalProperties: true
+        waitingPeriods:
+          type: object
+          additionalProperties: true
+        exclusions:
+          type: object
+          additionalProperties: true
+        effectiveDate:
+          type: string
+          format: date-time
+        expiryDate:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        lgpdConsent:
+          type: boolean
+        dataRetentionPeriod:
+          type: string
+        privacyPolicyVersion:
+          type: string
+      required:
+        - enrollmentId
+        - status
+        - monthlyPremium
+        - effectiveDate
+        - lgpdConsent
+
+    PolicyRequest:
+      type: object
+      properties:
+        enrollmentId:
+          type: string
+          format: uuid
+        healthAssessment:
+          type: object
+          additionalProperties: true
+      required:
+        - enrollmentId
+        - healthAssessment
+
+    UnderwritingDecision:
+      type: object
+      properties:
+        decision:
+          type: string
+          enum: [APPROVED, REJECTED, PENDING_DOCUMENTS]
+        coverageModifications:
+          type: object
+          additionalProperties: true
+        waitingPeriods:
+          type: object
+          additionalProperties: true
+        exclusions:
+          type: array
+          items:
+            type: string
+        notes:
+          type: string
+      required:
+        - decision
+
+    StatusUpdateRequest:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [PENDING_ACTIVATION, ACTIVE, SUSPENDED, CANCELLED, EXPIRED, PENDING_RENEWAL]
+        reason:
+          type: string
+      required:
+        - status
+
+  responses:
+    BadRequest:
+      description: Invalid request parameters
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    Forbidden:
+      description: Insufficient permissions
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    Conflict:
+      description: Resource state conflict
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    TooManyRequests:
+      description: Rate limit exceeded
+      headers:
+        X-RateLimit-Limit:
+          schema:
+            type: integer
+        X-RateLimit-Remaining:
+          schema:
+            type: integer
+        X-RateLimit-Reset:
+          schema:
+            type: integer
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    InternalError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        details:
+          type: object
+          additionalProperties: true
+        traceId:
+          type: string
+      required:
+        - code
+        - message
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    RolesAllowed:
+      type: oauth2
+      flows:
+        implicit:
+          authorizationUrl: https://auth.austa.health/oauth2/authorize
+          scopes:
+            ROLE_BROKER: Broker access with rate limit 1000/hour
+            ROLE_UNDERWRITER: Underwriter access with rate limit 2000/hour
+            ROLE_BENEFICIARY: Beneficiary access with rate limit 100/hour
+
+tags:
+  - name: Policy Management
+    description: Endpoints for managing health insurance policies
