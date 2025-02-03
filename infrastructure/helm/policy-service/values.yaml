@@ -1,0 +1,137 @@
+# Helm values configuration for Policy Service
+# Version: 1.0.0
+
+# Number of Policy Service replicas to run
+replicaCount: 3
+
+# Container image configuration
+image:
+  repository: austa/policy-service
+  tag: latest
+  pullPolicy: Always
+
+# Container resource requirements based on Technical Specifications
+resources:
+  requests:
+    cpu: "2"
+    memory: "4Gi"
+  limits:
+    cpu: "2"
+    memory: "4Gi"
+
+# Horizontal pod autoscaling configuration
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 12
+  targetCPUUtilizationPercentage: 75
+  targetMemoryUtilizationPercentage: 75
+
+# Health check probe configuration
+probes:
+  liveness:
+    path: /actuator/health/liveness
+    port: 8080
+    initialDelaySeconds: 60
+    periodSeconds: 30
+    timeoutSeconds: 3
+    failureThreshold: 3
+  readiness:
+    path: /actuator/health/readiness
+    port: 8080
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 3
+    failureThreshold: 3
+
+# Kubernetes service configuration
+service:
+  type: ClusterIP
+  port: 8080
+  targetPort: 8080
+  protocol: TCP
+
+# Environment variables configuration
+env:
+  SPRING_PROFILES_ACTIVE: "prod"
+  JAVA_OPTS: "-XX:MaxRAMPercentage=75.0 -XX:+UseG1GC"
+
+# Pod security context configuration
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  readOnlyRootFilesystem: true
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+
+# Volume configuration
+volumes:
+  - name: tmp-volume
+    emptyDir: {}
+  - name: policy-config
+    configMap:
+      name: policy-config
+
+volumeMounts:
+  - name: tmp-volume
+    mountPath: /tmp
+  - name: policy-config
+    mountPath: /config
+    readOnly: true
+
+# Pod affinity configuration for high availability
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          labelSelector:
+            matchExpressions:
+              - key: app
+                operator: In
+                values:
+                  - policy-service
+          topologyKey: kubernetes.io/hostname
+
+# Prometheus monitoring configuration
+monitoring:
+  enabled: true
+  serviceMonitor:
+    enabled: true
+    path: /actuator/prometheus
+    port: 8080
+    interval: "30s"
+
+# Istio service mesh configuration
+istio:
+  enabled: true
+  mtls:
+    mode: "STRICT"
+
+# Pod disruption budget for availability
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 2
+
+# Update strategy
+updateStrategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxSurge: 1
+    maxUnavailable: 0
+
+# Pod metadata labels
+labels:
+  app: policy-service
+  version: v1
+  part-of: health-portal
+  managed-by: helm
+
+# Pod annotations
+annotations:
+  prometheus.io/scrape: "true"
+  prometheus.io/port: "8080"
+  prometheus.io/path: "/actuator/prometheus"
+  sidecar.istio.io/inject: "true"
