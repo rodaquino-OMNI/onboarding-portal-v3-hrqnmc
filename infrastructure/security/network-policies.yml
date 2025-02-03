@@ -1,0 +1,338 @@
+# Kubernetes NetworkPolicy resources v1.27+
+# Purpose: Define comprehensive network security and isolation rules for microservices
+# Implements zero-trust network security model with explicit allow rules
+
+---
+# Default deny-all policy to enforce zero-trust model
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: default
+  labels:
+    app.kubernetes.io/part-of: health-portal
+    security.austa.io/policy-type: network
+spec:
+  podSelector: {}  # Applies to all pods
+  policyTypes:
+    - Ingress
+    - Egress
+
+---
+# API Gateway network policy
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: api-gateway-policy
+  namespace: default
+  labels:
+    app.kubernetes.io/part-of: health-portal
+    security.austa.io/policy-type: network
+spec:
+  podSelector:
+    matchLabels:
+      app: api-gateway
+      security.austa.io/tier: frontend
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+            except:
+              - 10.0.0.0/8     # Private network exclusions
+              - 172.16.0.0/12
+              - 192.168.0.0/16
+      ports:
+        - port: 80
+          protocol: TCP
+        - port: 443
+          protocol: TCP
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              name: default
+              security.austa.io/tier: backend
+      ports:
+        - port: 8080
+          protocol: TCP
+        - port: 9090
+          protocol: TCP
+
+---
+# Health Service network policy (handles sensitive health data)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: health-service-policy
+  namespace: default
+  labels:
+    app.kubernetes.io/part-of: health-portal
+    security.austa.io/policy-type: network
+    security.austa.io/data-sensitivity: high
+spec:
+  podSelector:
+    matchLabels:
+      app: health-service
+      security.austa.io/tier: backend
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: api-gateway
+              security.austa.io/tier: frontend
+      ports:
+        - port: 8080
+          protocol: TCP
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app: enrollment-service
+              security.austa.io/tier: backend
+      ports:
+        - port: 8080
+          protocol: TCP
+
+---
+# Auth Service network policy
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: auth-service-policy
+  namespace: default
+  labels:
+    app.kubernetes.io/part-of: health-portal
+    security.austa.io/policy-type: network
+spec:
+  podSelector:
+    matchLabels:
+      app: auth-service
+      security.austa.io/tier: backend
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: api-gateway
+              security.austa.io/tier: frontend
+      ports:
+        - port: 8080
+          protocol: TCP
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app: enrollment-service
+              security.austa.io/tier: backend
+      ports:
+        - port: 8080
+          protocol: TCP
+
+---
+# Enrollment Service network policy
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: enrollment-service-policy
+  namespace: default
+  labels:
+    app.kubernetes.io/part-of: health-portal
+    security.austa.io/policy-type: network
+spec:
+  podSelector:
+    matchLabels:
+      app: enrollment-service
+      security.austa.io/tier: backend
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: api-gateway
+              security.austa.io/tier: frontend
+        - podSelector:
+            matchLabels:
+              app: health-service
+              security.austa.io/tier: backend
+      ports:
+        - port: 8080
+          protocol: TCP
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app: document-service
+              security.austa.io/tier: backend
+        - podSelector:
+            matchLabels:
+              app: policy-service
+              security.austa.io/tier: backend
+      ports:
+        - port: 8080
+          protocol: TCP
+
+---
+# Document Service network policy
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: document-service-policy
+  namespace: default
+  labels:
+    app.kubernetes.io/part-of: health-portal
+    security.austa.io/policy-type: network
+spec:
+  podSelector:
+    matchLabels:
+      app: document-service
+      security.austa.io/tier: backend
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: api-gateway
+              security.austa.io/tier: frontend
+        - podSelector:
+            matchLabels:
+              app: enrollment-service
+              security.austa.io/tier: backend
+      ports:
+        - port: 8080
+          protocol: TCP
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app: storage-service
+              security.austa.io/tier: backend
+      ports:
+        - port: 8080
+          protocol: TCP
+
+---
+# Policy Service network policy
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: policy-service-policy
+  namespace: default
+  labels:
+    app.kubernetes.io/part-of: health-portal
+    security.austa.io/policy-type: network
+spec:
+  podSelector:
+    matchLabels:
+      app: policy-service
+      security.austa.io/tier: backend
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: api-gateway
+              security.austa.io/tier: frontend
+        - podSelector:
+            matchLabels:
+              app: enrollment-service
+              security.austa.io/tier: backend
+      ports:
+        - port: 8080
+          protocol: TCP
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app: enrollment-service
+              security.austa.io/tier: backend
+      ports:
+        - port: 8080
+          protocol: TCP
+
+---
+# Allow DNS resolution for all pods
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-dns-policy
+  namespace: default
+  labels:
+    app.kubernetes.io/part-of: health-portal
+    security.austa.io/policy-type: network
+spec:
+  podSelector: {}
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              name: kube-system
+      ports:
+        - port: 53
+          protocol: UDP
+        - port: 53
+          protocol: TCP
+
+---
+# Allow metrics collection
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-metrics-policy
+  namespace: default
+  labels:
+    app.kubernetes.io/part-of: health-portal
+    security.austa.io/policy-type: network
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: monitoring
+      ports:
+        - port: 9090
+          protocol: TCP
+
+---
+# Allow Istio control plane communication
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-istio-control-policy
+  namespace: default
+  labels:
+    app.kubernetes.io/part-of: health-portal
+    security.austa.io/policy-type: network
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: istio-system
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              name: istio-system
