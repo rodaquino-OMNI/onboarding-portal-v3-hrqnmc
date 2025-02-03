@@ -1,0 +1,130 @@
+{
+  "common": {
+    "buttons": {
+      "submit": "Submit",
+      "cancel": "Cancel",
+      "back": "Previous Step",
+      "next": "Continue to Next Step",
+      "save": "Save Changes",
+      "delete": "Remove Item",
+      "upload": "Upload File",
+      "download": "Download File",
+      "view": "View Details",
+      "edit": "Modify Information",
+      "confirm": "Confirm Action",
+      "tryAgain": "Try Again",
+      "close": "Close Window",
+      "help": "Get Help"
+    },
+    "navigation": {
+      "dashboard": "My Dashboard",
+      "enrollments": "Health Plan Enrollments",
+      "documents": "Required Documents",
+      "health": "Health Assessment",
+      "policies": "Insurance Policies",
+      "settings": "Account Settings",
+      "profile": "My Profile",
+      "logout": "Sign Out",
+      "help": "Help Center",
+      "notifications": "My Notifications"
+    },
+    "roles": {
+      "admin": "System Administrator",
+      "broker": "Insurance Broker",
+      "beneficiary": "Plan Beneficiary",
+      "guardian": "Parent or Legal Guardian",
+      "underwriter": "Health Plan Underwriter",
+      "hr": "HR Representative"
+    },
+    "status": {
+      "pending": "Awaiting Action",
+      "inProgress": "Currently Processing",
+      "completed": "Successfully Completed",
+      "approved": "Approved",
+      "rejected": "Not Approved",
+      "review": "Under Medical Review",
+      "draft": "Saved as Draft",
+      "expired": "Action Required",
+      "suspended": "Temporarily Suspended"
+    },
+    "forms": {
+      "required": "This field must be completed",
+      "invalid": "Please check this information",
+      "success": "Your information has been saved",
+      "error": "Unable to complete action",
+      "loading": "Processing your request",
+      "maxLength": "Maximum characters allowed: {max}",
+      "minLength": "Minimum characters required: {min}",
+      "pattern": "Please follow the required format",
+      "email": "Please enter a valid email address",
+      "phone": "Please enter a valid phone number",
+      "cpf": "Please enter a valid CPF number",
+      "date": "Please enter a valid date"
+    },
+    "health": {
+      "questionnaire": "Health Information Questionnaire",
+      "assessment": "Health Risk Evaluation",
+      "preExisting": "Previous Medical Conditions",
+      "medications": "Current Prescription Medications",
+      "history": "Past Medical History",
+      "lifestyle": "Lifestyle and Health Habits",
+      "family": "Family Medical History",
+      "symptoms": "Current Health Symptoms",
+      "procedures": "Previous Medical Procedures",
+      "allergies": "Known Allergies and Reactions",
+      "pregnancy": "Pregnancy Information",
+      "mental": "Mental Health Information",
+      "confidentiality": "Your health information is protected",
+      "disclaimer": "This information helps us provide appropriate coverage"
+    },
+    "documents": {
+      "idDocument": "Government-Issued Photo ID",
+      "proofOfAddress": "Recent Proof of Address",
+      "medicalRecords": "Medical Documentation",
+      "uploadSuccess": "Document successfully uploaded",
+      "uploadError": "Unable to upload document",
+      "scanning": "Checking document quality",
+      "processing": "Processing your document",
+      "requirements": "Document Requirements",
+      "size": "Maximum file size: 10MB",
+      "format": "Accepted formats: PDF, JPG, PNG",
+      "quality": "Please ensure document is clearly readable"
+    },
+    "enrollment": {
+      "newEnrollment": "Start New Health Plan Enrollment",
+      "personalInfo": "Personal Information",
+      "contactInfo": "Contact Information",
+      "healthInfo": "Health Information",
+      "review": "Review Your Application",
+      "progress": "Application Progress",
+      "summary": "Application Summary",
+      "confirmation": "Enrollment Confirmation",
+      "terms": "Terms and Conditions",
+      "privacy": "Privacy Notice",
+      "declaration": "Health Declaration"
+    },
+    "policy": {
+      "details": "Health Plan Details",
+      "coverage": "What's Covered",
+      "waiting": "Coverage Waiting Periods",
+      "premium": "Monthly Premium Amount",
+      "network": "Healthcare Provider Network",
+      "benefits": "Plan Benefits",
+      "limitations": "Coverage Limitations",
+      "exclusions": "What's Not Covered",
+      "documents": "Policy Documents",
+      "changes": "Policy Changes",
+      "renewal": "Policy Renewal Information"
+    },
+    "errors": {
+      "notFound": "Page not found. Please check the address or return to dashboard.",
+      "serverError": "System temporarily unavailable. Please try again in a few minutes.",
+      "unauthorized": "You don't have permission to access this information.",
+      "validation": "Please review the highlighted information.",
+      "timeout": "Request took too long. Please check your connection and try again.",
+      "offline": "Unable to connect. Please check your internet connection.",
+      "concurrent": "Another session is active. Please sign out elsewhere or try again later.",
+      "maintenance": "System maintenance in progress. Please try again later."
+    }
+  }
+}
