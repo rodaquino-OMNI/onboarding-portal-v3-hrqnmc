@@ -1,0 +1,192 @@
+# Kubernetes RBAC Configuration v1.27+
+# Enhanced security controls for LGPD compliance and healthcare data protection
+
+---
+# Service Accounts
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: api-gateway-sa
+  namespace: default
+  annotations:
+    azure.workload.identity/client-id: ${AZURE_CLIENT_ID}
+    azure.workload.identity/tenant-id: ${AZURE_TENANT_ID}
+    security.austa.local/audit-enabled: "true"
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: auth-service-sa
+  namespace: default
+  annotations:
+    azure.workload.identity/client-id: ${AUTH_CLIENT_ID}
+    azure.workload.identity/tenant-id: ${AZURE_TENANT_ID}
+    security.austa.local/audit-enabled: "true"
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: health-service-sa
+  namespace: default
+  annotations:
+    azure.workload.identity/client-id: ${HEALTH_CLIENT_ID}
+    azure.workload.identity/tenant-id: ${AZURE_TENANT_ID}
+    lgpd.compliance/data-handler: "true"
+    security.austa.local/audit-enabled: "true"
+    security.austa.local/health-data-access: "true"
+
+---
+# Roles
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: api-gateway-role
+  namespace: default
+rules:
+- apiGroups: [""]
+  resources: ["services", "endpoints", "configmaps"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["extensions", "networking.k8s.io"]
+  resources: ["ingresses"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["monitoring.coreos.com"]
+  resources: ["servicemonitors"]
+  verbs: ["get", "create"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: auth-service-role
+  namespace: default
+rules:
+- apiGroups: [""]
+  resources: ["secrets", "configmaps"]
+  verbs: ["get", "list"]
+- apiGroups: ["authentication.k8s.io"]
+  resources: ["tokenreviews"]
+  verbs: ["create"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: health-service-role
+  namespace: default
+rules:
+- apiGroups: [""]
+  resources: ["secrets", "configmaps", "pods"]
+  verbs: ["get", "list"]
+- apiGroups: ["health.austa.local"]
+  resources: ["healthdata"]
+  verbs: ["get", "list", "create", "update"]
+- apiGroups: ["lgpd.compliance"]
+  resources: ["dataaudits"]
+  verbs: ["create"]
+
+---
+# Cluster Roles
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: monitoring-role
+rules:
+- apiGroups: [""]
+  resources: ["pods", "services", "endpoints", "nodes"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["metrics.k8s.io"]
+  resources: ["pods", "nodes"]
+  verbs: ["get", "list", "watch"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: audit-logging-role
+rules:
+- apiGroups: [""]
+  resources: ["pods/log", "events"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["audit.k8s.io"]
+  resources: ["audits"]
+  verbs: ["create"]
+- apiGroups: ["lgpd.compliance"]
+  resources: ["accesslogs", "dataaudits"]
+  verbs: ["create", "get", "list"]
+
+---
+# Role Bindings
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: api-gateway-binding
+  namespace: default
+subjects:
+- kind: ServiceAccount
+  name: api-gateway-sa
+  namespace: default
+roleRef:
+  kind: Role
+  name: api-gateway-role
+  apiGroup: rbac.authorization.k8s.io
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: auth-service-binding
+  namespace: default
+subjects:
+- kind: ServiceAccount
+  name: auth-service-sa
+  namespace: default
+roleRef:
+  kind: Role
+  name: auth-service-role
+  apiGroup: rbac.authorization.k8s.io
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: health-service-binding
+  namespace: default
+subjects:
+- kind: ServiceAccount
+  name: health-service-sa
+  namespace: default
+roleRef:
+  kind: Role
+  name: health-service-role
+  apiGroup: rbac.authorization.k8s.io
+
+---
+# Cluster Role Bindings
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: monitoring-binding
+subjects:
+- kind: ServiceAccount
+  name: monitoring-sa
+  namespace: monitoring
+roleRef:
+  kind: ClusterRole
+  name: monitoring-role
+  apiGroup: rbac.authorization.k8s.io
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: audit-logging-binding
+subjects:
+- kind: ServiceAccount
+  name: audit-logging-sa
+  namespace: logging
+roleRef:
+  kind: ClusterRole
+  name: audit-logging-role
+  apiGroup: rbac.authorization.k8s.io
