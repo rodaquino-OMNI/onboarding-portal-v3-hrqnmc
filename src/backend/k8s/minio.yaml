@@ -1,0 +1,196 @@
+---
+# Secret for MinIO credentials and encryption keys
+apiVersion: v1
+kind: Secret
+metadata:
+  name: minio-secret
+  namespace: document-service
+type: Opaque
+data:
+  # Base64 encoded values - should be replaced with actual secrets in production
+  root-user: bWluaW8tYWRtaW4= # minio-admin
+  root-password: Y2hhbmdlLW1lLWluLXByb2R1Y3Rpb24= # change-me-in-production
+  sse-master-key: Y2hhbmdlLW1lLWluLXByb2R1Y3Rpb24= # change-me-in-production
+
+---
+# PersistentVolumeClaim for MinIO data
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: minio-pvc
+  namespace: document-service
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: azure-premium-ragrs # Azure storage with RA-GRS replication
+  resources:
+    requests:
+      storage: 100Gi
+
+---
+# NetworkPolicy to restrict MinIO access
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: minio-network-policy
+  namespace: document-service
+spec:
+  podSelector:
+    matchLabels:
+      app: minio
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: document-service
+        - podSelector:
+            matchLabels:
+              app: document-service
+      ports:
+        - protocol: TCP
+          port: 9000
+        - protocol: TCP
+          port: 9090
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              name: document-service
+      ports:
+        - protocol: TCP
+          port: 9000
+
+---
+# MinIO Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: minio-deployment
+  namespace: document-service
+  labels:
+    app: minio
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: minio
+  template:
+    metadata:
+      labels:
+        app: minio
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9290"
+        prometheus.io/path: "/minio/v2/metrics/cluster"
+    spec:
+      serviceAccountName: minio-sa
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+      containers:
+        - name: minio
+          image: quay.io/minio/minio:RELEASE.2023-09-23T03-47-50Z
+          args:
+            - server
+            - /data
+            - --console-address
+            - ":9090"
+          env:
+            - name: MINIO_ROOT_USER
+              valueFrom:
+                secretKeyRef:
+                  name: minio-secret
+                  key: root-user
+            - name: MINIO_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: minio-secret
+                  key: root-password
+            - name: MINIO_BROWSER
+              value: "on"
+            - name: MINIO_STORAGE_CLASS_STANDARD
+              value: "EC:2"
+            - name: MINIO_SSE_MASTER_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: minio-secret
+                  key: sse-master-key
+            - name: MINIO_PROMETHEUS_AUTH_TYPE
+              value: "public"
+          ports:
+            - containerPort: 9000
+              name: api
+            - containerPort: 9090
+              name: console
+            - containerPort: 9290
+              name: metrics
+          resources:
+            requests:
+              cpu: "1"
+              memory: "2Gi"
+            limits:
+              cpu: "2"
+              memory: "4Gi"
+          readinessProbe:
+            httpGet:
+              path: /minio/health/ready
+              port: 9000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /minio/health/live
+              port: 9000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+          volumeMounts:
+            - name: data
+              mountPath: /data
+              readOnly: false
+          securityContext:
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: minio-pvc
+
+---
+# Service for MinIO
+apiVersion: v1
+kind: Service
+metadata:
+  name: minio-service
+  namespace: document-service
+  labels:
+    app: minio
+spec:
+  type: ClusterIP
+  ports:
+    - port: 9000
+      targetPort: 9000
+      protocol: TCP
+      name: api
+    - port: 9090
+      targetPort: 9090
+      protocol: TCP
+      name: console
+    - port: 9290
+      targetPort: 9290
+      protocol: TCP
+      name: metrics
+  selector:
+    app: minio
