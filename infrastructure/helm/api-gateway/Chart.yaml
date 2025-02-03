@@ -1,0 +1,42 @@
+apiVersion: v2
+name: api-gateway
+version: 1.0.0
+description: Kong API Gateway for Pre-paid Health Plan Onboarding Portal with enterprise-grade security and high availability
+type: application
+appVersion: "3.4"
+
+# Kubernetes version compatibility
+kubeVersion: ">=1.27.0-0"
+
+# Keywords for chart discovery and categorization
+keywords:
+  - api-gateway
+  - kong
+  - healthcare
+  - onboarding
+  - security
+  - high-availability
+
+# Chart maintainers
+maintainers:
+  - name: AUSTA DevOps Team
+    email: devops@austa.health
+
+# Chart annotations for metadata and deployment information
+annotations:
+  category: Infrastructure
+  deploymentType: Production
+  securityCompliance: LGPD,HIPAA
+  tier: Gateway
+  criticalComponent: "true"
+  highAvailability: "required"
+
+# Chart dependencies
+dependencies:
+  - name: kong
+    version: "3.4"
+    repository: "https://charts.konghq.com"
+    condition: kong.enabled
+    tags:
+      - api-gateway
+      - ingress-controller
