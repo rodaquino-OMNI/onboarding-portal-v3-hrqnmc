@@ -1,0 +1,269 @@
+version: '3.8'
+
+services:
+  # API Gateway Service
+  api-gateway:
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile
+      target: development
+      args:
+        NODE_ENV: development
+    ports:
+      - "3000:3000"
+      - "9229:9229"
+    volumes:
+      - ./api-gateway:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+      - DEBUG=api-gateway:*
+      - CORS_ORIGIN=http://localhost:3000
+    depends_on:
+      - auth-service
+      - health-service
+      - enrollment-service
+      - policy-service
+      - document-service
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - backend
+
+  # Auth Service
+  auth-service:
+    build:
+      context: ./auth-service
+      dockerfile: Dockerfile
+      target: development
+    ports:
+      - "3001:3001"
+      - "9230:9230"
+    volumes:
+      - ./auth-service:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - PORT=3001
+      - DEBUG=auth-service:*
+      - DB_HOST=postgres
+      - REDIS_HOST=redis
+    depends_on:
+      - postgres
+      - redis
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - backend
+
+  # Health Service
+  health-service:
+    build:
+      context: ./health-service
+      dockerfile: Dockerfile
+      target: development
+    ports:
+      - "3002:3002"
+      - "5678:5678"
+    volumes:
+      - ./health-service:/app
+      - /app/__pycache__
+    environment:
+      - PYTHON_ENV=development
+      - PORT=3002
+      - DEBUG=1
+      - LOG_LEVEL=DEBUG
+      - DB_HOST=postgres
+      - REDIS_HOST=redis
+    depends_on:
+      - postgres
+      - redis
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - backend
+
+  # Enrollment Service
+  enrollment-service:
+    build:
+      context: ./enrollment-service
+      dockerfile: Dockerfile
+      target: development
+    ports:
+      - "3003:3003"
+      - "5005:5005"
+    volumes:
+      - ./enrollment-service:/app
+      - /app/target
+    environment:
+      - SPRING_PROFILES_ACTIVE=development
+      - SERVER_PORT=3003
+      - JAVA_TOOL_OPTIONS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
+      - DB_HOST=postgres
+    depends_on:
+      - postgres
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3003/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - backend
+
+  # Document Service
+  document-service:
+    build:
+      context: ./document-service
+      dockerfile: Dockerfile
+      target: development
+    ports:
+      - "3004:3004"
+    volumes:
+      - ./document-service:/app
+    environment:
+      - GO_ENV=development
+      - PORT=3004
+      - MINIO_HOST=minio
+    depends_on:
+      - minio
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3004/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - backend
+
+  # Policy Service
+  policy-service:
+    build:
+      context: ./policy-service
+      dockerfile: Dockerfile
+      target: development
+    ports:
+      - "3005:3005"
+      - "5006:5006"
+    volumes:
+      - ./policy-service:/app
+      - /app/target
+    environment:
+      - SPRING_PROFILES_ACTIVE=development
+      - SERVER_PORT=3005
+      - JAVA_TOOL_OPTIONS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5006
+      - DB_HOST=postgres
+    depends_on:
+      - postgres
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3005/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - backend
+
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15.0
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=austa
+      - POSTGRES_PASSWORD=development_password
+      - POSTGRES_DB=health_onboarding
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U austa"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - backend
+
+  # Redis Cache
+  redis:
+    image: redis:7.0-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - backend
+
+  # MinIO Object Storage
+  minio:
+    image: minio/minio:RELEASE.2023-09-23T03-47-50Z
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      - MINIO_ROOT_USER=minioadmin
+      - MINIO_ROOT_PASSWORD=minioadmin
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - backend
+
+volumes:
+  postgres_data:
+    driver: local
+    driver_opts:
+      type: none
+      device: ./data/postgres
+      o: bind
+  redis_data:
+    driver: local
+    driver_opts:
+      type: none
+      device: ./data/redis
+      o: bind
+  minio_data:
+    driver: local
+    driver_opts:
+      type: none
+      device: ./data/minio
+      o: bind
+
+networks:
+  backend:
+    driver: bridge
+    name: austa_backend_dev
+    driver_opts:
+      com.docker.network.bridge.name: austa_backend_dev
+      com.docker.network.bridge.enable_icc: "true"
+      com.docker.network.bridge.enable_ip_masquerade: "true"
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.28.0.0/16
