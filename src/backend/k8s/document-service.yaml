@@ -1,0 +1,223 @@
+---
+# ConfigMap for document service configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: document-service-config
+  labels:
+    app: document-service
+data:
+  ENVIRONMENT: "production"
+  PORT: "8080"
+  MAX_FILE_SIZE: "52428800"  # 50MB in bytes
+  ALLOWED_FILE_TYPES: "pdf,jpg,jpeg,png"
+  REQUEST_TIMEOUT: "30s"
+  UPLOAD_TIMEOUT: "5m"
+  DOWNLOAD_TIMEOUT: "3m"
+  OCR_TIMEOUT: "30s"
+  CLASSIFICATION_TIMEOUT: "15s"
+  MAX_RETRIES: "3"
+
+---
+# Secret for sensitive configuration
+apiVersion: v1
+kind: Secret
+metadata:
+  name: document-service-secrets
+  labels:
+    app: document-service
+type: Opaque
+data:
+  MINIO_ACCESS_KEY: base64_encoded_access_key
+  MINIO_SECRET_KEY: base64_encoded_secret_key
+  AZURE_SUBSCRIPTION_KEY: base64_encoded_subscription_key
+  ENCRYPTION_KEY: base64_encoded_encryption_key
+
+---
+# Service Account for RBAC
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: document-service-sa
+  labels:
+    app: document-service
+
+---
+# Network Policy
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: document-service-network-policy
+  labels:
+    app: document-service
+spec:
+  podSelector:
+    matchLabels:
+      app: document-service
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: api-gateway
+        - podSelector:
+            matchLabels:
+              app: enrollment-service
+        - podSelector:
+            matchLabels:
+              app: health-service
+      ports:
+        - protocol: TCP
+          port: 8080
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app: minio
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+      ports:
+        - protocol: TCP
+          port: 443  # For Azure services
+
+---
+# Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: document-service
+  labels:
+    app: document-service
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: document-service
+  template:
+    metadata:
+      labels:
+        app: document-service
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: document-service-sa
+      securityContext:
+        fsGroup: 1000
+      containers:
+        - name: document-service
+          image: austa/document-service:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "1Gi"
+            limits:
+              cpu: "1"
+              memory: "2Gi"
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          envFrom:
+            - configMapRef:
+                name: document-service-config
+            - secretRef:
+                name: document-service-secrets
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir: {}
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: app
+                      operator: In
+                      values:
+                        - document-service
+                topologyKey: kubernetes.io/hostname
+
+---
+# Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: document-service
+  labels:
+    app: document-service
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8080
+      targetPort: 8080
+      protocol: TCP
+      name: http
+  selector:
+    app: document-service
+
+---
+# HorizontalPodAutoscaler
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: document-service-hpa
+  labels:
+    app: document-service
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: document-service
+  minReplicas: 3
+  maxReplicas: 10
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80
