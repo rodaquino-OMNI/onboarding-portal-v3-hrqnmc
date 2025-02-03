@@ -1,0 +1,333 @@
+openapi: 3.1.0
+info:
+  title: AUSTA Health Plan Enrollment Service API
+  version: 1.0.0
+  description: API for managing health plan enrollments with LGPD compliance and secure data handling
+  contact:
+    name: AUSTA Health Portal Support
+    email: support@austa.health
+
+servers:
+  - url: /api/v1/enrollments
+    description: Enrollment service API endpoint
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token for authentication
+
+  schemas:
+    EnrollmentDTO:
+      type: object
+      required:
+        - beneficiaryId
+        - personalInfo
+        - addressInfo
+      properties:
+        beneficiaryId:
+          type: string
+          format: uuid
+          description: Unique identifier for beneficiary
+        brokerId:
+          type: string
+          format: uuid
+          description: Broker's unique identifier
+        guardianId:
+          type: string
+          format: uuid
+          description: Guardian's ID for minor beneficiaries
+        personalInfo:
+          type: object
+          required:
+            - name
+            - cpf
+            - birthDate
+          properties:
+            name:
+              type: string
+              minLength: 2
+              maxLength: 100
+            cpf:
+              type: string
+              pattern: ^\d{3}\.\d{3}\.\d{3}-\d{2}$
+            birthDate:
+              type: string
+              format: date
+            gender:
+              type: string
+              enum: [M, F, O]
+            maritalStatus:
+              type: string
+              enum: [SINGLE, MARRIED, DIVORCED, WIDOWED]
+        addressInfo:
+          type: object
+          required:
+            - street
+            - city
+            - state
+            - postalCode
+          properties:
+            street:
+              type: string
+              maxLength: 200
+            number:
+              type: string
+              maxLength: 20
+            complement:
+              type: string
+              maxLength: 100
+            neighborhood:
+              type: string
+              maxLength: 100
+            city:
+              type: string
+              maxLength: 100
+            state:
+              type: string
+              minLength: 2
+              maxLength: 2
+            postalCode:
+              type: string
+              pattern: ^\d{5}-\d{3}$
+
+    DocumentDTO:
+      type: object
+      required:
+        - type
+        - file
+      properties:
+        type:
+          type: string
+          enum: [ID, CPF, ADDRESS_PROOF, MEDICAL_RECORD]
+        description:
+          type: string
+          maxLength: 200
+        file:
+          type: string
+          format: binary
+
+    EnrollmentStatus:
+      type: string
+      enum:
+        - DRAFT
+        - PENDING
+        - IN_REVIEW
+        - APPROVED
+        - REJECTED
+        - CANCELLED
+
+    ErrorResponse:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        details:
+          type: array
+          items:
+            type: string
+        traceId:
+          type: string
+          format: uuid
+
+paths:
+  /:
+    post:
+      summary: Create new enrollment application
+      description: Initiates a new health plan enrollment process
+      operationId: createEnrollment
+      security:
+        - bearerAuth: []
+      tags:
+        - Enrollment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EnrollmentDTO'
+      responses:
+        '201':
+          description: Enrollment created successfully
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+                format: uuid
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                  status:
+                    $ref: '#/components/schemas/EnrollmentStatus'
+        '400':
+          description: Invalid enrollment data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  /{enrollmentId}:
+    get:
+      summary: Retrieve enrollment details
+      operationId: getEnrollment
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: enrollmentId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Enrollment details retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnrollmentDTO'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /{enrollmentId}/submit:
+    post:
+      summary: Submit enrollment for processing
+      operationId: submitEnrollment
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: enrollmentId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Enrollment submitted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    $ref: '#/components/schemas/EnrollmentStatus'
+                  submittedAt:
+                    type: string
+                    format: date-time
+        '409':
+          description: Invalid state transition
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /{enrollmentId}/documents:
+    post:
+      summary: Upload enrollment documents
+      operationId: uploadDocument
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: enrollmentId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/DocumentDTO'
+      responses:
+        '201':
+          description: Document uploaded successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                  type:
+                    type: string
+                  uploadedAt:
+                    type: string
+                    format: date-time
+        '413':
+          description: File too large
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  responses:
+    Unauthorized:
+      description: Authentication required or token expired
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    Forbidden:
+      description: Insufficient permissions for the requested operation
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    NotFound:
+      description: Requested resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    TooManyRequests:
+      description: Rate limit exceeded
+      headers:
+        X-RateLimit-Limit:
+          schema:
+            type: integer
+        X-RateLimit-Remaining:
+          schema:
+            type: integer
+        X-RateLimit-Reset:
+          schema:
+            type: integer
+            format: unix-timestamp
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+tags:
+  - name: Enrollment
+    description: Health plan enrollment operations
+
+x-performance-slo:
+  processing-time: 10000  # 10 seconds target for 90% of requests
+  availability: 99.9
+  rate-limits:
+    default: 1000
+    document-upload: 100
+    submission: 50
