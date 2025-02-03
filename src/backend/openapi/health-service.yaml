@@ -1,0 +1,367 @@
+openapi: 3.0.0
+info:
+  title: AUSTA Health Service API
+  version: 1.0.0
+  description: API for dynamic health questionnaire management with AI-powered risk assessment
+  contact:
+    name: AUSTA Healthcare
+    email: api-support@austa.com.br
+
+servers:
+  - url: https://api.austa.com.br/api/v1/health-assessment
+    description: Production server
+  - url: https://staging-api.austa.com.br/api/v1/health-assessment
+    description: Staging server
+
+security:
+  - OAuth2: []
+
+paths:
+  /:
+    post:
+      summary: Create new health questionnaire
+      operationId: createQuestionnaire
+      tags: [Questionnaire]
+      security:
+        - OAuth2: [health:write]
+      parameters:
+        - in: header
+          name: X-LGPD-Consent
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [enrollment_id]
+              properties:
+                enrollment_id:
+                  type: string
+                  format: uuid
+      responses:
+        '201':
+          description: Questionnaire created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Questionnaire'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  /{questionnaire_id}/next:
+    get:
+      summary: Get next AI-selected question
+      operationId: getNextQuestion
+      tags: [Questions]
+      security:
+        - OAuth2: [health:read]
+      parameters:
+        - in: path
+          name: questionnaire_id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Next question retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Question'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '503':
+          $ref: '#/components/responses/AIUnavailable'
+
+  /{questionnaire_id}/response:
+    post:
+      summary: Submit encrypted question response
+      operationId: submitResponse
+      tags: [Responses]
+      security:
+        - OAuth2: [health:write]
+      parameters:
+        - in: path
+          name: questionnaire_id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuestionResponse'
+      responses:
+        '200':
+          description: Response processed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  next_question_available:
+                    type: boolean
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  /{questionnaire_id}/risk:
+    get:
+      summary: Get AI-powered risk assessment
+      operationId: getRiskAssessment
+      tags: [Risk Assessment]
+      security:
+        - OAuth2: [health:read]
+      parameters:
+        - in: path
+          name: questionnaire_id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Risk assessment retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RiskAssessment'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '503':
+          $ref: '#/components/responses/AIUnavailable'
+
+components:
+  schemas:
+    Question:
+      type: object
+      required: [id, text, type, required]
+      properties:
+        id:
+          type: string
+          format: uuid
+        text:
+          type: string
+        type:
+          type: string
+          enum: [text, numeric, boolean, choice, multiple_choice]
+        options:
+          type: array
+          items:
+            type: string
+        required:
+          type: boolean
+        validation_rules:
+          type: object
+          properties:
+            min_length:
+              type: integer
+            max_length:
+              type: integer
+            min_value:
+              type: number
+            max_value:
+              type: number
+        lgpd_category:
+          type: string
+          enum: [health_data, personal_data, sensitive_data]
+        sensitivity_level:
+          type: string
+          enum: [low, medium, high]
+
+    QuestionResponse:
+      type: object
+      required: [question_id, response]
+      properties:
+        question_id:
+          type: string
+          format: uuid
+        response:
+          type: object
+        metadata:
+          type: object
+        audit_trail:
+          type: object
+        encryption_metadata:
+          type: object
+          properties:
+            algorithm:
+              type: string
+            key_id:
+              type: string
+            timestamp:
+              type: string
+              format: date-time
+
+    RiskAssessment:
+      type: object
+      required: [risk_score, risk_level]
+      properties:
+        risk_score:
+          type: number
+          minimum: 0
+          maximum: 100
+        risk_level:
+          type: string
+          enum: [LOW, MEDIUM, HIGH, CRITICAL]
+        risk_factors:
+          type: array
+          items:
+            type: object
+            properties:
+              factor:
+                type: string
+              impact:
+                type: number
+              description:
+                type: string
+        ai_confidence:
+          type: number
+          minimum: 0
+          maximum: 1
+        assessment_metadata:
+          type: object
+          properties:
+            model_version:
+              type: string
+            timestamp:
+              type: string
+              format: date-time
+            factors_analyzed:
+              type: integer
+
+    Questionnaire:
+      type: object
+      required: [id, enrollment_id, status]
+      properties:
+        id:
+          type: string
+          format: uuid
+        enrollment_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [in_progress, completed, cancelled]
+        risk_score:
+          type: number
+        risk_level:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        audit_trail:
+          type: array
+          items:
+            type: object
+
+  responses:
+    BadRequest:
+      description: Invalid request parameters
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Forbidden:
+      description: Insufficient permissions
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    TooManyRequests:
+      description: Rate limit exceeded
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    AIUnavailable:
+      description: AI service temporarily unavailable
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+  schemas:
+    Error:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        details:
+          type: object
+        trace_id:
+          type: string
+
+  securitySchemes:
+    OAuth2:
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: https://auth.austa.com.br/oauth2/authorize
+          tokenUrl: https://auth.austa.com.br/oauth2/token
+          scopes:
+            health:read: Read health assessment data
+            health:write: Create and update health assessments
+            health:admin: Administrative access
+
+tags:
+  - name: Questionnaire
+    description: Health questionnaire management
+  - name: Questions
+    description: Dynamic question generation and management
+  - name: Responses
+    description: Question response handling
+  - name: Risk Assessment
+    description: AI-powered risk assessment
