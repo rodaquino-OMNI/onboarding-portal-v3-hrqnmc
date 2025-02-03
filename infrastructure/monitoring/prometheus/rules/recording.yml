@@ -1,0 +1,75 @@
+# Prometheus Recording Rules Configuration v2.45.0
+# Pre-computes frequently used metrics for the Pre-paid Health Plan Onboarding Portal
+# Evaluation interval: 30s
+# Group interval: 5m
+
+groups:
+  # Service Availability Metrics
+  - name: service_availability
+    interval: 30s
+    rules:
+      # Overall service uptime ratio
+      - record: service:up:ratio
+        expr: sum(up) / count(up)
+        labels:
+          category: availability
+      
+      # HTTP request success rate (2xx/3xx responses)
+      - record: service:request_success_rate:5m
+        expr: sum(rate(http_requests_total{status=~"2..|3.."}[5m])) / sum(rate(http_requests_total[5m]))
+        labels:
+          category: availability
+
+  # Service Performance Metrics
+  - name: service_performance
+    interval: 30s
+    rules:
+      # Average request latency across all services
+      - record: service:request_latency:5m
+        expr: rate(request_duration_seconds_sum[5m]) / rate(request_duration_seconds_count[5m])
+        labels:
+          category: performance
+      
+      # Health assessment completion duration (target < 500ms)
+      - record: health:assessment_duration:5m
+        expr: rate(health_assessment_duration_seconds_sum[5m]) / rate(health_assessment_duration_seconds_count[5m])
+        labels:
+          category: performance
+      
+      # Document upload processing duration (target < 3s)
+      - record: document:processing_duration:5m
+        expr: rate(document_upload_duration_seconds_sum[5m]) / rate(document_upload_duration_seconds_count[5m])
+        labels:
+          category: performance
+
+  # Business KPI Metrics
+  - name: business_metrics
+    interval: 5m
+    rules:
+      # Enrollment completion rate
+      - record: enrollment:completion_rate:1h
+        expr: sum(increase(enrollment_completed_total[1h])) / sum(increase(enrollment_started_total[1h]))
+        labels:
+          category: business
+      
+      # Policy generation success rate
+      - record: policy:generation_success_rate:5m
+        expr: sum(rate(policy_generation_success_total[5m])) / sum(rate(policy_generation_total[5m]))
+        labels:
+          category: business
+
+  # Resource Utilization Metrics
+  - name: resource_utilization
+    interval: 30s
+    rules:
+      # Container memory utilization
+      - record: container:memory_utilization:5m
+        expr: avg_over_time(container_memory_usage_bytes / container_spec_memory_limit_bytes[5m])
+        labels:
+          category: resource
+      
+      # Container CPU utilization
+      - record: container:cpu_utilization:5m
+        expr: avg_over_time(rate(container_cpu_usage_seconds_total[5m])[5m:30s])
+        labels:
+          category: resource
