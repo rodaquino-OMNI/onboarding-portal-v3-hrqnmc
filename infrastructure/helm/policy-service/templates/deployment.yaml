@@ -1,0 +1,145 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "policy-service.fullname" . }}
+  labels:
+    {{- include "policy-service.labels" . | nindent 4 }}
+  annotations:
+    prometheus.io/scrape: "{{ .Values.monitoring.enabled }}"
+    prometheus.io/port: "{{ .Values.monitoring.serviceMonitor.port }}"
+    prometheus.io/path: "{{ .Values.monitoring.serviceMonitor.path }}"
+    sidecar.istio.io/inject: "{{ .Values.istio.enabled }}"
+    checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      {{- include "policy-service.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "policy-service.selectorLabels" . | nindent 8 }}
+      annotations:
+        prometheus.io/scrape: "{{ .Values.monitoring.enabled }}"
+        prometheus.io/port: "{{ .Values.monitoring.serviceMonitor.port }}"
+        prometheus.io/path: "{{ .Values.monitoring.serviceMonitor.path }}"
+        sidecar.istio.io/inject: "{{ .Values.istio.enabled }}"
+    spec:
+      # Ensure pods are distributed across nodes
+      topologySpreadConstraints:
+      - maxSkew: 1
+        topologyKey: kubernetes.io/hostname
+        whenUnsatisfiable: DoNotSchedule
+        labelSelector:
+          matchLabels:
+            {{- include "policy-service.selectorLabels" . | nindent 12 }}
+      
+      # Pod anti-affinity for high availability
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchLabels:
+                  {{- include "policy-service.selectorLabels" . | nindent 18 }}
+              topologyKey: kubernetes.io/hostname
+
+      # Grace period for proper shutdown
+      terminationGracePeriodSeconds: 60
+      
+      containers:
+      - name: {{ .Chart.Name }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        ports:
+        - name: http
+          containerPort: 8080
+          protocol: TCP
+        - name: metrics
+          containerPort: 9090
+          protocol: TCP
+        
+        # Environment configuration
+        env:
+        - name: SPRING_PROFILES_ACTIVE
+          value: {{ .Values.env.SPRING_PROFILES_ACTIVE | quote }}
+        - name: JAVA_OPTS
+          value: "-XX:+UseG1GC -XX:MaxGCPauseMillis=200 -XX:+UseStringDeduplication -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp"
+        
+        # Config and secrets
+        envFrom:
+        - configMapRef:
+            name: {{ include "policy-service.fullname" . }}-config
+        - secretRef:
+            name: {{ include "policy-service.fullname" . }}-secret
+        
+        # Resource limits from technical specifications
+        resources:
+          limits:
+            cpu: "2"
+            memory: "4Gi"
+          requests:
+            cpu: "500m"
+            memory: "2Gi"
+        
+        # Health checks
+        livenessProbe:
+          httpGet:
+            path: /actuator/health/liveness
+            port: http
+          initialDelaySeconds: 60
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /actuator/health/readiness
+            port: http
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        startupProbe:
+          httpGet:
+            path: /actuator/health
+            port: http
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 12
+        
+        # Graceful shutdown
+        lifecycle:
+          preStop:
+            exec:
+              command: ["/bin/sh", "-c", "sleep 10"]
+        
+        # Security context
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1000
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+        
+        # Volume mounts
+        volumeMounts:
+        - name: tmp-volume
+          mountPath: /tmp
+      
+      # Volumes
+      volumes:
+      - name: tmp-volume
+        emptyDir: {}
+      
+      # Pod security context
+      securityContext:
+        fsGroup: 1000
