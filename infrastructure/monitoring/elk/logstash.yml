@@ -1,0 +1,76 @@
+# Logstash Configuration v8.10.0
+# Pre-paid Health Plan Onboarding Portal
+
+# Node Settings
+node.name: ${HOSTNAME}
+path.data: /usr/share/logstash/data
+path.logs: /usr/share/logstash/logs
+path.config: /usr/share/logstash/pipeline
+path.plugins: /usr/share/logstash/plugins
+
+# Pipeline Settings
+pipeline.id: austa-health-pipeline
+pipeline.workers: auto
+pipeline.batch.size: 1000
+pipeline.batch.delay: 50
+pipeline.ordered: true
+pipeline.safety_interval: 5
+queue.type: persisted
+queue.max_bytes: 1gb
+queue.checkpoint.writes: 1000
+
+# Monitoring Settings
+xpack.monitoring.enabled: true
+xpack.monitoring.elasticsearch.hosts: ["http://elasticsearch:9200"]
+xpack.monitoring.elasticsearch.username: ${ELASTICSEARCH_USERNAME}
+xpack.monitoring.elasticsearch.password: ${ELASTICSEARCH_PASSWORD}
+xpack.monitoring.collection.interval: 15s
+xpack.monitoring.elasticsearch.ssl.verification_mode: certificate
+xpack.monitoring.elasticsearch.ssl.certificate_authority: /etc/logstash/certs/ca.crt
+xpack.monitoring.elasticsearch.sniffing: true
+xpack.monitoring.elasticsearch.retry.initial: 3
+xpack.monitoring.elasticsearch.retry.max: 12
+
+# Logging Settings
+log.level: info
+log.format: json
+log.rotation.enabled: true
+log.rotation.file_size: 100mb
+log.rotation.max_files: 7
+log.rotation.compress: true
+
+# HTTP Settings
+http.host: 0.0.0.0
+http.port: 9600
+http.ssl.enabled: true
+http.ssl.keystore.path: /etc/logstash/certs/logstash.p12
+http.ssl.keystore.password: ${KEYSTORE_PASSWORD}
+
+# API Settings
+api.enabled: true
+api.http.host: 0.0.0.0
+api.http.port: 9601
+api.auth.type: basic
+api.auth.basic.username: ${API_USERNAME}
+api.auth.basic.password: ${API_PASSWORD}
+api.rate_limiting.enabled: true
+api.rate_limiting.max_requests: 100
+api.rate_limiting.interval: 1m
+api.ssl.enabled: true
+api.ssl.keystore.path: /etc/logstash/certs/logstash-api.p12
+api.ssl.keystore.password: ${API_KEYSTORE_PASSWORD}
+
+# JVM Settings
+jvm.heap.initial: 2g
+jvm.heap.max: 4g
+jvm.gc.enabled: true
+jvm.gc.survivor_ratio: 8
+jvm.gc.max_tenuring_threshold: 15
+jvm.custom_options: ["-XX:+UseG1GC", "-XX:G1ReservePercent=25"]
+
+# Dead Letter Queue Settings
+dead_letter_queue.enable: true
+dead_letter_queue.max_bytes: 1gb
+dead_letter_queue.storage_time: 7d
+dead_letter_queue.flush_interval: 5m
+path.dead_letter_queue: /usr/share/logstash/dlq
