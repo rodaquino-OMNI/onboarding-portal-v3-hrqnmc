@@ -1,0 +1,127 @@
+# Default values for document-service Helm chart
+# This is a YAML-formatted file.
+
+# Number of replicas for high availability
+replicaCount: 3
+
+# Container image configuration
+image:
+  repository: austa/document-service
+  pullPolicy: IfNotPresent
+  tag: latest
+
+# Image pull secrets for Azure Container Registry
+imagePullSecrets:
+  - name: acr-secret
+
+# Service account configuration
+serviceAccount:
+  create: true
+  annotations:
+    azure.workload.identity/client-id: system.serviceAccountName
+  name: document-service-sa
+
+# Pod annotations for monitoring and security
+podAnnotations:
+  prometheus.io/scrape: "true"
+  prometheus.io/port: "8080"
+  prometheus.io/path: "/metrics"
+  vault.hashicorp.com/agent-inject: "true"
+  vault.hashicorp.com/role: "document-service"
+
+# Enhanced pod security context
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  fsGroup: 1000
+  seccompProfile:
+    type: RuntimeDefault
+
+# Container security context
+securityContext:
+  readOnlyRootFilesystem: true
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  seccompProfile:
+    type: RuntimeDefault
+
+# Service configuration
+service:
+  type: ClusterIP
+  port: 8080
+  targetPort: 8080
+  protocol: TCP
+
+# Resource limits and requests
+resources:
+  limits:
+    cpu: "1"
+    memory: "2Gi"
+  requests:
+    cpu: "500m"
+    memory: "1Gi"
+
+# Horizontal Pod Autoscaling
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+
+# Application configuration
+config:
+  environment: production
+  port: 8080
+  maxFileSize: 52428800  # 50MB in bytes
+  allowedFileTypes:
+    - pdf
+    - jpg
+    - jpeg
+    - png
+  requestTimeout: "30s"
+  uploadTimeout: "5m"
+  downloadTimeout: "3m"
+  ocrTimeout: "30s"
+  classificationTimeout: "15s"
+  maxRetries: 3
+  encryption:
+    algorithm: "AES-256-GCM"
+    keyRotationPeriod: "30d"
+
+# MinIO configuration
+minio:
+  endpoint: minio.default.svc.cluster.local:9000
+  bucketName: documents
+  useSSL: true
+  replication:
+    enabled: true
+    region: brazil-southeast
+
+# Azure services configuration
+azure:
+  vision:
+    endpoint: https://austa-vision.cognitiveservices.azure.com/
+    region: brazilsouth
+  storage:
+    accountName: austadocuments
+    containerName: documents
+    replication: RA-GRS
+
+# Monitoring configuration
+monitoring:
+  enabled: true
+  serviceMonitor:
+    enabled: true
+    interval: "30s"
+    scrapeTimeout: "25s"
+  metrics:
+    enabled: true
+    path: /metrics
+
+# Global configuration
+nameOverride: ""
+fullnameOverride: ""
+clusterDomain: "cluster.local"
