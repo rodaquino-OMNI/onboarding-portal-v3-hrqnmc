@@ -1,0 +1,128 @@
+# Prometheus Alert Rules Configuration v2.45.0
+# Pre-paid Health Plan Onboarding Portal Alert Definitions
+# Evaluation interval: 30s
+# Group interval: 5m
+# Repeat interval: 4h
+
+groups:
+  # Service Availability Monitoring
+  - name: service_availability
+    rules:
+      - alert: ServiceDown
+        expr: up == 0
+        for: 1m
+        labels:
+          severity: critical
+          category: availability
+        annotations:
+          summary: "Service {{ $labels.job }} is down"
+          description: "Service {{ $labels.job }} has been down for more than 1 minute"
+          runbook_url: "https://wiki.austa.local/ops/runbooks/service-down"
+
+      - alert: HighErrorRate
+        expr: service:request_success_rate:5m < 0.99
+        for: 5m
+        labels:
+          severity: warning
+          category: availability
+        annotations:
+          summary: "High error rate for {{ $labels.service }}"
+          description: "Service {{ $labels.service }} has error rate above 1% for 5 minutes"
+          dashboard_url: "https://grafana.austa.local/d/services-dashboard"
+
+  # Service Performance Monitoring
+  - name: service_performance
+    rules:
+      - alert: APIHighLatency
+        expr: service:request_latency:5m > 0.2
+        for: 5m
+        labels:
+          severity: warning
+          category: performance
+        annotations:
+          summary: "High API latency for {{ $labels.service }}"
+          description: "Service {{ $labels.service }} has response time above 200ms for 5 minutes"
+          dashboard_url: "https://grafana.austa.local/d/services-dashboard/service-response-times"
+
+      - alert: HealthAssessmentSlow
+        expr: health:assessment_duration:5m > 0.5
+        for: 5m
+        labels:
+          severity: warning
+          category: performance
+        annotations:
+          summary: "Slow health assessments"
+          description: "Health assessments are taking longer than 500ms to complete"
+          runbook_url: "https://wiki.austa.local/ops/runbooks/health-assessment-performance"
+
+      - alert: DocumentUploadSlow
+        expr: document:processing_duration:5m > 3
+        for: 5m
+        labels:
+          severity: warning
+          category: performance
+        annotations:
+          summary: "Slow document uploads"
+          description: "Document uploads are taking longer than 3 seconds to complete"
+          runbook_url: "https://wiki.austa.local/ops/runbooks/document-upload-performance"
+
+  # Business Metrics Monitoring
+  - name: business_metrics
+    rules:
+      - alert: LowEnrollmentCompletionRate
+        expr: enrollment:completion_rate:1h < 0.8
+        for: 1h
+        labels:
+          severity: warning
+          category: business
+        annotations:
+          summary: "Low enrollment completion rate"
+          description: "Less than 80% of started enrollments are being completed in the last hour"
+          dashboard_url: "https://grafana.austa.local/d/business-metrics"
+
+      - alert: HighPolicyGenerationFailure
+        expr: policy:generation_success_rate:5m < 0.95
+        for: 15m
+        labels:
+          severity: critical
+          category: business
+        annotations:
+          summary: "High policy generation failure rate"
+          description: "Policy generation success rate is below 95% for 15 minutes"
+          runbook_url: "https://wiki.austa.local/ops/runbooks/policy-generation"
+
+  # System Resources Monitoring
+  - name: system_resources
+    rules:
+      - alert: HighMemoryUsage
+        expr: container_memory_usage_bytes / container_spec_memory_limit_bytes > 0.9
+        for: 5m
+        labels:
+          severity: warning
+          category: resource
+        annotations:
+          summary: "High memory usage for {{ $labels.container }}"
+          description: "Container {{ $labels.container }} is using more than 90% of its memory limit"
+          runbook_url: "https://wiki.austa.local/ops/runbooks/high-memory-usage"
+
+      - alert: HighCPUUsage
+        expr: rate(container_cpu_usage_seconds_total[5m]) > 0.8
+        for: 5m
+        labels:
+          severity: warning
+          category: resource
+        annotations:
+          summary: "High CPU usage for {{ $labels.container }}"
+          description: "Container {{ $labels.container }} is using more than 80% CPU for 5 minutes"
+          runbook_url: "https://wiki.austa.local/ops/runbooks/high-cpu-usage"
+
+      - alert: DiskSpaceRunningLow
+        expr: disk_used_percent > 85
+        for: 10m
+        labels:
+          severity: warning
+          category: resource
+        annotations:
+          summary: "Low disk space on {{ $labels.device }}"
+          description: "Device {{ $labels.device }} has used more than 85% of its disk space"
+          runbook_url: "https://wiki.austa.local/ops/runbooks/disk-space"
