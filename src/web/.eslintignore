@@ -1,0 +1,27 @@
+node_modules/**
+
+# Build outputs
+dist/**
+build/**
+
+# Test coverage
+coverage/**
+
+# Static assets
+public/**
+
+# Configuration files
+vite.config.ts
+jest.config.ts
+
+# Type definitions
+**/*.d.ts
+
+# Test files
+**/*.test.ts
+**/*.test.tsx
+**/*.spec.ts
+**/*.spec.tsx
+
+# JavaScript files (using TypeScript)
+**/*.js
