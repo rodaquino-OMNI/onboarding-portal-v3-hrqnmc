@@ -1,0 +1,182 @@
+# Default values for health-service Helm chart
+# This is a YAML-formatted file.
+
+image:
+  repository: austa.azurecr.io/health-service
+  tag: 1.0.0
+  pullPolicy: IfNotPresent
+  pullSecrets:
+    - austa-registry-secret
+
+nameOverride: ""
+fullnameOverride: ""
+
+replicaCount: 3
+revisionHistoryLimit: 10
+
+service:
+  type: ClusterIP
+  port: 8000
+  targetPort: 8000
+  annotations:
+    service.beta.kubernetes.io/azure-load-balancer-internal: "true"
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/cors-allow-methods: "GET, POST, OPTIONS"
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/cors-allow-credentials: "true"
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+  hosts:
+    - host: health.austa.healthcare
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: health-tls
+      hosts:
+        - health.austa.healthcare
+
+resources:
+  limits:
+    cpu: "2"
+    memory: 4Gi
+  requests:
+    cpu: 500m
+    memory: 1Gi
+
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+        - type: Pods
+          value: 1
+          periodSeconds: 60
+
+nodeSelector:
+  kubernetes.io/os: linux
+
+tolerations: []
+
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          labelSelector:
+            matchExpressions:
+              - key: app.kubernetes.io/name
+                operator: In
+                values:
+                  - health-service
+          topologyKey: kubernetes.io/hostname
+    requiredDuringSchedulingIgnoredDuringExecution:
+      - labelSelector:
+          matchExpressions:
+            - key: app.kubernetes.io/name
+              operator: In
+              values:
+                - health-service
+        topologyKey: topology.kubernetes.io/zone
+
+podSecurityContext:
+  fsGroup: 1000
+  runAsUser: 1000
+  runAsNonRoot: true
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  runAsUser: 1000
+  allowPrivilegeEscalation: false
+
+env:
+  LOG_LEVEL: INFO
+  PORT: "8000"
+  ENVIRONMENT: production
+  SERVICE_NAME: health-service
+  ALLOWED_ORIGINS: https://health.austa.healthcare
+  OPENTELEMETRY_ENABLED: "true"
+
+envFromSecrets:
+  - secretRef:
+      name: health-service-secrets
+
+livenessProbe:
+  httpGet:
+    path: /health/live
+    port: 8000
+  initialDelaySeconds: 30
+  periodSeconds: 30
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+readinessProbe:
+  httpGet:
+    path: /health/ready
+    port: 8000
+  initialDelaySeconds: 15
+  periodSeconds: 10
+  timeoutSeconds: 3
+  failureThreshold: 3
+
+serviceAccount:
+  create: true
+  annotations:
+    azure.workload.identity/client-id: health-service-client-id
+  name: health-service
+
+podAnnotations:
+  prometheus.io/scrape: "true"
+  prometheus.io/port: "8000"
+  prometheus.io/path: /metrics
+  azure.workload.identity/use: "true"
+
+postgresql:
+  enabled: true
+  auth:
+    database: health_db
+    username: health_user
+  primary:
+    persistence:
+      size: 10Gi
+      storageClass: managed-premium
+    resources:
+      requests:
+        memory: 2Gi
+        cpu: 500m
+      limits:
+        memory: 4Gi
+        cpu: "2"
+
+redis:
+  enabled: true
+  architecture: replication
+  auth:
+    enabled: true
+  master:
+    persistence:
+      size: 5Gi
+      storageClass: managed-premium
+    resources:
+      requests:
+        memory: 1Gi
+        cpu: 250m
+      limits:
+        memory: 2Gi
+        cpu: 500m
