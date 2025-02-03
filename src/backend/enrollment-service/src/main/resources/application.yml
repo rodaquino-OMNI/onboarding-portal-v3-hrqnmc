@@ -1,0 +1,122 @@
+# Spring Boot Application Configuration for Enrollment Service
+# Version: 3.0.0
+# Dependencies:
+# - spring-boot-starter-web:3.0.0
+# - spring-boot-starter-data-jpa:3.0.0
+# - spring-boot-starter-actuator:3.0.0
+
+# Application Configuration
+spring:
+  application:
+    name: enrollment-service
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}
+
+# Server Configuration
+server:
+  port: 8080
+  compression:
+    enabled: true
+    mime-types:
+      - application/json
+      - application/xml
+      - text/plain
+      - application/javascript
+      - text/css
+      - text/html
+    min-response-size: 1024
+  tomcat:
+    max-threads: 200
+    min-spare-threads: 20
+    max-connections: 10000
+    accept-count: 100
+    connection-timeout: 5000
+    max-keep-alive-requests: 100
+  http2:
+    enabled: true
+
+# Database Configuration
+spring.datasource:
+  url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:enrollment}?ssl=true&sslmode=verify-full
+  username: ${DB_USER}
+  password: ${DB_PASSWORD}
+  driver-class-name: org.postgresql.Driver
+  hikari:
+    minimum-idle: 10
+    maximum-pool-size: 50
+    idle-timeout: 300000
+    connection-timeout: 20000
+    max-lifetime: 1200000
+    auto-commit: true
+    pool-name: EnrollmentHikariCP
+    validation-timeout: 5000
+    leak-detection-threshold: 60000
+
+# JPA Configuration
+spring.jpa:
+  hibernate:
+    ddl-auto: validate
+    naming:
+      physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+  properties:
+    hibernate:
+      dialect: org.hibernate.dialect.PostgreSQLDialect
+      format_sql: false
+      jdbc.batch_size: 100
+      order_inserts: true
+      order_updates: true
+      generate_statistics: true
+      cache:
+        use_second_level_cache: true
+        use_query_cache: true
+        region.factory_class: org.hibernate.cache.ehcache.EhCacheRegionFactory
+  show-sql: false
+
+# Actuator Endpoints Configuration
+management.endpoints:
+  web.exposure:
+    include:
+      - health
+      - info
+      - metrics
+      - prometheus
+      - loggers
+      - env
+      - flyway
+  health:
+    show-details: when_authorized
+    probes:
+      enabled: true
+    livenessState:
+      enabled: true
+    readinessState:
+      enabled: true
+
+# Logging Configuration
+logging:
+  level:
+    root: INFO
+    com.austa.enrollment: ${LOG_LEVEL:INFO}
+    org.springframework: INFO
+    org.hibernate: INFO
+    com.zaxxer.hikari: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%X{traceId}/%X{spanId}] [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%X{traceId}/%X{spanId}] [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: /var/log/enrollment-service/application.log
+    max-size: 100MB
+    max-history: 30
+
+# Security Configuration
+spring.security:
+  require-ssl: true
+  ignored:
+    - /actuator/health/**
+    - /actuator/info
+  headers:
+    frame-options: DENY
+    xss-protection: "1; mode=block"
+    content-security-policy: "default-src 'self'"
+    strict-transport-security: "max-age=31536000; includeSubDomains"
+    cache-control: "no-cache, no-store, max-age=0, must-revalidate"
