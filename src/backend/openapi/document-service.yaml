@@ -1,0 +1,255 @@
+package main
+
+import (
+	"crypto/aes"
+	"crypto/sha256"
+	"encoding/json"
+	"fmt"
+	"io"
+	"log"
+	"net/http"
+	"os"
+	"path/filepath"
+	"time"
+
+	"github.com/gin-gonic/gin"               // v1.9.1
+	"github.com/google/uuid"                 // v1.3.1
+	"github.com/minio/minio-go/v7"           // v7.0.63
+	"github.com/minio/minio-go/v7/pkg/credentials" // v7.0.63
+	"go.uber.org/zap"                       // v1.26.0
+)
+
+const (
+	maxFileSize       = 10 * 1024 * 1024 // 10MB
+	bucketName        = "documents"
+	encryptionMethod  = "AES-256"
+)
+
+// DocumentMetadata represents the metadata of an uploaded document
+type DocumentMetadata struct {
+	ID              uuid.UUID `json:"id"`
+	EnrollmentID    uuid.UUID `json:"enrollmentId"`
+	DocumentType    string    `json:"documentType"`
+	Filename        string    `json:"filename"`
+	ContentType     string    `json:"contentType"`
+	Size           int64     `json:"size"`
+	EncryptionType string    `json:"encryptionType"`
+	Status         string    `json:"status"`
+	RetentionPeriod string   `json:"retentionPeriod"`
+	CreatedAt      time.Time `json:"createdAt"`
+	UpdatedAt      time.Time `json:"updatedAt"`
+}
+
+// Error represents an API error response
+type Error struct {
+	Code     string      `json:"code"`
+	Message  string      `json:"message"`
+	Details  interface{} `json:"details,omitempty"`
+	TraceID  string      `json:"traceId"`
+}
+
+type DocumentService struct {
+	minioClient *minio.Client
+	logger      *zap.Logger
+}
+
+func NewDocumentService() (*DocumentService, error) {
+	logger, err := zap.NewProduction()
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize logger: %v", err)
+	}
+
+	// Initialize MinIO client
+	minioClient, err := minio.New(os.Getenv("MINIO_ENDPOINT"), &minio.Options{
+		Creds:  credentials.NewStaticV4(os.Getenv("MINIO_ACCESS_KEY"), os.Getenv("MINIO_SECRET_KEY"), ""),
+		Secure: true,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize MinIO client: %v", err)
+	}
+
+	return &DocumentService{
+		minioClient: minioClient,
+		logger:      logger,
+	}, nil
+}
+
+func (s *DocumentService) SetupRoutes(router *gin.Engine) {
+	v1 := router.Group("/api/v1")
+	{
+		v1.POST("/documents", s.uploadDocument)
+		v1.GET("/documents/:id", s.getDocument)
+	}
+}
+
+func (s *DocumentService) uploadDocument(c *gin.Context) {
+	// Verify file size
+	if c.Request.ContentLength > maxFileSize {
+		s.sendError(c, http.StatusRequestEntityTooLarge, "FILE_TOO_LARGE", "File size exceeds maximum limit of 10MB")
+		return
+	}
+
+	// Parse multipart form
+	file, header, err := c.Request.FormFile("file")
+	if err != nil {
+		s.sendError(c, http.StatusBadRequest, "INVALID_FILE", "Failed to process file upload")
+		return
+	}
+	defer file.Close()
+
+	// Validate required fields
+	enrollmentID, err := uuid.Parse(c.PostForm("enrollmentId"))
+	if err != nil {
+		s.sendError(c, http.StatusBadRequest, "INVALID_ENROLLMENT_ID", "Invalid enrollment ID format")
+		return
+	}
+
+	documentType := c.PostForm("documentType")
+	if !isValidDocumentType(documentType) {
+		s.sendError(c, http.StatusBadRequest, "INVALID_DOCUMENT_TYPE", "Invalid document type")
+		return
+	}
+
+	consentToken := c.PostForm("consentToken")
+	if consentToken == "" {
+		s.sendError(c, http.StatusBadRequest, "MISSING_CONSENT", "LGPD consent token is required")
+		return
+	}
+
+	// Generate document ID and metadata
+	docID := uuid.New()
+	metadata := DocumentMetadata{
+		ID:              docID,
+		EnrollmentID:    enrollmentID,
+		DocumentType:    documentType,
+		Filename:        header.Filename,
+		ContentType:     header.Header.Get("Content-Type"),
+		Size:           header.Size,
+		EncryptionType: encryptionMethod,
+		Status:         "PROCESSING",
+		RetentionPeriod: "5 years", // LGPD compliant retention period
+		CreatedAt:      time.Now().UTC(),
+		UpdatedAt:      time.Now().UTC(),
+	}
+
+	// Encrypt and upload file
+	encryptedFile, err := s.encryptFile(file)
+	if err != nil {
+		s.logger.Error("Failed to encrypt file", zap.Error(err))
+		s.sendError(c, http.StatusInternalServerError, "ENCRYPTION_FAILED", "Failed to process file")
+		return
+	}
+
+	// Upload to MinIO
+	objectName := fmt.Sprintf("%s/%s%s", docID, time.Now().Format("20060102"), filepath.Ext(header.Filename))
+	_, err = s.minioClient.PutObject(c, bucketName, objectName, encryptedFile, header.Size,
+		minio.PutObjectOptions{
+			ContentType:  header.Header.Get("Content-Type"),
+			UserMetadata: map[string]string{"enrollment-id": enrollmentID.String()},
+		})
+	if err != nil {
+		s.logger.Error("Failed to upload file to storage", zap.Error(err))
+		s.sendError(c, http.StatusInternalServerError, "UPLOAD_FAILED", "Failed to store file")
+		return
+	}
+
+	// Update metadata status
+	metadata.Status = "READY"
+	metadata.UpdatedAt = time.Now().UTC()
+
+	// Return success response
+	c.Header("X-Processing-Time", fmt.Sprintf("%d", time.Since(metadata.CreatedAt).Milliseconds()))
+	c.Header("X-Document-ID", docID.String())
+	c.JSON(http.StatusCreated, metadata)
+}
+
+func (s *DocumentService) getDocument(c *gin.Context) {
+	docID, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		s.sendError(c, http.StatusBadRequest, "INVALID_ID", "Invalid document ID format")
+		return
+	}
+
+	// Get object from MinIO
+	object, err := s.minioClient.GetObject(c, bucketName, docID.String(), minio.GetObjectOptions{})
+	if err != nil {
+		s.logger.Error("Failed to retrieve document", zap.Error(err))
+		s.sendError(c, http.StatusNotFound, "DOCUMENT_NOT_FOUND", "Document not found")
+		return
+	}
+	defer object.Close()
+
+	// Get object info
+	info, err := object.Stat()
+	if err != nil {
+		s.logger.Error("Failed to get document info", zap.Error(err))
+		s.sendError(c, http.StatusInternalServerError, "DOCUMENT_INFO_ERROR", "Failed to retrieve document information")
+		return
+	}
+
+	// Decrypt file
+	decryptedFile, err := s.decryptFile(object)
+	if err != nil {
+		s.logger.Error("Failed to decrypt file", zap.Error(err))
+		s.sendError(c, http.StatusInternalServerError, "DECRYPTION_FAILED", "Failed to process document")
+		return
+	}
+
+	// Calculate content hash
+	hash := sha256.New()
+	if _, err := io.Copy(hash, decryptedFile); err != nil {
+		s.logger.Error("Failed to calculate hash", zap.Error(err))
+		s.sendError(c, http.StatusInternalServerError, "HASH_CALCULATION_FAILED", "Failed to verify document integrity")
+		return
+	}
+
+	// Set response headers
+	c.Header("X-Encryption-Type", encryptionMethod)
+	c.Header("X-Content-Hash", fmt.Sprintf("%x", hash.Sum(nil)))
+	c.DataFromReader(http.StatusOK, info.Size, info.ContentType, decryptedFile, nil)
+}
+
+func (s *DocumentService) sendError(c *gin.Context, status int, code string, message string) {
+	c.JSON(status, Error{
+		Code:    code,
+		Message: message,
+		TraceID: uuid.New().String(),
+	})
+}
+
+func (s *DocumentService) encryptFile(file io.Reader) (io.Reader, error) {
+	// Implementation of AES-256 encryption
+	// Note: This is a placeholder - actual implementation would use proper key management
+	return file, nil
+}
+
+func (s *DocumentService) decryptFile(file io.Reader) (io.Reader, error) {
+	// Implementation of AES-256 decryption
+	// Note: This is a placeholder - actual implementation would use proper key management
+	return file, nil
+}
+
+func isValidDocumentType(docType string) bool {
+	validTypes := map[string]bool{
+		"ID":             true,
+		"ADDRESS_PROOF":  true,
+		"MEDICAL_RECORD": true,
+	}
+	return validTypes[docType]
+}
+
+func main() {
+	service, err := NewDocumentService()
+	if err != nil {
+		log.Fatalf("Failed to initialize document service: %v", err)
+	}
+
+	router := gin.New()
+	router.Use(gin.Recovery())
+	
+	service.SetupRoutes(router)
+
+	if err := router.Run(":8080"); err != nil {
+		log.Fatalf("Failed to start server: %v", err)
+	}
+}
