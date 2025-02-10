@@ -37,7 +37,7 @@
     "express-rate-limit": "^6.9.0",
     "geoip-lite": "^1.4.7",
     "ioredis": "^5.3.0",
-    "rate-limit-redis": "^3.0.0",
+    "rate-limit-redis": "^4.2.0",
     "opossum": "^7.1.0",
     "morgan": "^1.10.0",
     "http-status": "^1.7.0",
