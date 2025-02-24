@@ -71,7 +71,7 @@
   "devDependencies": {
     "@jest/globals": "^29.5.0",
     "@types/jest": "29.5.0",
-    "@types/node": "20.0.0",
+    "@types/node": "22.13.5",
     "@typescript-eslint/eslint-plugin": "5.59.0",
     "@typescript-eslint/parser": "5.59.0",
     "cross-env": "7.0.3",
@@ -84,8 +84,8 @@
     "rimraf": "5.0.0",
     "snyk": "latest",
     "supertest": "^6.3.3",
-    "ts-jest": "29.1.0",
-    "ts-node": "10.9.1",
+    "ts-jest": "29.2.6",
+    "ts-node": "10.9.2",
     "typescript": "^5.0.0"
   }
 }
