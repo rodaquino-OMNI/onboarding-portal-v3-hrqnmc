@@ -154,6 +154,88 @@ services:
     networks:
       - backend
 
+  # Enrollment Service
+  enrollment-service:
+    build:
+      context: ./enrollment-service
+      dockerfile: Dockerfile
+      target: production
+      args:
+        MAVEN_PROFILE: production
+    image: austa/enrollment-service:${BUILD_VERSION:-1.0.0}
+    environment:
+      - ENVIRONMENT=production
+      - SERVER_PORT=3002
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/enrollment_service
+      - SPRING_DATASOURCE_USERNAME=${DB_USER}
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
+      - SPRING_REDIS_HOST=redis
+      - SPRING_REDIS_PASSWORD=${REDIS_PASSWORD}
+      - JWT_SECRET=${JWT_SECRET}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    deploy:
+      replicas: 2
+      resources:
+        limits:
+          cpus: '1'
+          memory: 2G
+    networks:
+      - backend
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+
+  # Policy Service
+  policy-service:
+    build:
+      context: ./policy-service
+      dockerfile: Dockerfile
+      target: production
+      args:
+        MAVEN_PROFILE: production
+    image: austa/policy-service:${BUILD_VERSION:-1.0.0}
+    environment:
+      - ENVIRONMENT=production
+      - SERVER_PORT=3005
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/policy_service
+      - SPRING_DATASOURCE_USERNAME=${DB_USER}
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
+      - SPRING_REDIS_HOST=redis
+      - SPRING_REDIS_PASSWORD=${REDIS_PASSWORD}
+      - JWT_SECRET=${JWT_SECRET}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3005/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    deploy:
+      replicas: 2
+      resources:
+        limits:
+          cpus: '1'
+          memory: 2G
+    networks:
+      - backend
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+
   # PostgreSQL Database
   postgres:
     image: postgres:15.0

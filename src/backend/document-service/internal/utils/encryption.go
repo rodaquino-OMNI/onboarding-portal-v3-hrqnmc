@@ -16,8 +16,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/kms" // v1.26.0
 	"github.com/aws/aws-sdk-go-v2/service/kms/types"
 
-	"github.com/yourdomain/document-service/internal/config"
-	"github.com/yourdomain/document-service/internal/models"
+	"github.com/rodaquino-OMNI/onboarding-portal-v3-hrqnmc/src/backend/document-service/internal/config"
+	"github.com/rodaquino-OMNI/onboarding-portal-v3-hrqnmc/src/backend/document-service/internal/models"
 )
 
 const (

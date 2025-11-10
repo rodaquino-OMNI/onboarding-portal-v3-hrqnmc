@@ -11,8 +11,8 @@ import (
     "github.com/sony/gobreaker" // v0.5.0
     "go.opentelemetry.io/otel/metric" // v1.16.0
     
-    "github.com/yourdomain/document-service/internal/config"
-    "github.com/yourdomain/document-service/internal/models"
+    "github.com/rodaquino-OMNI/onboarding-portal-v3-hrqnmc/src/backend/document-service/internal/config"
+    "github.com/rodaquino-OMNI/onboarding-portal-v3-hrqnmc/src/backend/document-service/internal/models"
 )
 
 const (

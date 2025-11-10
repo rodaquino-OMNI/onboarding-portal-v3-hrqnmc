@@ -1,4 +1,4 @@
-module github.com/austa/document-service/v1
+module github.com/rodaquino-OMNI/onboarding-portal-v3-hrqnmc/src/backend/document-service
 
 go 1.21
 

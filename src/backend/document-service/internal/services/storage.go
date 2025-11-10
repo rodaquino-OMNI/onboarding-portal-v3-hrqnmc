@@ -11,9 +11,9 @@ import (
     "github.com/minio/minio-go/v7" // v7.0.63
     "github.com/minio/minio-go/v7/pkg/credentials" // v7.0.63
 
-    "github.com/yourdomain/document-service/internal/config"
-    "github.com/yourdomain/document-service/internal/models"
-    "github.com/yourdomain/document-service/internal/utils"
+    "github.com/rodaquino-OMNI/onboarding-portal-v3-hrqnmc/src/backend/document-service/internal/config"
+    "github.com/rodaquino-OMNI/onboarding-portal-v3-hrqnmc/src/backend/document-service/internal/models"
+    "github.com/rodaquino-OMNI/onboarding-portal-v3-hrqnmc/src/backend/document-service/internal/utils"
 )
 
 const (
