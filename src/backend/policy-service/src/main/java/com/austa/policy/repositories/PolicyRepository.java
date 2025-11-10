@@ -63,7 +63,7 @@ public interface PolicyRepository extends JpaRepository<Policy, UUID> {
         @QueryHint(name = "org.hibernate.fetchSize", value = "50"),
         @QueryHint(name = "org.hibernate.readOnly", value = "true")
     })
-    @Query("SELECT p FROM Policy p WHERE p.status = 'PENDING_ACTIVATION' ORDER BY p.createdAt DESC")
+    @Query("SELECT p FROM Policy p WHERE p.status = com.austa.policy.models.Policy.PolicyStatus.PENDING_ACTIVATION ORDER BY p.createdAt DESC")
     Page<Policy> findPendingPolicies(Pageable pageable);
 
     /**
@@ -77,8 +77,8 @@ public interface PolicyRepository extends JpaRepository<Policy, UUID> {
         @QueryHint(name = "org.hibernate.timeout", value = "10000"),
         @QueryHint(name = "org.hibernate.readOnly", value = "true")
     })
-    @Query(value = "SELECT p FROM Policy p WHERE p.status = 'ACTIVE' AND p.expirationDate < :expirationDate " +
-           "ORDER BY p.expirationDate ASC")
+    @Query(value = "SELECT * FROM policies p WHERE p.status = 'ACTIVE' AND p.expiration_date < :expirationDate " +
+           "ORDER BY p.expiration_date ASC LIMIT :limit", nativeQuery = true)
     List<Policy> findActivePoliciesByExpirationDateBefore(
         @Param("expirationDate") LocalDateTime expirationDate,
         @Param("limit") int limit
