@@ -3,7 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { Box, Typography, Divider, List, ListItem, ListItemText, Skeleton, Alert } from '@mui/material';
 import { styled } from '@mui/material/styles';
 
-import { RiskAssessment, RiskLevel, RiskFactor } from '../../types/health.types';
+import type { RiskAssessment, RiskFactor } from '../../types/health.types';
+import { RiskLevel } from '../../types/health.types';
 import { useHealth } from '../../hooks/useHealth';
 import Card from '../common/Card';
 import StatusBadge from '../common/StatusBadge';

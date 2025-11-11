@@ -17,8 +17,15 @@ interface CardProps {
   role?: string;
 }
 
+// Define custom props for styled component
+interface StyledCardProps {
+  noPadding?: boolean;
+}
+
 // Styled component for the card with theme support
-const StyledCard = styled(Paper)(({ theme, noPadding = false }) => ({
+const StyledCard = styled(Paper, {
+  shouldForwardProp: (prop) => prop !== 'noPadding',
+})<StyledCardProps>(({ theme, noPadding = false }) => ({
   backgroundColor: theme.palette.background.paper,
   borderRadius: theme.shape.borderRadius,
   padding: noPadding ? 0 : theme.spacing(3),
@@ -75,10 +82,9 @@ const Card = React.memo<CardProps>(({
       aria-label={ariaLabel}
       role={role}
       aria-busy={loading}
-      tabIndex={0}
     >
       {loading ? (
-        <Loading 
+        <Loading
           size="md"
           overlay={false}
           testId={`${testId}-loading`}

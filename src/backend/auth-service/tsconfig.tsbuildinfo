@@ -1,0 +1,1 @@
+{"root":["./src/index.ts","./src/config/auth.config.ts","./src/controllers/auth.controller.ts","./src/middleware/jwt.middleware.ts","./src/models/user.model.ts","./src/services/auth.service.ts","./src/services/mfa.service.ts","./src/utils/encryption.ts","./src/validators/auth.validator.ts"],"errors":true,"version":"5.9.3"}

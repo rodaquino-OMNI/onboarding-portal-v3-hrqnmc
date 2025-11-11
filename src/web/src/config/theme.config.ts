@@ -131,11 +131,6 @@ const createCustomTheme = (themeOptions = {}, isDarkMode = false): Theme => {
           },
         },
       },
-      MuiFocusRing: {
-        defaultProps: {
-          color: 'primary',
-        },
-      },
       MuiCssBaseline: {
         styleOverrides: {
           '@global': {
@@ -151,19 +146,68 @@ const createCustomTheme = (themeOptions = {}, isDarkMode = false): Theme => {
       },
     },
     colors: {
-      primary: THEME.COLORS.PRIMARY,
-      secondary: THEME.COLORS.SECONDARY,
-      error: THEME.COLORS.ERROR,
-      warning: THEME.COLORS.WARNING,
-      success: THEME.COLORS.SUCCESS,
-      info: THEME.COLORS.INFO,
-      background: isDarkMode ? '#121212' : THEME.COLORS.BACKGROUND,
-      text: isDarkMode ? '#FFFFFF' : THEME.COLORS.TEXT,
+      primary: {
+        main: THEME.COLORS.PRIMARY,
+        dark: '#0052CC',
+        light: '#4C9AFF',
+        contrastText: THEME.COLORS.CONTRAST.PRIMARY,
+      },
+      secondary: {
+        main: THEME.COLORS.SECONDARY,
+        dark: '#5E35B1',
+        light: '#B39DDB',
+        contrastText: THEME.COLORS.CONTRAST.SECONDARY,
+      },
+      error: {
+        main: THEME.COLORS.ERROR,
+        dark: '#C62828',
+        light: '#EF5350',
+        contrastText: THEME.COLORS.CONTRAST.ERROR,
+      },
+      warning: {
+        main: THEME.COLORS.WARNING,
+        dark: '#F57C00',
+        light: '#FFB74D',
+        contrastText: '#000000',
+      },
+      success: {
+        main: THEME.COLORS.SUCCESS,
+        dark: '#388E3C',
+        light: '#81C784',
+        contrastText: '#FFFFFF',
+      },
+      info: {
+        main: THEME.COLORS.INFO,
+        dark: '#1976D2',
+        light: '#64B5F6',
+        contrastText: '#FFFFFF',
+      },
+      background: {
+        default: isDarkMode ? '#121212' : THEME.COLORS.BACKGROUND,
+        secondary: isDarkMode ? '#1E1E1E' : '#F5F5F5',
+        paper: isDarkMode ? '#1E1E1E' : '#FFFFFF',
+      },
+      text: {
+        primary: isDarkMode ? '#FFFFFF' : THEME.COLORS.TEXT,
+        secondary: isDarkMode ? '#B0B0B0' : '#666666',
+        disabled: isDarkMode ? '#6B6B6B' : '#9E9E9E',
+      },
       contrast: {
         primary: THEME.COLORS.CONTRAST.PRIMARY,
         secondary: THEME.COLORS.CONTRAST.SECONDARY,
         error: THEME.COLORS.CONTRAST.ERROR,
       },
+    },
+    button: {
+      default: THEME.COLORS.PRIMARY,
+      hover: '#0052CC',
+      active: '#0043A8',
+      disabled: '#E0E0E0',
+    },
+    tabs: {
+      tab: isDarkMode ? '#2D2D2D' : '#FFFFFF',
+      tabList: isDarkMode ? '#1E1E1E' : '#F5F5F5',
+      tabPanel: isDarkMode ? '#121212' : '#FFFFFF',
     },
     ...themeOptions,
   });

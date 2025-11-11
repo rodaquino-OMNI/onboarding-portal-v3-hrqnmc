@@ -15,6 +15,7 @@ import {
   API_PERFORMANCE,
   API_SECURITY,
   API_ENDPOINTS,
+  API_MONITORING,
   HTTP_STATUS
 } from '../constants/api.constants';
 

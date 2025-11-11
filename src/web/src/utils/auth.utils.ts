@@ -147,6 +147,7 @@ export const isTokenValid = (token: string, role: UserRole): TokenValidationResu
     if (!decodedToken.exp || decodedToken.exp < currentTime) {
       return {
         isValid: false,
+        expired: true,
         error: 'Token expired',
         requiresRefresh: true
       };
@@ -156,6 +157,7 @@ export const isTokenValid = (token: string, role: UserRole): TokenValidationResu
     if (decodedToken.role !== role) {
       return {
         isValid: false,
+        expired: false,
         error: 'Invalid role',
         requiresRefresh: false
       };
@@ -166,6 +168,7 @@ export const isTokenValid = (token: string, role: UserRole): TokenValidationResu
     if (decodedToken.deviceFingerprint !== storedFingerprint) {
       return {
         isValid: false,
+        expired: false,
         error: 'Invalid device fingerprint',
         requiresRefresh: false
       };
@@ -177,6 +180,7 @@ export const isTokenValid = (token: string, role: UserRole): TokenValidationResu
     if (tokenAge * 1000 > sessionDuration) {
       return {
         isValid: false,
+        expired: true,
         error: 'Session expired',
         requiresRefresh: true
       };
@@ -184,6 +188,7 @@ export const isTokenValid = (token: string, role: UserRole): TokenValidationResu
 
     return {
       isValid: true,
+      expired: false,
       error: null,
       requiresRefresh: false
     };
@@ -191,6 +196,7 @@ export const isTokenValid = (token: string, role: UserRole): TokenValidationResu
     console.error('Token validation error:', error);
     return {
       isValid: false,
+      expired: false,
       error: 'Invalid token format',
       requiresRefresh: false
     };
