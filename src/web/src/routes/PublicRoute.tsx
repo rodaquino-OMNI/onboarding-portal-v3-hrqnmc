@@ -8,7 +8,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { Navigate, Outlet } from 'react-router-dom'; // ^6.4.0
-import { SecurityContext } from '@austa/common'; // ^1.0.0
+import { SecurityContext } from '../types/auth.types';
 
 import { useAuth } from '../hooks/useAuth';
 import { ROUTES } from '../constants/routes.constants';

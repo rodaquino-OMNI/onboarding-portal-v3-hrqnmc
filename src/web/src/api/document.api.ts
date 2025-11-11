@@ -10,12 +10,14 @@ import axios from 'axios'; // ^1.5.0
 import axiosRetry from 'axios-retry'; // ^3.8.0
 import { trace, SpanStatusCode } from '@opentelemetry/api'; // ^1.4.0
 
-import {
+import type {
   Document,
   DocumentUploadRequest,
-  DocumentType,
-  DocumentStatus,
   DocumentListResponse
+} from '../types/document.types';
+import {
+  DocumentType,
+  DocumentStatus
 } from '../types/document.types';
 import { apiConfig, retryConfig, createAxiosConfig } from '../config/api.config';
 import { API_ENDPOINTS, UPLOAD_CONFIG, HTTP_STATUS } from '../constants/api.constants';
@@ -36,7 +38,7 @@ const validateFile = (file: File): void => {
   if (file.size > UPLOAD_CONFIG.MAX_FILE_SIZE) {
     throw new Error(`File size exceeds maximum limit of ${UPLOAD_CONFIG.MAX_FILE_SIZE / (1024 * 1024)}MB`);
   }
-  if (!UPLOAD_CONFIG.SUPPORTED_TYPES.includes(file.type)) {
+  if (!UPLOAD_CONFIG.SUPPORTED_TYPES.includes(file.type as any)) {
     throw new Error(`File type ${file.type} not supported`);
   }
 };

@@ -1,4 +1,5 @@
-import { format, ptBR, parseISO, addDays, differenceInYears } from 'date-fns'; // v2.30.0
+import { format, parseISO, addDays, differenceInYears } from 'date-fns'; // v2.30.0
+import { pt as ptBR } from 'date-fns/locale'; // v2.30.0
 import { APP_CONFIG } from '../constants/app.constants';
 
 // Default date format constants

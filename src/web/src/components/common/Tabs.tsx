@@ -1,4 +1,5 @@
-import React, { useCallback, useRef, useState, KeyboardEvent } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
+import type { KeyboardEvent } from 'react';
 import classnames from 'classnames'; // v2.3.2
 import styles from '../../styles/theme.css';
 

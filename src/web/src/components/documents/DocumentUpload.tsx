@@ -5,7 +5,8 @@ import CryptoJS from 'crypto-js'; // v4.1.1
 
 import FileUpload from '../common/FileUpload';
 import { useDocuments } from '../../hooks/useDocuments';
-import { DocumentType, DocumentStatus, Document } from '../../types/document.types';
+import type { Document } from '../../types/document.types';
+import { DocumentType, DocumentStatus } from '../../types/document.types';
 import { UPLOAD_CONFIG } from '../../constants/api.constants';
 
 interface DocumentUploadProps {
@@ -41,7 +42,7 @@ const DocumentUpload: React.FC<DocumentUploadProps> = React.memo(({
       if (file.size > UPLOAD_CONFIG.MAX_FILE_SIZE) {
         throw new Error(t('document.error.fileTooLarge'));
       }
-      if (!UPLOAD_CONFIG.SUPPORTED_TYPES.includes(file.type)) {
+      if (!UPLOAD_CONFIG.SUPPORTED_TYPES.includes(file.type as any)) {
         throw new Error(t('document.error.invalidFileType'));
       }
 

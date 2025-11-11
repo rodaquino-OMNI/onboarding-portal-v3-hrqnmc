@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next'; // v13.0.0
 import { Grid } from '@mui/material'; // v5.0.0
-import CircuitBreaker from 'circuit-breaker-js'; // v1.0.0
+import CircuitBreaker from 'opossum'; // v7.1.0
 import Card from '../../components/common/Card';
 import DataTable from '../../components/common/DataTable';
 import ErrorBoundary from '../../components/common/ErrorBoundary';
@@ -11,11 +11,13 @@ import { RiskLevel } from '../../types/health.types';
 import { EnrollmentStatus } from '../../types/enrollment.types';
 import { PolicyStatus } from '../../types/policy.types';
 
-// Circuit breaker configuration for API calls
-const breaker = new CircuitBreaker({
-  failureThreshold: 3,
+// Circuit breaker for API calls
+const breakerAction = async (operation: () => Promise<any>) => operation();
+const breaker = new CircuitBreaker(breakerAction, {
+  errorThresholdPercentage: 50,
   resetTimeout: 30000,
-  timeout: 10000
+  timeout: 10000,
+  name: 'dashboardBreaker'
 });
 
 // Interfaces
@@ -37,7 +39,7 @@ interface PendingAssessment {
 
 // Fetch dashboard metrics with circuit breaker protection
 const fetchDashboardMetrics = async (): Promise<DashboardMetrics> => {
-  return breaker.run(async () => {
+  return breaker.fire(async () => {
     const response = await fetch('/api/v1/underwriter/metrics', {
       headers: {
         'Content-Type': 'application/json',
@@ -59,7 +61,7 @@ const fetchPendingAssessments = async (
   pageSize: number,
   filters: Record<string, any>
 ): Promise<{ data: PendingAssessment[]; total: number }> => {
-  return breaker.run(async () => {
+  return breaker.fire(async () => {
     const queryParams = new URLSearchParams({
       page: page.toString(),
       pageSize: pageSize.toString(),

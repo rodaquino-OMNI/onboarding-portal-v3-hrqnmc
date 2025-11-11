@@ -7,7 +7,7 @@
  */
 
 import dayjs from 'dayjs'; // ^1.11.0
-import { ErrorHandler } from '@company/error-handler'; // ^2.0.0
+import { ErrorHandler } from '../utils/error-handler.utils';
 import { Logger } from 'winston'; // ^3.8.0
 
 import { ApiService } from './api.service';

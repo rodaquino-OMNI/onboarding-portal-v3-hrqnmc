@@ -9,7 +9,7 @@
 import axios, { AxiosInstance, AxiosError } from 'axios'; // ^1.5.0
 import axiosRetry from 'axios-retry'; // ^3.8.0
 import CircuitBreaker from 'opossum'; // ^7.1.0
-import * as newrelic from '@newrelic/browser'; // ^1.0.0
+// import * as newrelic from '@newrelic/browser'; // ^1.0.0
 
 import { 
   ApiResponse, 
@@ -82,10 +82,10 @@ export function createApiClient(customConfig?: Partial<ApiRequestConfig>): Axios
     };
     
     // Add telemetry data
-    newrelic.addPageAction('api_request', {
-      url: requestConfig.url,
-      method: requestConfig.method
-    });
+    // newrelic.addPageAction('api_request', {
+    //   url: requestConfig.url,
+    //   method: requestConfig.method
+    // });
 
     return requestConfig;
   });
@@ -93,11 +93,11 @@ export function createApiClient(customConfig?: Partial<ApiRequestConfig>): Axios
   // Response interceptor for error handling and telemetry
   client.interceptors.response.use(
     (response) => {
-      newrelic.addPageAction('api_response', {
-        url: response.config.url,
-        status: response.status,
-        duration: response.headers['x-response-time']
-      });
+      // newrelic.addPageAction('api_response', {
+      //   url: response.config.url,
+      //   status: response.status,
+      //   duration: response.headers['x-response-time']
+      // });
       return response;
     },
     (error) => {
@@ -165,11 +165,11 @@ export function handleApiError(error: unknown): ApiError {
   }
 
   // Log error with telemetry
-  newrelic.noticeError(new Error(apiError.message), {
-    errorCode: apiError.code,
-    requestId: apiError.requestId,
-    path: apiError.path
-  });
+  // newrelic.noticeError(new Error(apiError.message), {
+  //   errorCode: apiError.code,
+  //   requestId: apiError.requestId,
+  //   path: apiError.path
+  // });
 
   return apiError;
 }

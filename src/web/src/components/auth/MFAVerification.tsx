@@ -12,7 +12,7 @@ import { useTranslation } from 'react-i18next'; // ^13.0.0
 import { ErrorBoundary } from 'react-error-boundary'; // ^4.0.0
 
 import { useAuth } from '../../hooks/useAuth';
-import { MFARequest } from '../../types/auth.types';
+import type { MFARequest } from '../../types/auth.types';
 
 // Constants for MFA configuration
 const MFA_CODE_LENGTH = 6;

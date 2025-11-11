@@ -14,8 +14,8 @@ import {
   ListItem,
   ListItemText,
 } from '@mui/material';
-import { useAuditLog } from '@austa/audit-logging'; // v1.0.0
-import { useRoleBasedAccess } from '@austa/rbac'; // v1.0.0
+import { useAuditLog } from '../../hooks/useAuditLog';
+import { useRoleBasedAccess } from '../../hooks/useRoleBasedAccess';
 
 import {
   Policy,

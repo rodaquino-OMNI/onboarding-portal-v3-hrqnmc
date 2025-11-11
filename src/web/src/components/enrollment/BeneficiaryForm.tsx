@@ -322,7 +322,7 @@ export const BeneficiaryForm: React.FC<BeneficiaryFormProps> = ({
         type="text"
         required
         disabled={disabled}
-        error={touched.address?.state ? errors.address?.state : undefined}
+        error={touched.address && (touched as any).address.state && errors.address ? (errors as any).address.state : undefined}
         validationRules={{ required: true }}
       />
 

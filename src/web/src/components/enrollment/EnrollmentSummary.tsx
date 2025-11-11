@@ -5,7 +5,8 @@ import { ptBR } from 'date-fns/locale';
 
 import Card from '../common/Card';
 import StatusBadge from '../common/StatusBadge';
-import { Enrollment, EnrollmentStatus } from '../../types/enrollment.types';
+import type { Enrollment } from '../../types/enrollment.types';
+import { EnrollmentStatus } from '../../types/enrollment.types';
 import { useEnrollment } from '../../hooks/useEnrollment';
 import { useAuth } from '../../hooks/useAuth';
 import { DATE_TIME_FORMATS } from '../../constants/app.constants';

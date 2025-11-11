@@ -1,7 +1,7 @@
 import React, { useEffect, useCallback, useRef } from 'react'; // v18.0.0
 import ReactDOM from 'react-dom'; // v18.0.0
 import classNames from 'classnames'; // v2.3.2
-import { Button } from './Button';
+import Button from './Button';
 
 interface ModalProps {
   /** Controls modal visibility */

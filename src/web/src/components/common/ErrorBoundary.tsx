@@ -1,4 +1,5 @@
-import React, { Component, ErrorInfo } from 'react';
+import React, { Component } from 'react';
+import type { ErrorInfo } from 'react';
 import styled from '@mui/material/styles/styled';
 import { Card, Typography, Button } from '@mui/material';
 import { useNotificationContext } from '../../contexts/NotificationContext';

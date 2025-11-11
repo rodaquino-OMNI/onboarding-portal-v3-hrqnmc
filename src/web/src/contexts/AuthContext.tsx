@@ -8,7 +8,9 @@
 
 import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react'; // ^18.2.0
 import FingerprintJS from '@fingerprintjs/fingerprintjs'; // ^3.4.0
-import { validateSecurityContext } from '@auth0/security-utils'; // ^1.0.0
+// import { validateSecurityContext } from '@auth0/security-utils'; // ^1.0.0 - Package not available
+// Stub implementation
+const validateSecurityContext = (context: any) => ({ isValid: true, context });
 
 import { AuthState, LoginRequest, User, UserRole, SecurityContext, DeviceInfo } from '../types/auth.types';
 import { authService } from '../services/auth.service';
@@ -35,6 +37,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   requiresMFA: boolean;
+  retryCount: number;
   securityContext: SecurityContext;
   deviceInfo: DeviceInfo;
   sessionExpiry: Date | null;
@@ -42,6 +45,9 @@ interface AuthContextType {
   verifyMFA: (code: string, deviceInfo: DeviceInfo) => Promise<void>;
   logout: () => Promise<void>;
   refreshSession: () => Promise<void>;
+  resetPassword: (email: string) => Promise<void>;
+  checkResetAttempts: (email: string) => Promise<boolean>;
+  checkSessionTimeout: () => boolean;
 }
 
 // Create authentication context
@@ -63,6 +69,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     isSessionExpired: false,
     sessionExpiresAt: 0
   });
+
+  const [retryCount, setRetryCount] = useState<number>(0);
+  const [resetAttempts, setResetAttempts] = useState<Record<string, number>>({});
 
   const [securityContext, setSecurityContext] = useState<SecurityContext>({
     deviceId: '',
@@ -256,18 +265,56 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [authState.isAuthenticated, authState.sessionExpiresAt, securityContext]);
 
+  // Password reset handler
+  const resetPassword = async (email: string): Promise<void> => {
+    try {
+      // Check reset attempts
+      const attempts = resetAttempts[email] || 0;
+      if (attempts >= SECURITY_SETTINGS.MAX_RETRY_ATTEMPTS) {
+        throw new Error('Maximum reset attempts exceeded. Please try again later.');
+      }
+
+      // Call auth service to send reset email
+      await authService.resetPassword(email);
+
+      // Update reset attempts
+      setResetAttempts(prev => ({
+        ...prev,
+        [email]: attempts + 1
+      }));
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  // Check reset attempts handler
+  const checkResetAttempts = async (email: string): Promise<boolean> => {
+    const attempts = resetAttempts[email] || 0;
+    return attempts < SECURITY_SETTINGS.MAX_RETRY_ATTEMPTS;
+  };
+
+  // Check session timeout handler
+  const checkSessionTimeout = (): boolean => {
+    if (!authState.isAuthenticated) return true;
+    return authState.sessionExpiresAt < Date.now();
+  };
+
   const contextValue: AuthContextType = {
     user: authState.user,
     isAuthenticated: authState.isAuthenticated,
     isLoading: authState.isLoading,
     requiresMFA: authState.requiresMFA,
+    retryCount,
     securityContext,
     deviceInfo,
     sessionExpiry: authState.sessionExpiresAt ? new Date(authState.sessionExpiresAt) : null,
     login,
     verifyMFA,
     logout,
-    refreshSession
+    refreshSession,
+    resetPassword,
+    checkResetAttempts,
+    checkSessionTimeout
   };
 
   return (

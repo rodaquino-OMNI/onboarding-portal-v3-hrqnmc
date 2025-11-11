@@ -7,25 +7,27 @@
  */
 
 import axios from 'axios'; // ^1.5.0
-import { 
-  ApiResponse, 
-  ApiError, 
-  ApiRequestConfig 
+import type {
+  ApiResponse,
+  ApiError,
+  ApiRequestConfig
 } from '../types/api.types';
-import { 
-  Question, 
-  QuestionResponse, 
-  Questionnaire, 
-  RiskAssessment, 
+import type {
+  Question,
+  QuestionResponse,
+  RiskAssessment,
+  Questionnaire
+} from '../types/health.types';
+import {
   RiskLevel,
   questionResponseSchema,
   riskAssessmentSchema
 } from '../types/health.types';
 import { apiConfig } from '../config/api.config';
-import { 
-  createApiClient, 
-  handleApiError, 
-  createRequestConfig 
+import {
+  createApiClient,
+  handleApiError,
+  createRequestConfig
 } from '../utils/api.utils';
 import { validateHealthData } from '../utils/validation.utils';
 
@@ -132,7 +134,7 @@ export async function submitQuestionResponse(
     // Submit response with encryption
     const apiResponse = await client.post<ApiResponse<Question>>(
       `${API_ENDPOINTS.RESPONSE}/${questionnaireId}`,
-      sanitizedResponse.data,
+      response,
       createRequestConfig({
         headers: {
           'X-Encryption-Version': '2',
@@ -167,7 +169,7 @@ export async function completeQuestionnaire(questionnaireId: string): Promise<Ap
       `${API_ENDPOINTS.COMPLETE}/${questionnaireId}`,
       {
         completedAt: new Date().toISOString(),
-        securityChecksum: generateSecurityChecksum(questionnaireId)
+        securityChecksum: await generateSecurityChecksum(questionnaireId)
       },
       createRequestConfig({
         timeout: apiConfig.timeout * 2 // Extended timeout for completion
@@ -223,10 +225,9 @@ export async function getRiskAssessment(questionnaireId: string): Promise<ApiRes
  * @param data - Data to generate checksum for
  * @returns Security checksum string
  */
-function generateSecurityChecksum(data: string): string {
-  return crypto.subtle.digest('SHA-256', new TextEncoder().encode(data))
-    .then(buffer => Array.from(new Uint8Array(buffer))
-      .map(b => b.toString(16).padStart(2, '0'))
-      .join('')
-    );
+async function generateSecurityChecksum(data: string): Promise<string> {
+  const buffer = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(data));
+  return Array.from(new Uint8Array(buffer))
+    .map(b => b.toString(16).padStart(2, '0'))
+    .join('');
 }

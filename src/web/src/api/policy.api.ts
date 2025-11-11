@@ -12,11 +12,13 @@ import CircuitBreaker from 'opossum'; // ^7.1.0
 import winston from 'winston'; // ^3.8.0
 import { trace, SpanStatusCode } from '@opentelemetry/api';
 
-import {
+import type {
   Policy,
-  PolicyStatus,
   CoverageDetails,
-  WaitingPeriod,
+  WaitingPeriod
+} from '../types/policy.types';
+import {
+  PolicyStatus,
   isPolicyStatus
 } from '../types/policy.types';
 import { apiConfig, createAxiosConfig, circuitBreakerConfig } from '../config/api.config';
@@ -44,7 +46,7 @@ const API_ENDPOINTS = {
 // Configure retry mechanism
 const RETRY_CONFIG = {
   retries: 3,
-  retryDelay: 1000,
+  retryDelay: (retryCount: number) => retryCount * 1000,
   retryCondition: axiosRetry.isNetworkOrIdempotentRequestError
 };
 
@@ -74,7 +76,7 @@ export async function getPolicyById(policyId: string): Promise<Policy> {
   const span = tracer.startSpan('get_policy_by_id');
 
   try {
-    const response = await breaker.fire(() => 
+    const response = await breaker.fire(
       axiosInstance.get<Policy>(
         API_ENDPOINTS.POLICY_BY_ID.replace('{id}', policyId),
         {
@@ -118,7 +120,7 @@ export async function getPoliciesByEnrollmentId(
   const span = trace.getTracer('policy-api').startSpan('get_enrollment_policies');
 
   try {
-    const response = await breaker.fire(() =>
+    const response = await breaker.fire(
       axiosInstance.get<Policy[]>(
         API_ENDPOINTS.ENROLLMENT_POLICIES.replace('{id}', enrollmentId),
         {
@@ -149,7 +151,7 @@ export async function createPolicy(policy: Omit<Policy, 'id'>): Promise<Policy> 
   const span = trace.getTracer('policy-api').startSpan('create_policy');
 
   try {
-    const response = await breaker.fire(() =>
+    const response = await breaker.fire(
       axiosInstance.post<Policy>(
         API_ENDPOINTS.POLICIES,
         policy,
@@ -192,7 +194,7 @@ export async function updatePolicyStatus(
   const span = trace.getTracer('policy-api').startSpan('update_policy_status');
 
   try {
-    const response = await breaker.fire(() =>
+    const response = await breaker.fire(
       axiosInstance.patch<Policy>(
         API_ENDPOINTS.POLICY_STATUS.replace('{id}', policyId),
         { status },
@@ -231,7 +233,7 @@ export async function updateCoverageDetails(
   const span = trace.getTracer('policy-api').startSpan('update_coverage_details');
 
   try {
-    const response = await breaker.fire(() =>
+    const response = await breaker.fire(
       axiosInstance.put<Policy>(
         API_ENDPOINTS.POLICY_COVERAGE.replace('{id}', policyId),
         coverageDetails,
@@ -270,7 +272,7 @@ export async function updateWaitingPeriods(
   const span = trace.getTracer('policy-api').startSpan('update_waiting_periods');
 
   try {
-    const response = await breaker.fire(() =>
+    const response = await breaker.fire(
       axiosInstance.put<Policy>(
         API_ENDPOINTS.POLICY_WAITING_PERIODS.replace('{id}', policyId),
         { waitingPeriods },

@@ -7,8 +7,7 @@ import {
   MenuItem,
   Tooltip,
   Badge,
-  styled,
-  ErrorBoundary
+  styled
 } from '@mui/material';
 import {
   LightMode,
@@ -19,7 +18,8 @@ import {
 } from '@mui/icons-material';
 
 import { Navigation } from './Navigation';
-import { Notification } from './Notification';
+import ErrorBoundary from './ErrorBoundary';
+import Notification from './Notification';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { THEME } from '../../constants/app.constants';

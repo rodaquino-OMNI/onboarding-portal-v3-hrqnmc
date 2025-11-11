@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useAnalytics } from '@austa/analytics';
+import { useAnalytics } from '../../hooks/useAnalytics';
 
 import BeneficiaryForm from '../../components/enrollment/BeneficiaryForm';
 import GuardianForm from '../../components/enrollment/GuardianForm';

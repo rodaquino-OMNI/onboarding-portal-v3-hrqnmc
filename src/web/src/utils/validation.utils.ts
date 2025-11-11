@@ -1,6 +1,7 @@
 import { z } from 'zod'; // v3.22.0
 import xss from 'xss'; // v1.0.14
 import validator from 'validator'; // v13.11.0
+import CryptoJS from 'crypto-js'; // v4.2.0
 import { ApiValidationError } from '../types/api.types';
 import { Address } from '../types/enrollment.types';
 
@@ -56,15 +57,24 @@ const ERROR_CODES = {
  * Brazilian Portuguese error messages
  */
 const ERROR_MESSAGES = {
-  [ERROR_CODES.CPF_INVALID]: 'CPF inválido. Verifique os dígitos informados.',
-  [ERROR_CODES.CPF_BLACKLISTED]: 'CPF inválido. Número não permitido.',
-  [ERROR_CODES.PHONE_INVALID]: 'Telefone inválido. Use o formato: +55 (XX) XXXXX-XXXX',
-  [ERROR_CODES.EMAIL_INVALID]: 'E-mail inválido. Verifique o formato.',
-  [ERROR_CODES.HEALTHCARE_PROVIDER_INVALID]: 'Número de registro profissional inválido.',
-  [ERROR_CODES.ADDRESS_INVALID]: 'Endereço inválido. Verifique os dados informados.',
-  [ERROR_CODES.SANITIZATION_FAILED]: 'Dados contêm caracteres não permitidos.',
-  [ERROR_CODES.STATE_INVALID]: 'Estado inválido. Use a sigla do estado (ex: SP).',
-  [ERROR_CODES.ZIPCODE_INVALID]: 'CEP inválido. Use o formato: XXXXX-XXX'
+  CPF_INVALID: 'CPF inválido. Verifique os dígitos informados.',
+  CPF_BLACKLISTED: 'CPF inválido. Número não permitido.',
+  PHONE_INVALID: 'Telefone inválido. Use o formato: +55 (XX) XXXXX-XXXX',
+  EMAIL_INVALID: 'E-mail inválido. Verifique o formato.',
+  HEALTHCARE_PROVIDER_INVALID: 'Número de registro profissional inválido.',
+  ADDRESS_INVALID: 'Endereço inválido. Verifique os dados informados.',
+  SANITIZATION_FAILED: 'Dados contêm caracteres não permitidos.',
+  STATE_INVALID: 'Estado inválido. Use a sigla do estado (ex: SP).',
+  ZIPCODE_INVALID: 'CEP inválido. Use o formato: XXXXX-XXX',
+  VAL001: 'CPF inválido. Verifique os dígitos informados.',
+  VAL002: 'CPF inválido. Número não permitido.',
+  VAL003: 'Telefone inválido. Use o formato: +55 (XX) XXXXX-XXXX',
+  VAL004: 'E-mail inválido. Verifique o formato.',
+  VAL005: 'Número de registro profissional inválido.',
+  VAL006: 'Endereço inválido. Verifique os dados informados.',
+  VAL007: 'Dados contêm caracteres não permitidos.',
+  VAL008: 'Estado inválido. Use a sigla do estado (ex: SP).',
+  VAL009: 'CEP inválido. Use o formato: XXXXX-XXX'
 } as const;
 
 /**
@@ -298,9 +308,111 @@ export function validateEmail(email: string): ValidationResult {
   return { isValid: true };
 }
 
-export {
+/**
+ * Validates Brazilian ZIP code (CEP)
+ * @param zipCode ZIP code to validate
+ * @returns Validation result
+ */
+export function validateZipCode(zipCode: string): ValidationResult {
+  if (!zipCode) {
+    return {
+      isValid: false,
+      error: {
+        field: 'zipCode',
+        message: 'CEP é obrigatório',
+        code: ERROR_CODES.ZIPCODE_INVALID
+      }
+    };
+  }
+
+  const cleanZipCode = zipCode.replace(/[^\d]/g, '');
+
+  if (cleanZipCode.length !== 8) {
+    return {
+      isValid: false,
+      error: {
+        field: 'zipCode',
+        message: 'CEP deve conter 8 dígitos',
+        code: ERROR_CODES.ZIPCODE_INVALID
+      }
+    };
+  }
+
+  return { isValid: true };
+}
+
+/**
+ * Sanitizes user input to prevent XSS attacks
+ * @param input Input string to sanitize
+ * @returns Sanitized string
+ */
+export function sanitizeInput(input: string): string {
+  if (!input) return '';
+
+  // Use xss library to sanitize
+  return xss(input, {
+    whiteList: {},
+    stripIgnoreTag: true,
+    stripIgnoreTagBody: ['script', 'style']
+  });
+}
+
+/**
+ * Validates health assessment data
+ * @param data Health data to validate
+ * @returns Validation result
+ */
+export function validateHealthData(data: any): ValidationResult {
+  if (!data || typeof data !== 'object') {
+    return {
+      isValid: false,
+      error: {
+        field: 'healthData',
+        message: 'Dados de saúde inválidos',
+        code: ERROR_CODES.ZIPCODE_INVALID
+      }
+    };
+  }
+
+  // Basic validation - can be extended based on requirements
+  if (data.responses && !Array.isArray(data.responses)) {
+    return {
+      isValid: false,
+      error: {
+        field: 'responses',
+        message: 'Respostas devem ser um array',
+        code: ERROR_CODES.ZIPCODE_INVALID
+      }
+    };
+  }
+
+  return { isValid: true };
+}
+
+/**
+ * Encrypts a field value using AES encryption
+ * @param value Value to encrypt
+ * @param key Encryption key
+ * @returns Encrypted string
+ */
+export function encryptField(value: string, key: string): string {
+  if (!value || !key) return value;
+
+  try {
+    const encrypted = CryptoJS.AES.encrypt(value, key);
+    return encrypted.toString();
+  } catch (error) {
+    console.error('Encryption error:', error);
+    return value;
+  }
+}
+
+export type {
   ValidationResult,
-  SanitizationOptions,
+  SanitizationOptions
+};
+
+export {
   VALIDATION_CONSTANTS,
   ERROR_CODES,
   ERROR_MESSAGES

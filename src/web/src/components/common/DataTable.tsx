@@ -9,7 +9,8 @@ import classNames from 'classnames';
 import { useTranslation } from 'react-i18next';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { useDebounce } from 'use-debounce';
-import { Table, TableColumn } from './Table';
+import type { TableColumn } from './Table';
+import { Table } from './Table';
 import Loading from './Loading';
 import StatusBadge from './StatusBadge';
 

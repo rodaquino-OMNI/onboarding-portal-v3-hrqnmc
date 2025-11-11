@@ -164,3 +164,26 @@ export function isPolicyStatus(value: unknown): value is PolicyStatus {
 export function isCoverageTier(value: unknown): value is CoverageTier {
   return Object.values(CoverageTier).includes(value as CoverageTier);
 }
+
+/**
+ * Policy validation error type
+ */
+export interface PolicyValidationError {
+  field: string;
+  message: string;
+  code: string;
+  severity: 'error' | 'warning';
+}
+
+/**
+ * Role-based access control for policies
+ */
+export interface RoleAccess {
+  role: string;
+  permissions: string[];
+  canCreate: boolean;
+  canRead: boolean;
+  canUpdate: boolean;
+  canDelete: boolean;
+  canApprove: boolean;
+}

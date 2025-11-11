@@ -2,7 +2,8 @@ import React, { useCallback, useRef, useState, useEffect } from 'react'; // v18.
 import classnames from 'classnames'; // v2.3.2
 import axios from 'axios'; // v1.6.0
 import CryptoJS from 'crypto-js'; // v4.1.1
-import { DocumentType, DocumentStatus, Document } from '../../types/document.types';
+import type { Document } from '../../types/document.types';
+import { DocumentType, DocumentStatus } from '../../types/document.types';
 import Button from './Button';
 
 // Constants for file upload configuration
@@ -67,6 +68,7 @@ const FileUpload: React.FC<FileUploadProps> = React.memo(({
   });
   
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const fileHashMap = useRef<Map<string, string>>(new Map());
   const dropZoneRef = useRef<HTMLDivElement>(null);
 
   // File validation with security checks
@@ -85,19 +87,19 @@ const FileUpload: React.FC<FileUploadProps> = React.memo(({
     const hash = CryptoJS.SHA256(wordArray).toString();
 
     // Store hash for later verification
-    file.hash = hash;
+    fileHashMap.current.set(file.name, hash);
     return true;
   }, [maxSize, allowedTypes]);
 
   // File encryption using AES-256
-  const encryptFile = async (file: File): Promise<ArrayBuffer> => {
+  const encryptFile = async (file: File): Promise<string> => {
     const arrayBuffer = await file.arrayBuffer();
     const wordArray = CryptoJS.lib.WordArray.create(arrayBuffer);
     const iv = CryptoJS.lib.WordArray.random(16);
-    
+
     const encrypted = CryptoJS.AES.encrypt(wordArray, process.env.REACT_APP_ENCRYPTION_KEY!, {
       iv: iv,
-      mode: CryptoJS.mode.GCM,
+      mode: CryptoJS.mode.CBC,
       padding: CryptoJS.pad.Pkcs7
     });
 
@@ -111,7 +113,10 @@ const FileUpload: React.FC<FileUploadProps> = React.memo(({
 
     try {
       await validateFile(file);
-      const encryptedData = await encryptFile(file);
+      const encryptedString = await encryptFile(file);
+      // Convert encrypted string to Uint8Array for chunking
+      const encoder = new TextEncoder();
+      const encryptedData = encoder.encode(encryptedString);
       const chunks = Math.ceil(encryptedData.byteLength / CHUNK_SIZE);
 
       setUploadState(prev => ({
@@ -131,7 +136,7 @@ const FileUpload: React.FC<FileUploadProps> = React.memo(({
         formData.append('fileId', fileId);
         formData.append('documentType', documentType);
         formData.append('enrollmentId', enrollmentId);
-        formData.append('hash', file.hash);
+        formData.append('hash', fileHashMap.current.get(file.name) || '');
 
         let uploaded = false;
         while (!uploaded && retryCount < maxRetries) {

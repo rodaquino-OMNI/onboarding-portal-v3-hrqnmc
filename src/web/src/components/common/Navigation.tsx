@@ -3,7 +3,7 @@ import { useLocation, useNavigate, Link } from 'react-router-dom'; // ^6.0.0
 import { useTranslation } from 'react-i18next'; // ^13.0.0
 import classNames from 'classnames'; // ^2.3.2
 
-import { Button } from './Button';
+import Button from './Button';
 import { ROUTES, ROUTE_ROLES } from '../../constants/routes.constants';
 import { useAuth } from '../../contexts/AuthContext';
 import { UserRole } from '../../types/auth.types';
@@ -136,13 +136,13 @@ export const Navigation: React.FC<NavigationProps> = React.memo(({
   // Handle navigation item click with tracking
   const handleNavClick = useCallback((item: NavigationItem) => {
     // Track navigation event
-    if (window.newrelic) {
-      window.newrelic.addPageAction('navigation_click', {
-        trackingId: item.trackingId,
-        path: item.path,
-        userRole: user?.role
-      });
-    }
+    // if (window.newrelic) {
+    //   window.newrelic.addPageAction('navigation_click', {
+    //     trackingId: item.trackingId,
+    //     path: item.path,
+    //     userRole: user?.role
+    //   });
+    // }
     navigate(item.path);
   }, [navigate, user]);
 

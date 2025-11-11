@@ -113,8 +113,9 @@ export interface ApiValidationError {
   field: string;
   message: string;
   code: string;
-  constraints: Record<string, string>;
-  value: any;
+  constraints?: Record<string, string>;
+  value?: any;
+  context?: Record<string, any>;
 }
 
 /**

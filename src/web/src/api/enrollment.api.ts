@@ -11,18 +11,20 @@ import retry from 'axios-retry'; // ^3.8.0
 import { trace } from '@opentelemetry/api'; // ^1.4.0
 import CryptoJS from 'crypto-js'; // ^4.1.1
 
-import { 
-  ApiResponse, 
-  ApiError, 
-  PaginatedResponse 
+import type {
+  ApiResponse,
+  ApiError,
+  PaginatedResponse
 } from '../types/api.types';
 
-import {
+import type {
   Enrollment,
-  EnrollmentStatus,
   EnrollmentFilters,
   Beneficiary,
-  RequiredDocument,
+  RequiredDocument
+} from '../types/enrollment.types';
+import {
+  EnrollmentStatus,
   isValidBeneficiary,
   isValidEnrollment
 } from '../types/enrollment.types';

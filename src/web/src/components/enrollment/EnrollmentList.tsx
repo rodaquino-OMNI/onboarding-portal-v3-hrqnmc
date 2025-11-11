@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next'; // v13.0.0
 import { useErrorBoundary } from 'react-error-boundary'; // v4.0.11
 import { format } from 'date-fns'; // v2.30.0
-import { useRoleBasedAccess } from '@austa/role-based-access'; // v1.0.0
+import { useRoleBasedAccess } from '../../hooks/useRoleBasedAccess';
 
 import DataTable, { DataTableColumn } from '../common/DataTable';
 import StatusBadge from '../common/StatusBadge';
