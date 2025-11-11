@@ -9,7 +9,6 @@ export default defineConfig({
   plugins: [
     // React plugin with Emotion support for styled components
     react({
-      fastRefresh: true,
       babel: {
         plugins: ['@emotion/babel-plugin']
       }

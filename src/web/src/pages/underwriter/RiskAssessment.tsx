@@ -19,8 +19,8 @@ import Loading from '../../components/common/Loading';
 import ErrorBoundary from '../../components/common/ErrorBoundary';
 import { useHealth } from '../../hooks/useHealth';
 import { useNotification } from '../../hooks/useNotification';
-import { useAuditLog } from '@austa/audit-logging';
-import { useMaskData } from '@austa/data-masking';
+import { useAuditLog } from '../../hooks/useAuditLog';
+import { useMaskData } from '../../hooks/useMaskData';
 
 // Styled components with WCAG compliance
 const StyledContainer = styled(Box)(({ theme }) => ({

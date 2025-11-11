@@ -2,6 +2,9 @@ import { z } from 'zod'; // v3.22.0
 import { ApiError } from '../types/api.types';
 import { validateCPF, validateEmail, validatePhone, validateZipCode } from './validation.utils';
 
+// Re-export validation functions
+export { validateCPF } from './validation.utils';
+
 /**
  * Constants for form handling
  */

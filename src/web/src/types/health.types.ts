@@ -77,6 +77,22 @@ export interface RiskFactor {
 }
 
 /**
+ * Interface for health questionnaire with validation and security
+ */
+export interface Questionnaire {
+  id: string;
+  enrollmentId: string;
+  questions: Question[];
+  responses: QuestionResponse[];
+  status: string;
+  version: string;
+  createdAt: string;
+  updatedAt: string;
+  completedAt?: string;
+  riskAssessment?: RiskAssessment;
+}
+
+/**
  * Interface for health risk assessment results with security and audit features
  */
 export interface RiskAssessment {

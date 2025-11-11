@@ -26,7 +26,7 @@ import {
 import { z } from 'zod'; // v3.22.0
 import { retry } from 'axios-retry'; // v3.8.0
 import CryptoJS from 'crypto-js'; // v4.1.1
-import CircuitBreaker from 'circuit-breaker-js'; // v0.0.1
+import CircuitBreaker from 'opossum'; // v7.1.0
 import winston from 'winston'; // v3.10.0
 
 /**
@@ -65,7 +65,8 @@ const SECURITY_CONFIG = {
 const CIRCUIT_BREAKER_CONFIG = {
   timeout: 3000,
   errorThresholdPercentage: 50,
-  resetTimeout: 30000
+  resetTimeout: 30000,
+  name: 'healthServiceBreaker'
 };
 
 /**
@@ -88,11 +89,12 @@ export class HealthService {
   private readonly circuitBreaker: CircuitBreaker;
 
   constructor() {
-    this.circuitBreaker = new CircuitBreaker({
-      ...CIRCUIT_BREAKER_CONFIG,
-      onOpen: () => this.handleCircuitBreakerOpen(),
-      onClose: () => this.handleCircuitBreakerClose()
-    });
+    // Create a simple async function for the circuit breaker
+    const healthOperation = async (operation: () => Promise<any>) => operation();
+
+    this.circuitBreaker = new CircuitBreaker(healthOperation, CIRCUIT_BREAKER_CONFIG);
+    this.circuitBreaker.on('open', () => this.handleCircuitBreakerOpen());
+    this.circuitBreaker.on('close', () => this.handleCircuitBreakerClose());
   }
 
   /**
@@ -109,7 +111,7 @@ export class HealthService {
       }
 
       // Execute request through circuit breaker
-      const response = await this.circuitBreaker.execute(async () => {
+      const response = await this.circuitBreaker.fire(async () => {
         const result = await getQuestionnaire(beneficiaryId);
         return this.encryptHealthData(result.data);
       });
@@ -191,7 +193,7 @@ export class HealthService {
         throw new Error(ERROR_MESSAGES.QUESTIONNAIRE_NOT_FOUND);
       }
 
-      await this.circuitBreaker.execute(() => completeQuestionnaire(questionnaireId));
+      await this.circuitBreaker.fire(() => completeQuestionnaire(questionnaireId));
 
       logger.info('Questionnaire finalized', {
         questionnaireId,
@@ -214,7 +216,7 @@ export class HealthService {
    */
   public async getRiskAssessmentResults(questionnaireId: string): Promise<RiskAssessment> {
     try {
-      const response = await this.circuitBreaker.execute(() => getRiskAssessment(questionnaireId));
+      const response = await this.circuitBreaker.fire(() => getRiskAssessment(questionnaireId));
       const decryptedAssessment = this.decryptHealthData(response.data);
 
       // Validate decrypted assessment
@@ -253,7 +255,7 @@ export class HealthService {
         SECURITY_CONFIG.ENCRYPTION_KEY,
         {
           iv: iv,
-          mode: CryptoJS.mode.GCM,
+          mode: CryptoJS.mode.CBC,
           padding: CryptoJS.pad.Pkcs7
         }
       );
@@ -284,7 +286,7 @@ export class HealthService {
         SECURITY_CONFIG.ENCRYPTION_KEY,
         {
           iv: CryptoJS.enc.Hex.parse(data.iv),
-          mode: CryptoJS.mode.GCM,
+          mode: CryptoJS.mode.CBC,
           padding: CryptoJS.pad.Pkcs7
         }
       );

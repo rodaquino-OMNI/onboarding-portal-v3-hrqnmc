@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from 'react'; // v18.0.0
-import { useQuery, useMutation, useQueryClient } from 'react-query'; // v4.0.0
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'; // v4.0.0
 import { useDebounce } from 'use-debounce'; // v9.0.0
-import { usePerformanceMonitor } from '@performance-monitor/react'; // v2.0.0
+import { usePerformanceMonitor } from './usePerformanceMonitor';
 
 import DocumentService from '../services/document.service';
 import {

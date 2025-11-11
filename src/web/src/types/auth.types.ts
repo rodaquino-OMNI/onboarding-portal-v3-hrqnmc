@@ -49,6 +49,7 @@ export interface User {
   updatedAt: Date;
   passwordLastChanged: Date;
   failedLoginAttempts: number;
+  avatarUrl?: string;
 }
 
 /**
@@ -72,6 +73,7 @@ export interface LoginResponse {
   requiresMFA: boolean;
   sessionExpiresIn: number;
   grantedPermissions: string[];
+  sessionToken?: string;
 }
 
 /**
@@ -137,3 +139,54 @@ export type SessionInfo = {
   lastActivity: Date;
   deviceInfo: Record<string, string>;
 };
+
+/**
+ * Security context for authentication with device tracking
+ */
+export interface SecurityContext {
+  sessionId: string;
+  deviceFingerprint: string;
+  deviceId: string;
+  ipAddress: string;
+  userAgent: string;
+  timestamp: Date;
+  geolocation?: {
+    country: string;
+    city: string;
+  };
+}
+
+/**
+ * Device information for security tracking
+ */
+export interface DeviceInfo {
+  fingerprint: string;
+  browser: string;
+  os: string;
+  device: string;
+  isMobile: boolean;
+  screenResolution: string;
+}
+
+/**
+ * Session configuration options
+ */
+export interface SessionConfig {
+  sessionTimeout: number;
+  maxConcurrentSessions: number;
+  requireMFA: boolean;
+  allowRememberMe: boolean;
+  idleTimeout: number;
+}
+
+/**
+ * Token validation result
+ */
+export interface TokenValidationResult {
+  isValid: boolean;
+  expired: boolean;
+  requiresRefresh: boolean;
+  user?: User;
+  error?: string;
+  remainingTime?: number;
+}

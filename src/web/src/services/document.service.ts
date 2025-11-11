@@ -30,7 +30,7 @@ const documentValidationSchema = z.object({
     (file) => file.size <= UPLOAD_CONFIG.MAX_FILE_SIZE,
     'File size exceeds maximum limit'
   ).refine(
-    (file) => UPLOAD_CONFIG.SUPPORTED_TYPES.includes(file.type),
+    (file) => UPLOAD_CONFIG.SUPPORTED_TYPES.includes(file.type as any),
     'File type not supported'
   ),
   metadata: z.record(z.string()).optional()
@@ -189,7 +189,7 @@ export class DocumentService {
 
     const encrypted = CryptoJS.AES.encrypt(wordArray, metadata.keyId, {
       iv: CryptoJS.enc.Hex.parse(metadata.iv),
-      mode: CryptoJS.mode.GCM
+      mode: CryptoJS.mode.CBC
     });
 
     return new Blob([encrypted.toString()], { type: file.type });

@@ -150,6 +150,21 @@ const createCustomTheme = (themeOptions = {}, isDarkMode = false): Theme => {
         },
       },
     },
+    colors: {
+      primary: THEME.COLORS.PRIMARY,
+      secondary: THEME.COLORS.SECONDARY,
+      error: THEME.COLORS.ERROR,
+      warning: THEME.COLORS.WARNING,
+      success: THEME.COLORS.SUCCESS,
+      info: THEME.COLORS.INFO,
+      background: isDarkMode ? '#121212' : THEME.COLORS.BACKGROUND,
+      text: isDarkMode ? '#FFFFFF' : THEME.COLORS.TEXT,
+      contrast: {
+        primary: THEME.COLORS.CONTRAST.PRIMARY,
+        secondary: THEME.COLORS.CONTRAST.SECONDARY,
+        error: THEME.COLORS.CONTRAST.ERROR,
+      },
+    },
     ...themeOptions,
   });
 

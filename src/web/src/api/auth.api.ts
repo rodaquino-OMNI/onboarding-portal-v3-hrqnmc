@@ -245,10 +245,41 @@ async function terminateActiveSessions(token: string): Promise<void> {
   // Implement session termination logic
 }
 
+/**
+ * Initiates password reset process
+ * @param email User's email address
+ * @returns Promise indicating successful reset request
+ */
+async function resetPassword(email: string): Promise<void> {
+  try {
+    const apiClient = createApiClient({
+      headers: {
+        'X-Password-Reset': 'true'
+      }
+    });
+
+    await apiClient.post(API_ENDPOINTS.RESET_PASSWORD, { email });
+
+    // Log password reset event
+    await logSecurityEvent('password_reset_request', {
+      success: true,
+      email,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    await logSecurityEvent('password_reset_request', {
+      success: false,
+      error: error.message
+    });
+    throw handleApiError(error);
+  }
+}
+
 // Export authentication API functions
 export const authApi = {
   login,
   verifyMFA,
   refreshToken,
-  logout
+  logout,
+  resetPassword
 };

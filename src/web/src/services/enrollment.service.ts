@@ -302,3 +302,6 @@ export class EnrollmentService {
     throw new Error('An unexpected error occurred during enrollment processing');
   }
 }
+
+// Default export for convenience
+export default EnrollmentService;

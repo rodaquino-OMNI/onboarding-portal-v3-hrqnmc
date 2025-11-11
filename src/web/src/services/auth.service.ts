@@ -313,6 +313,17 @@ async function getSecurityContext(): Promise<SecurityContext | null> {
   return context.success ? context.data : null;
 }
 
+/**
+ * Initiates password reset flow
+ */
+async function resetPassword(email: string): Promise<void> {
+  try {
+    await authApi.resetPassword({ email });
+  } catch (error) {
+    throw new Error('Failed to initiate password reset. Please try again.');
+  }
+}
+
 // Export authentication service
 export const authService = {
   login,
@@ -320,5 +331,6 @@ export const authService = {
   logout,
   refreshToken,
   validateSession,
-  getSecurityContext
+  getSecurityContext,
+  resetPassword
 };

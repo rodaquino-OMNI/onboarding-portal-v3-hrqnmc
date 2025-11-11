@@ -104,16 +104,16 @@ const getBreadcrumbItems = (pathname: string, userRole: UserRole, t: Function): 
   let currentPath = '';
 
   // Get role-specific root path
-  const roleRoot = Object.values(ROUTES).find(routes => 
-    routes.ROOT.includes(`/${paths[0]}`)
+  const roleRoot = Object.values(ROUTES).find(routes =>
+    typeof routes === 'object' && routes !== null && 'ROOT' in routes && (routes as any).ROOT.includes(`/${paths[0]}`)
   );
 
-  if (!roleRoot) return items;
+  if (!roleRoot || typeof roleRoot !== 'object') return items;
 
   // Add home item
   items.push({
     label: t('breadcrumb.home'),
-    path: roleRoot.ROOT,
+    path: (roleRoot as any).ROOT,
     isLast: paths.length === 0
   });
 

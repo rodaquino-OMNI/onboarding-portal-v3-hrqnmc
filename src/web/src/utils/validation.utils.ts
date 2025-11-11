@@ -1,6 +1,7 @@
 import { z } from 'zod'; // v3.22.0
 import xss from 'xss'; // v1.0.14
 import validator from 'validator'; // v13.11.0
+import CryptoJS from 'crypto-js'; // v4.2.0
 import { ApiValidationError } from '../types/api.types';
 import { Address } from '../types/enrollment.types';
 
@@ -316,8 +317,11 @@ export function validateZipCode(zipCode: string): ValidationResult {
   if (!zipCode) {
     return {
       isValid: false,
-      error: 'CEP é obrigatório',
-      code: 'VAL008'
+      error: {
+        field: 'zipCode',
+        message: 'CEP é obrigatório',
+        code: ERROR_CODES.ZIPCODE_INVALID
+      }
     };
   }
 
@@ -326,8 +330,11 @@ export function validateZipCode(zipCode: string): ValidationResult {
   if (cleanZipCode.length !== 8) {
     return {
       isValid: false,
-      error: 'CEP deve conter 8 dígitos',
-      code: 'VAL008'
+      error: {
+        field: 'zipCode',
+        message: 'CEP deve conter 8 dígitos',
+        code: ERROR_CODES.ZIPCODE_INVALID
+      }
     };
   }
 
@@ -359,8 +366,11 @@ export function validateHealthData(data: any): ValidationResult {
   if (!data || typeof data !== 'object') {
     return {
       isValid: false,
-      error: 'Dados de saúde inválidos',
-      code: 'VAL009'
+      error: {
+        field: 'healthData',
+        message: 'Dados de saúde inválidos',
+        code: ERROR_CODES.ZIPCODE_INVALID
+      }
     };
   }
 
@@ -368,12 +378,33 @@ export function validateHealthData(data: any): ValidationResult {
   if (data.responses && !Array.isArray(data.responses)) {
     return {
       isValid: false,
-      error: 'Respostas devem ser um array',
-      code: 'VAL009'
+      error: {
+        field: 'responses',
+        message: 'Respostas devem ser um array',
+        code: ERROR_CODES.ZIPCODE_INVALID
+      }
     };
   }
 
   return { isValid: true };
+}
+
+/**
+ * Encrypts a field value using AES encryption
+ * @param value Value to encrypt
+ * @param key Encryption key
+ * @returns Encrypted string
+ */
+export function encryptField(value: string, key: string): string {
+  if (!value || !key) return value;
+
+  try {
+    const encrypted = CryptoJS.AES.encrypt(value, key);
+    return encrypted.toString();
+  } catch (error) {
+    console.error('Encryption error:', error);
+    return value;
+  }
 }
 
 export type {

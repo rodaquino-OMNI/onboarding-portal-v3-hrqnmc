@@ -116,6 +116,17 @@ export const PARENT_GUARDIAN = {
 } as const;
 
 /**
+ * Policy route paths
+ */
+export const POLICY_ROUTES = {
+  BASE: '/policies',
+  LIST: '/policies',
+  DETAILS: '/policies/:id',
+  CREATE: '/policies/new',
+  EDIT: '/policies/:id/edit'
+} as const;
+
+/**
  * Error and system route paths
  */
 export const ERROR = {
@@ -131,6 +142,7 @@ export const ERROR = {
  * Combined route constants for export
  */
 export const ROUTES = {
+  ROOT: '/',
   AUTH,
   ADMIN,
   BROKER,
@@ -138,6 +150,7 @@ export const ROUTES = {
   HR,
   UNDERWRITER,
   PARENT_GUARDIAN,
+  POLICY_ROUTES,
   ERROR
 } as const;
 

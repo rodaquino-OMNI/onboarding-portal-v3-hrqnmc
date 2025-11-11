@@ -1,7 +1,7 @@
 import React, { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom'; // ^6.0.0
 import { useTranslation } from 'react-i18next'; // ^13.0.0
-import { auditLog } from '@austa/audit-logging'; // ^1.0.0
+import { auditLog } from '../../hooks/useAuditLog';
 
 import PasswordReset from '../../components/auth/PasswordReset';
 import { useNotification } from '../../hooks/useNotification';

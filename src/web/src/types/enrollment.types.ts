@@ -40,6 +40,22 @@ export interface Address {
 }
 
 /**
+ * Guardian information for minors with LGPD compliance
+ */
+export interface Guardian {
+  id: string;
+  name: string;
+  cpf: string;
+  rg: string;
+  email: string;
+  phone: string;
+  address: Address;
+  relationshipToMinor: string;
+  dateOfBirth: Date;
+  authorizationDocument?: string;
+}
+
+/**
  * Beneficiary information structure with LGPD compliance
  */
 export interface Beneficiary {
@@ -53,6 +69,11 @@ export interface Beneficiary {
   phone: string; // Format: +55 (00) 00000-0000
   address: Address;
   guardianId: string | null; // Required for minors
+  healthData?: {
+    questionnaire?: Questionnaire;
+    riskLevel?: RiskLevel;
+    medicalHistory?: any;
+  };
 }
 
 /**

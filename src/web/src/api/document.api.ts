@@ -38,7 +38,7 @@ const validateFile = (file: File): void => {
   if (file.size > UPLOAD_CONFIG.MAX_FILE_SIZE) {
     throw new Error(`File size exceeds maximum limit of ${UPLOAD_CONFIG.MAX_FILE_SIZE / (1024 * 1024)}MB`);
   }
-  if (!UPLOAD_CONFIG.SUPPORTED_TYPES.includes(file.type)) {
+  if (!UPLOAD_CONFIG.SUPPORTED_TYPES.includes(file.type as any)) {
     throw new Error(`File type ${file.type} not supported`);
   }
 };
