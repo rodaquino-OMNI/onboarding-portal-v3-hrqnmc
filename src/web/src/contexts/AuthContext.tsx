@@ -76,13 +76,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [securityContext, setSecurityContext] = useState<SecurityContext>({
     deviceId: '',
     sessionId: '',
-    timestamp: Date.now()
+    deviceFingerprint: '',
+    ipAddress: '',
+    userAgent: navigator.userAgent,
+    timestamp: new Date()
   });
 
   const [deviceInfo, setDeviceInfo] = useState<DeviceInfo>({
     fingerprint: '',
-    userAgent: navigator.userAgent,
-    platform: navigator.platform
+    browser: '',
+    os: '',
+    device: '',
+    isMobile: /Mobile|Android|iPhone/i.test(navigator.userAgent),
+    screenResolution: `${window.screen.width}x${window.screen.height}`
   });
 
   // Refs for intervals

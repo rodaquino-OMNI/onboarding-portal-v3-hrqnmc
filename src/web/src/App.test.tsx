@@ -14,7 +14,6 @@ jest.mock('./contexts/AuthContext');
 jest.mock('./contexts/ThemeContext');
 jest.mock('./contexts/NotificationContext');
 jest.mock('./routes');
-jest.mock('./services/analytics');
 
 describe('App Component', () => {
   // Mock implementation setup

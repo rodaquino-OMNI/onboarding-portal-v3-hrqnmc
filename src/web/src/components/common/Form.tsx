@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import classNames from 'classnames'; // v2.3.2
 import { z } from 'zod'; // v3.22.0
 import Input from './Input';
+import Select from './Select';
 import {
   formatFormErrors,
   transformFormData,
@@ -57,6 +58,16 @@ interface FormProps {
 }
 
 /**
+ * Form component type with sub-components
+ */
+interface FormComponent extends React.FC<FormProps> {
+  Input: typeof Input;
+  Select: typeof Select;
+  Switch: React.FC<any>;
+  Number: React.FC<any>;
+}
+
+/**
  * Context value for form state management
  */
 interface FormContextValue {
@@ -91,7 +102,7 @@ export const FormContext = React.createContext<FormContextValue | undefined>(und
 /**
  * Enterprise-grade form component with WCAG compliance and LGPD security
  */
-export const Form: React.FC<FormProps> = ({
+export const Form: FormComponent = ({
   children,
   validationSchema,
   initialValues,
@@ -318,5 +329,11 @@ export const useForm = () => {
   }
   return context;
 };
+
+// Add sub-components as static properties
+(Form as FormComponent).Input = Input;
+(Form as FormComponent).Select = Select;
+(Form as FormComponent).Switch = (props: any) => <input type="checkbox" {...props} />;
+(Form as FormComponent).Number = (props: any) => <Input {...props} type="number" />;
 
 export default Form;

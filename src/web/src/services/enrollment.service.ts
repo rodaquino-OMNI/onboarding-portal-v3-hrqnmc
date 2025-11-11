@@ -20,7 +20,7 @@ import {
   isValidEnrollment
 } from '../types/enrollment.types';
 import { RiskLevel } from '../types/health.types';
-import { ApiError, ApiResponse, isApiError } from '../types/api.types';
+import { ApiError, ApiResponse, PaginatedResponse, isApiError } from '../types/api.types';
 import { API_ENDPOINTS } from '../constants/api.constants';
 import CryptoJS from 'crypto-js'; // v4.1.1
 
@@ -149,7 +149,7 @@ export class EnrollmentService {
     filters: EnrollmentFilters,
     page: number = 1,
     pageSize: number = 10
-  ): Promise<ApiResponse<EnrollmentSummary[]>> {
+  ): Promise<PaginatedResponse<EnrollmentSummary>> {
     try {
       const queryParams = new URLSearchParams({
         page: page.toString(),

@@ -85,9 +85,6 @@ const config: Config = {
 
   // Clear mocks between tests
   clearMocks: true,
-  
-  // Report test results with colors
-  colors: true,
 
   // Fail tests on any error or warning
   errorOnDeprecated: true,

@@ -101,7 +101,7 @@ export async function setSecureItem<T>(
       newValue: JSON.stringify(storageData)
     }));
 
-    return { success: true };
+    return { success: true, data: undefined };
   } catch (error) {
     if (error instanceof Error && error.name === 'QuotaExceededError') {
       return { success: false, error: new Error('Storage quota exceeded') };
@@ -200,7 +200,7 @@ export async function removeItem(
       newValue: null
     }));
 
-    return { success: true };
+    return { success: true, data: undefined };
   } catch (error) {
     return { success: false, error: new Error('Failed to remove item') };
   }
@@ -239,7 +239,7 @@ export async function clearStorage(
       newValue: null
     }));
 
-    return { success: true };
+    return { success: true, data: undefined };
   } catch (error) {
     return { success: false, error: new Error('Failed to clear storage') };
   }
