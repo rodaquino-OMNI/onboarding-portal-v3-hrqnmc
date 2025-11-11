@@ -145,3 +145,16 @@ trace.json
 *.db
 *.db-shm
 *.db-wal
+
+# TypeScript Build Cache
+*.tsbuildinfo
+
+# Claude Flow / Swarm Coordination
+.claude-flow/
+.hive-mind/
+.swarm/
+
+# SQLite Databases
+*.db
+*.db-shm
+*.db-wal
