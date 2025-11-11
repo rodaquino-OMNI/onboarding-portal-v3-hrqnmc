@@ -115,12 +115,10 @@ public class PolicyController {
     public ResponseEntity<Policy> updateCoverageDetails(
             @PathVariable String policyNumber,
             @RequestBody @Valid JsonNode coverageDetails) {
-        
+
         logger.info("Updating coverage for policy: {}", policyNumber);
-        Policy policy = policyService.getPolicy(policyNumber)
-                .orElseThrow(() -> new IllegalArgumentException("Policy not found"));
-        policy.updateCoverage(coverageDetails);
-        return ResponseEntity.ok(policy);
+        Policy updatedPolicy = policyService.updateCoverageDetails(policyNumber, coverageDetails);
+        return ResponseEntity.ok(updatedPolicy);
     }
 
     /**

@@ -18,9 +18,9 @@ import (
     "github.com/prometheus/client_golang/prometheus" // v1.17.0
     "go.uber.org/zap" // v1.26.0
 
-    "github.com/yourdomain/document-service/internal/config"
-    "github.com/yourdomain/document-service/internal/models"
-    "github.com/yourdomain/document-service/internal/services"
+    "github.com/rodaquino-OMNI/onboarding-portal-v3-hrqnmc/src/backend/document-service/internal/config"
+    "github.com/rodaquino-OMNI/onboarding-portal-v3-hrqnmc/src/backend/document-service/internal/models"
+    "github.com/rodaquino-OMNI/onboarding-portal-v3-hrqnmc/src/backend/document-service/internal/services"
 )
 
 // Global constants for document handling

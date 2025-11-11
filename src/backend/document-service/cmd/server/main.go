@@ -19,9 +19,9 @@ import (
     "go.uber.org/zap" // v1.24.0
     "golang.org/x/time/rate" // v0.3.0
 
-    "github.com/yourdomain/document-service/internal/config"
-    "github.com/yourdomain/document-service/internal/handlers"
-    "github.com/yourdomain/document-service/internal/services"
+    "github.com/rodaquino-OMNI/onboarding-portal-v3-hrqnmc/src/backend/document-service/internal/config"
+    "github.com/rodaquino-OMNI/onboarding-portal-v3-hrqnmc/src/backend/document-service/internal/handlers"
+    "github.com/rodaquino-OMNI/onboarding-portal-v3-hrqnmc/src/backend/document-service/internal/services"
 )
 
 const (

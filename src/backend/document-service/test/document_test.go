@@ -13,9 +13,9 @@ import (
 	"github.com/stretchr/testify/assert" // v1.8.4
 	"github.com/stretchr/testify/mock" // v1.8.4
 
-	"github.com/yourdomain/document-service/internal/handlers"
-	"github.com/yourdomain/document-service/internal/models"
-	"github.com/yourdomain/document-service/internal/services"
+	"github.com/rodaquino-OMNI/onboarding-portal-v3-hrqnmc/src/backend/document-service/internal/handlers"
+	"github.com/rodaquino-OMNI/onboarding-portal-v3-hrqnmc/src/backend/document-service/internal/models"
+	"github.com/rodaquino-OMNI/onboarding-portal-v3-hrqnmc/src/backend/document-service/internal/services"
 )
 
 const (

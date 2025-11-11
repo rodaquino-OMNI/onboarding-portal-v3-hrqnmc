@@ -53,7 +53,7 @@ async def configure_middleware(app: FastAPI) -> None:
     app.add_middleware(GZipMiddleware, minimum_size=1000)
 
     # Rate limiting middleware
-    redis_instance = await redis.from_url("redis://localhost", encoding="utf-8", decode_responses=True)
+    redis_instance = await redis.from_url(settings.redis_url, encoding="utf-8", decode_responses=True)
     await FastAPILimiter.init(redis_instance)
     
     # Add rate limiting to all routes

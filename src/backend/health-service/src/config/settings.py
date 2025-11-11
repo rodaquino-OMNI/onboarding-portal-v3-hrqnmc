@@ -202,6 +202,7 @@ class Settings(BaseSettings):
     security: SecuritySettings
     api_port: int
     log_level: str
+    redis_url: str
     feature_flags: Dict
     monitoring_config: Dict
     metrics_config: Dict
@@ -216,6 +217,7 @@ class Settings(BaseSettings):
         self.version = "1.0.0"
         self.api_port = 8000
         self.log_level = "INFO"
+        self.redis_url = "redis://localhost"
         
         # Initialize sub-settings
         self.db = DatabaseSettings()
