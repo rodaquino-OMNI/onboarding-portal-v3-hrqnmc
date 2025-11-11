@@ -8,6 +8,7 @@ import { getFieldError } from '../../utils/form.utils';
  * Props interface for the Select component following AUSTA design system
  */
 interface SelectProps {
+  id?: string;
   name: string;
   label: string;
   value: string | number;
@@ -28,6 +29,7 @@ interface SelectProps {
  * @version 1.0.0
  */
 const Select: React.FC<SelectProps> = ({
+  id,
   name,
   label,
   value,
@@ -118,7 +120,7 @@ const Select: React.FC<SelectProps> = ({
 
       <MuiSelect
         labelId={`${name}-label`}
-        id={name}
+        id={id || name}
         value={value}
         onChange={handleChange}
         label={label}

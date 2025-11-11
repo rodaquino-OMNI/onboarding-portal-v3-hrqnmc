@@ -1,8 +1,9 @@
-import { Twilio } from '@twilio/client'; // v4.19.0
+import twilio from 'twilio'; // v4.18.0
 import { authenticator } from 'otplib'; // v12.0.1
 import * as qrcode from 'qrcode'; // v1.5.3
 import { RateLimiterMemory } from 'rate-limiter-flexible'; // v2.4.1
 import { createLogger } from 'winston'; // v3.8.2
+import * as winston from 'winston';
 
 import { authConfig } from '../config/auth.config';
 import { User } from '../models/user.model';
@@ -12,14 +13,14 @@ import { generateSecureToken } from '../utils/encryption';
  * Service responsible for managing Multi-Factor Authentication (MFA)
  */
 export class MFAService {
-  private twilioClient: Twilio;
+  private twilioClient: ReturnType<typeof twilio>;
   private authenticator: typeof authenticator;
   private rateLimiter: RateLimiterMemory;
   private logger: ReturnType<typeof createLogger>;
 
   constructor() {
     // Initialize Twilio client with failover configuration
-    this.twilioClient = new Twilio(
+    this.twilioClient = twilio(
       process.env.TWILIO_ACCOUNT_SID!,
       process.env.TWILIO_AUTH_TOKEN!,
       {

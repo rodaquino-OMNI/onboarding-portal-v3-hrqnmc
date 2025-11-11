@@ -5,6 +5,7 @@
  */
 
 import { UserRole } from '../types/auth.types';
+import { enumToArray } from '../utils/type-guards.utils';
 
 /**
  * Interface defining route configuration structure with access control
@@ -173,7 +174,7 @@ export const ROUTE_ROLES: Record<string, RouteConfig> = {
   },
   [AUTH.MFA_VERIFICATION]: {
     path: AUTH.MFA_VERIFICATION,
-    allowedRoles: Object.values(UserRole),
+    allowedRoles: enumToArray(UserRole),
     requiresMFA: false,
     isPublic: false
   },

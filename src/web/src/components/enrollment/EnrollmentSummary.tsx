@@ -120,7 +120,7 @@ const EnrollmentSummary: React.FC<EnrollmentSummaryProps> = ({
         </div>
       </div>
 
-      <style jsx>{`
+      <style>{`
         .enrollment-summary {
           cursor: pointer;
           transition: transform 0.2s ease-in-out;

@@ -1,5 +1,7 @@
 import express, { Express, Request, Response, NextFunction } from 'express'; // @version ^4.18.2
-import { Kong } from '@kong/kong-nodejs-sdk'; // @version ^1.0.0
+// TODO: Replace with actual Kong SDK when available
+// The @kong/kong-nodejs-sdk package does not exist in npm registry
+// import { Kong } from '@kong/kong-nodejs-sdk'; // @version ^1.0.0
 import morgan from 'morgan'; // @version ^1.10.0
 import winston from 'winston'; // @version ^3.8.2
 import { v4 as uuidv4 } from 'uuid'; // @version ^9.0.0
@@ -38,8 +40,16 @@ if (NODE_ENV !== 'production') {
 const app: Express = express();
 
 // Initialize Kong client
+// TODO: Implement Kong Gateway integration when SDK is available
+// The @kong/kong-nodejs-sdk package does not exist in npm registry
+// Options: 1) Use direct HTTP calls to Kong Admin API
+//          2) Use alternative Kong client library (e.g., kong-admin-api)
+//          3) Wait for official SDK release
 const initializeKong = async (): Promise<void> => {
   try {
+    logger.warn('Kong Gateway integration is currently disabled - SDK not available');
+    // Commented out until proper SDK is available:
+    /*
     const kong = new Kong({
       adminUrl: process.env.KONG_ADMIN_URL,
       apiKey: process.env.KONG_ADMIN_KEY
@@ -56,6 +66,7 @@ const initializeKong = async (): Promise<void> => {
     }));
 
     logger.info('Kong Gateway initialized successfully');
+    */
   } catch (error) {
     logger.error('Failed to initialize Kong Gateway', { error });
     throw error;

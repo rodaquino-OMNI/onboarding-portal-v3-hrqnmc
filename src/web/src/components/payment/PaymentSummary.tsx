@@ -126,7 +126,7 @@ const PaymentSummary: React.FC<PaymentSummaryProps> = memo(({
         </div>
       </div>
 
-      <style jsx>{`
+      <style>{`
         .summaryContainer {
           margin-top: var(--spacing-md);
           margin-bottom: var(--spacing-md);

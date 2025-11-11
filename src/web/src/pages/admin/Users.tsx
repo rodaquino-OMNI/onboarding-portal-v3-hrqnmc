@@ -15,6 +15,7 @@ import StatusBadge from '../../components/common/StatusBadge';
 import { authService } from '../../services/auth.service';
 import { UserRole, User, AuthError } from '../../types/auth.types';
 import { ApiError } from '../../types/api.types';
+import { enumToArray } from '../../utils/type-guards.utils';
 
 // Enhanced interface for user table data with LGPD compliance
 interface UserTableData {
@@ -174,7 +175,7 @@ const Users: React.FC = () => {
       header: t('users.role'),
       filterable: true,
       filterType: 'select',
-      filterOptions: Object.values(UserRole).map(role => ({
+      filterOptions: enumToArray(UserRole).map(role => ({
         value: role,
         label: t(`roles.${role.toLowerCase()}`)
       }))

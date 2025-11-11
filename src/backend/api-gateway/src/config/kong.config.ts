@@ -1,4 +1,13 @@
-import { KongConfig } from '@kong/kong-config-ts'; // @version ^1.0.0
+// TODO: Replace with actual Kong SDK when available
+// The @kong/kong-config-ts package does not exist in npm registry
+// Using local type definition instead
+interface KongConfig {
+  _format_version: string;
+  _transform: boolean;
+  services: Record<string, any>;
+  plugins: Record<string, any>;
+  routes: Record<string, any>;
+}
 
 // Environment variables
 const NODE_ENV = process.env.NODE_ENV || 'development';

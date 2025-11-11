@@ -20,6 +20,13 @@ interface ToastProps {
   icon?: React.ReactNode;
   isRTL?: boolean;
   zIndex?: number;
+  id?: string;
+  role?: 'alert' | 'status';
+  style?: React.CSSProperties;
+  'aria-live'?: 'polite' | 'assertive';
+  'aria-atomic'?: 'true' | 'false' | boolean;
+  'data-testid'?: string;
+  tabIndex?: number;
 }
 
 // Styled Components
@@ -95,6 +102,13 @@ const Toast: React.FC<ToastProps> = ({
   icon,
   isRTL = false,
   zIndex = lightTheme.zIndex.snackbar,
+  id,
+  role,
+  style,
+  'aria-live': ariaLive,
+  'aria-atomic': ariaAtomic,
+  'data-testid': dataTestId,
+  tabIndex,
 }) => {
   const theme = useTheme();
   const [open, setOpen] = React.useState(true);
@@ -178,7 +192,8 @@ const Toast: React.FC<ToastProps> = ({
       open={open}
       anchorOrigin={getAnchorOrigin()}
       isRTL={isRTL}
-      style={{ zIndex }}
+      id={id}
+      style={{ zIndex, ...style }}
     >
       <StyledAlert
         ref={alertRef}
@@ -198,9 +213,11 @@ const Toast: React.FC<ToastProps> = ({
             </IconButton>
           )
         }
-        tabIndex={0}
-        role="alert"
-        aria-live="polite"
+        tabIndex={tabIndex ?? 0}
+        role={role ?? 'alert'}
+        aria-live={ariaLive ?? 'polite'}
+        aria-atomic={ariaAtomic}
+        data-testid={dataTestId}
       >
         {message}
       </StyledAlert>

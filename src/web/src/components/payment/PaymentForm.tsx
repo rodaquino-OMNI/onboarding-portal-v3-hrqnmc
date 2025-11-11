@@ -60,6 +60,21 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
   const { t } = useTranslation();
   const [selectedMethod, setSelectedMethod] = useState<keyof typeof PAYMENT_METHODS>(PAYMENT_METHODS.CREDIT_CARD);
   const [formError, setFormError] = useState<string | null>(null);
+  const [formValues, setFormValues] = useState({
+    paymentMethod: PAYMENT_METHODS.CREDIT_CARD,
+    cpf: '',
+    cardNumber: '',
+    cardHolder: '',
+    expiryDate: '',
+    cvv: '',
+    pixKey: '',
+    boletoEmail: ''
+  });
+
+  // Handle field value changes
+  const handleFieldChange = useCallback((field: string, value: any) => {
+    setFormValues(prev => ({ ...prev, [field]: value }));
+  }, []);
 
   // Format amount in Brazilian Real
   const formattedAmount = currencyFormatter.format(amount, {
@@ -146,16 +161,7 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
 
       <Form
         validationSchema={VALIDATION_SCHEMA}
-        initialValues={{
-          paymentMethod: selectedMethod,
-          cpf: '',
-          cardNumber: '',
-          cardHolder: '',
-          expiryDate: '',
-          cvv: '',
-          pixKey: '',
-          boletoEmail: ''
-        }}
+        initialValues={formValues}
         onSubmit={handlePaymentSubmit}
         loading={loading}
         submitLabel={t('payment.submit')}
@@ -175,6 +181,8 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
           name="cpf"
           label={t('payment.cpf')}
           type="text"
+          value={formValues.cpf}
+          onChange={(value) => handleFieldChange('cpf', value)}
           required
           maskType="cpf"
           aria-required="true"
@@ -187,6 +195,8 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
               name="cardNumber"
               label={t('payment.card.number')}
               type="text"
+              value={formValues.cardNumber}
+              onChange={(value) => handleFieldChange('cardNumber', value)}
               required
               aria-required="true"
             />
@@ -195,6 +205,8 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
               name="cardHolder"
               label={t('payment.card.holder')}
               type="text"
+              value={formValues.cardHolder}
+              onChange={(value) => handleFieldChange('cardHolder', value)}
               required
               aria-required="true"
             />
@@ -204,6 +216,8 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
                 name="expiryDate"
                 label={t('payment.card.expiry')}
                 type="text"
+                value={formValues.expiryDate}
+                onChange={(value) => handleFieldChange('expiryDate', value)}
                 required
                 aria-required="true"
               />
@@ -212,6 +226,8 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
                 name="cvv"
                 label={t('payment.card.cvv')}
                 type="text"
+                value={formValues.cvv}
+                onChange={(value) => handleFieldChange('cvv', value)}
                 required
                 aria-required="true"
               />
@@ -225,6 +241,8 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
             name="pixKey"
             label={t('payment.pix.key')}
             type="text"
+            value={formValues.pixKey}
+            onChange={(value) => handleFieldChange('pixKey', value)}
             required
             aria-required="true"
           />
@@ -236,6 +254,8 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
             name="boletoEmail"
             label={t('payment.boleto.email')}
             type="email"
+            value={formValues.boletoEmail}
+            onChange={(value) => handleFieldChange('boletoEmail', value)}
             required
             aria-required="true"
           />

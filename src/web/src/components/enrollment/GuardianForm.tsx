@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import { isBrazilianState } from '../../utils/type-guards.utils';
 import { z } from 'zod'; // v3.22.0
-import Form from '../common/Form';
+import Form, { useForm } from '../common/Form';
 import Input from '../common/Input';
 import { 
   validateCPF, 
@@ -81,7 +82,7 @@ const guardianSchema = z.object({
     state: z.string()
       .length(2, 'Use a sigla do estado (ex: SP)')
       .refine(
-        state => VALIDATION_CONSTANTS.BRAZILIAN_STATES.includes(state),
+        state => isBrazilianState(state),
         'Estado inválido'
       ),
     zipCode: z.string()
@@ -109,6 +110,30 @@ const GuardianForm: React.FC<GuardianFormProps> = ({
   encryptionKey
 }) => {
   const [auditLog, setAuditLog] = useState<AuditLog[]>([]);
+  const [formValues, setFormValues] = useState(initialValues || {});
+
+  /**
+   * Handles field value changes
+   */
+  const handleFieldChange = useCallback((field: string, value: any) => {
+    setFormValues(prev => {
+      const keys = field.split('.');
+      if (keys.length === 1) {
+        return { ...prev, [field]: value };
+      }
+      // Handle nested fields like address.street
+      const result = { ...prev };
+      let current: any = result;
+      for (let i = 0; i < keys.length - 1; i++) {
+        if (!current[keys[i]]) {
+          current[keys[i]] = {};
+        }
+        current = current[keys[i]];
+      }
+      current[keys[keys.length - 1]] = value;
+      return result;
+    });
+  }, []);
 
   /**
    * Logs form actions for audit trail
@@ -179,7 +204,7 @@ const GuardianForm: React.FC<GuardianFormProps> = ({
   return (
     <Form
       validationSchema={guardianSchema}
-      initialValues={initialValues || {}}
+      initialValues={formValues}
       onSubmit={handleSubmit}
       loading={loading}
       submitLabel="Salvar Responsável"
@@ -199,6 +224,8 @@ const GuardianForm: React.FC<GuardianFormProps> = ({
         id="name"
         name="name"
         label="Nome Completo"
+        value={formValues.name || ''}
+        onChange={(value) => handleFieldChange('name', value)}
         required
         validationRules={{
           required: true,
@@ -213,6 +240,8 @@ const GuardianForm: React.FC<GuardianFormProps> = ({
         id="cpf"
         name="cpf"
         label="CPF"
+        value={formValues.cpf || ''}
+        onChange={(value) => handleFieldChange('cpf', value)}
         required
         maskType="cpf"
         validationRules={{
@@ -226,6 +255,8 @@ const GuardianForm: React.FC<GuardianFormProps> = ({
         id="rg"
         name="rg"
         label="RG"
+        value={formValues.rg || ''}
+        onChange={(value) => handleFieldChange('rg', value)}
         required
         validationRules={{
           required: true,
@@ -240,6 +271,8 @@ const GuardianForm: React.FC<GuardianFormProps> = ({
         name="dateOfBirth"
         label="Data de Nascimento"
         type="date"
+        value={formValues.dateOfBirth || ''}
+        onChange={(value) => handleFieldChange('dateOfBirth', value)}
         required
         validationRules={{
           required: true,
@@ -256,6 +289,8 @@ const GuardianForm: React.FC<GuardianFormProps> = ({
         name="email"
         label="E-mail"
         type="email"
+        value={formValues.email || ''}
+        onChange={(value) => handleFieldChange('email', value)}
         required
         validationRules={{
           required: true,
@@ -268,6 +303,8 @@ const GuardianForm: React.FC<GuardianFormProps> = ({
         id="phone"
         name="phone"
         label="Telefone"
+        value={formValues.phone || ''}
+        onChange={(value) => handleFieldChange('phone', value)}
         required
         maskType="phone"
         validationRules={{
@@ -281,6 +318,8 @@ const GuardianForm: React.FC<GuardianFormProps> = ({
         id="address.zipCode"
         name="address.zipCode"
         label="CEP"
+        value={formValues.address?.zipCode || ''}
+        onChange={(value) => handleFieldChange('address.zipCode', value)}
         required
         maskType="zipcode"
         validationRules={{
@@ -302,6 +341,8 @@ const GuardianForm: React.FC<GuardianFormProps> = ({
         id="address.street"
         name="address.street"
         label="Logradouro"
+        value={formValues.address?.street || ''}
+        onChange={(value) => handleFieldChange('address.street', value)}
         required
         validationRules={{
           required: true,
@@ -315,6 +356,8 @@ const GuardianForm: React.FC<GuardianFormProps> = ({
         id="address.number"
         name="address.number"
         label="Número"
+        value={formValues.address?.number || ''}
+        onChange={(value) => handleFieldChange('address.number', value)}
         required
         validationRules={{
           required: true,
@@ -327,6 +370,8 @@ const GuardianForm: React.FC<GuardianFormProps> = ({
         id="address.complement"
         name="address.complement"
         label="Complemento"
+        value={formValues.address?.complement || ''}
+        onChange={(value) => handleFieldChange('address.complement', value)}
         validationRules={{
           maxLength: 50
         }}
@@ -337,6 +382,8 @@ const GuardianForm: React.FC<GuardianFormProps> = ({
         id="address.neighborhood"
         name="address.neighborhood"
         label="Bairro"
+        value={formValues.address?.neighborhood || ''}
+        onChange={(value) => handleFieldChange('address.neighborhood', value)}
         required
         validationRules={{
           required: true,
@@ -350,6 +397,8 @@ const GuardianForm: React.FC<GuardianFormProps> = ({
         id="address.city"
         name="address.city"
         label="Cidade"
+        value={formValues.address?.city || ''}
+        onChange={(value) => handleFieldChange('address.city', value)}
         required
         validationRules={{
           required: true,
@@ -363,11 +412,13 @@ const GuardianForm: React.FC<GuardianFormProps> = ({
         id="address.state"
         name="address.state"
         label="Estado"
+        value={formValues.address?.state || ''}
+        onChange={(value) => handleFieldChange('address.state', value)}
         required
         validationRules={{
           required: true,
           length: 2,
-          custom: (state) => VALIDATION_CONSTANTS.BRAZILIAN_STATES.includes(state)
+          custom: (state) => isBrazilianState(state)
         }}
         data-testid="guardian-state-input"
       />
@@ -377,6 +428,8 @@ const GuardianForm: React.FC<GuardianFormProps> = ({
         name="relationship"
         label="Tipo de Responsável"
         type="select"
+        value={formValues.relationship || ''}
+        onChange={(value) => handleFieldChange('relationship', value)}
         required
         options={[
           { value: 'PARENT', label: 'Pai/Mãe' },

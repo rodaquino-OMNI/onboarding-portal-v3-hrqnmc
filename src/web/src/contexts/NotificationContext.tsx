@@ -51,6 +51,13 @@ const defaultNotificationConfig: Required<NotificationConfig> = {
   groupSimilar: true,
   isRTL: false,
   zIndex: THEME.Z_INDEX.TOOLTIP,
+  id: undefined as any,
+  role: 'alert',
+  style: undefined,
+  'aria-live': 'polite',
+  'aria-atomic': false,
+  'data-testid': undefined,
+  tabIndex: 0,
 };
 
 // Custom hook for accessing notification context
