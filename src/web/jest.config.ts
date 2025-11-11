@@ -39,10 +39,17 @@ const config: Config = {
     '\\.(jpg|jpeg|png|gif|webp|svg)$': '<rootDir>/__mocks__/fileMock.js'
   },
 
+  // Module paths for mock resolution
+  modulePaths: ['<rootDir>/src'],
+
   // Transform configuration for TypeScript files
   transform: {
     '^.+\\.tsx?$': ['ts-jest', {
-      tsconfig: 'tsconfig.json'
+      tsconfig: {
+        jsx: 'react',
+        esModuleInterop: true,
+        allowSyntheticDefaultImports: true,
+      }
     }]
   },
 

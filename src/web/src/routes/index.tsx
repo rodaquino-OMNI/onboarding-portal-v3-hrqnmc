@@ -17,6 +17,7 @@ import PrivateRoute from './PrivateRoute';
 import { ROUTES } from '../constants/routes.constants';
 import { useAuth } from '../hooks/useAuth';
 import Loading from '../components/common/Loading';
+import { UserRole } from '../types/auth.types';
 
 // Lazy-loaded components for better performance
 const Login = React.lazy(() => import('../pages/auth/Login'));
@@ -102,7 +103,7 @@ const AppRouter: React.FC = () => {
             <Route 
               element={
                 <PrivateRoute 
-                  allowedRoles={['ADMINISTRATOR']} 
+                  allowedRoles={[UserRole.ADMINISTRATOR]} 
                   requiresAuth={true}
                   sessionTimeout={4 * 60 * 60 * 1000} // 4 hours
                 />
@@ -118,7 +119,7 @@ const AppRouter: React.FC = () => {
             <Route 
               element={
                 <PrivateRoute 
-                  allowedRoles={['BROKER']} 
+                  allowedRoles={[UserRole.BROKER]} 
                   requiresAuth={true}
                   sessionTimeout={8 * 60 * 60 * 1000} // 8 hours
                 />
@@ -134,7 +135,7 @@ const AppRouter: React.FC = () => {
             <Route 
               element={
                 <PrivateRoute 
-                  allowedRoles={['BENEFICIARY']} 
+                  allowedRoles={[UserRole.BENEFICIARY]} 
                   requiresAuth={true}
                   sessionTimeout={30 * 60 * 1000} // 30 minutes
                 />
@@ -150,7 +151,7 @@ const AppRouter: React.FC = () => {
             <Route 
               element={
                 <PrivateRoute 
-                  allowedRoles={['HR_PERSONNEL']} 
+                  allowedRoles={[UserRole.HR_PERSONNEL]} 
                   requiresAuth={true}
                   sessionTimeout={8 * 60 * 60 * 1000} // 8 hours
                 />
@@ -166,7 +167,7 @@ const AppRouter: React.FC = () => {
             <Route 
               element={
                 <PrivateRoute 
-                  allowedRoles={['UNDERWRITER']} 
+                  allowedRoles={[UserRole.UNDERWRITER]} 
                   requiresAuth={true}
                   sessionTimeout={4 * 60 * 60 * 1000} // 4 hours
                 />
@@ -182,7 +183,7 @@ const AppRouter: React.FC = () => {
             <Route 
               element={
                 <PrivateRoute 
-                  allowedRoles={['PARENT_GUARDIAN']} 
+                  allowedRoles={[UserRole.PARENT_GUARDIAN]} 
                   requiresAuth={true}
                   sessionTimeout={30 * 60 * 1000} // 30 minutes
                 />

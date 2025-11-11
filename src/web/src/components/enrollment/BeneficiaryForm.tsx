@@ -17,6 +17,7 @@ import {
   VALIDATION_CONSTANTS
 } from '../../utils/validation.utils';
 import { formatFieldValue, ARIA_LABELS } from '../../utils/form.utils';
+import { isBrazilianState } from '../../utils/type-guards.utils';
 
 /**
  * Props for the BeneficiaryForm component
@@ -77,7 +78,7 @@ const validationSchema = z.object({
     state: z.string()
       .length(2, 'Estado deve ter 2 caracteres')
       .refine(
-        state => VALIDATION_CONSTANTS.BRAZILIAN_STATES.includes(state),
+        state => isBrazilianState(state),
         'Estado inválido'
       ),
     zipCode: z.string()
@@ -182,6 +183,8 @@ export const BeneficiaryForm: React.FC<BeneficiaryFormProps> = ({
         name="type"
         label="Tipo de Beneficiário"
         type="text"
+        value={values.type || ''}
+        onChange={(value) => setFieldValue('type', value)}
         required
         disabled={disabled}
         error={touched.type ? errors.type : undefined}
@@ -193,6 +196,8 @@ export const BeneficiaryForm: React.FC<BeneficiaryFormProps> = ({
         name="name"
         label="Nome Completo"
         type="text"
+        value={values.name || ''}
+        onChange={(value) => setFieldValue('name', value)}
         required
         disabled={disabled}
         error={touched.name ? errors.name : undefined}
@@ -209,6 +214,8 @@ export const BeneficiaryForm: React.FC<BeneficiaryFormProps> = ({
         name="cpf"
         label="CPF"
         type="text"
+        value={values.cpf || ''}
+        onChange={(value) => setFieldValue('cpf', value)}
         required
         disabled={disabled}
         mask="999.999.999-99"
@@ -221,6 +228,8 @@ export const BeneficiaryForm: React.FC<BeneficiaryFormProps> = ({
         name="rg"
         label="RG"
         type="text"
+        value={values.rg || ''}
+        onChange={(value) => setFieldValue('rg', value)}
         required
         disabled={disabled}
         error={touched.rg ? errors.rg : undefined}
@@ -232,6 +241,8 @@ export const BeneficiaryForm: React.FC<BeneficiaryFormProps> = ({
         name="dateOfBirth"
         label="Data de Nascimento"
         type="date"
+        value={values.dateOfBirth || ''}
+        onChange={(value) => setFieldValue('dateOfBirth', value)}
         required
         disabled={disabled}
         error={touched.dateOfBirth ? errors.dateOfBirth : undefined}
@@ -243,6 +254,8 @@ export const BeneficiaryForm: React.FC<BeneficiaryFormProps> = ({
         name="email"
         label="E-mail"
         type="email"
+        value={values.email || ''}
+        onChange={(value) => setFieldValue('email', value)}
         required
         disabled={disabled}
         error={touched.email ? errors.email : undefined}
@@ -254,6 +267,8 @@ export const BeneficiaryForm: React.FC<BeneficiaryFormProps> = ({
         name="phone"
         label="Telefone"
         type="tel"
+        value={values.phone || ''}
+        onChange={(value) => setFieldValue('phone', value)}
         required
         disabled={disabled}
         mask="+55 (99) 99999-9999"
@@ -267,6 +282,8 @@ export const BeneficiaryForm: React.FC<BeneficiaryFormProps> = ({
         name="address.street"
         label="Rua"
         type="text"
+        value={values.address?.street || ''}
+        onChange={(value) => setFieldValue('address.street', value)}
         required
         disabled={disabled}
         error={touched.address?.street ? errors.address?.street : undefined}
@@ -278,6 +295,8 @@ export const BeneficiaryForm: React.FC<BeneficiaryFormProps> = ({
         name="address.number"
         label="Número"
         type="text"
+        value={values.address?.number || ''}
+        onChange={(value) => setFieldValue('address.number', value)}
         required
         disabled={disabled}
         error={touched.address?.number ? errors.address?.number : undefined}
@@ -289,6 +308,8 @@ export const BeneficiaryForm: React.FC<BeneficiaryFormProps> = ({
         name="address.complement"
         label="Complemento"
         type="text"
+        value={values.address?.complement || ''}
+        onChange={(value) => setFieldValue('address.complement', value)}
         disabled={disabled}
         error={touched.address?.complement ? errors.address?.complement : undefined}
       />
@@ -298,6 +319,8 @@ export const BeneficiaryForm: React.FC<BeneficiaryFormProps> = ({
         name="address.neighborhood"
         label="Bairro"
         type="text"
+        value={values.address?.neighborhood || ''}
+        onChange={(value) => setFieldValue('address.neighborhood', value)}
         required
         disabled={disabled}
         error={touched.address?.neighborhood ? errors.address?.neighborhood : undefined}
@@ -309,6 +332,8 @@ export const BeneficiaryForm: React.FC<BeneficiaryFormProps> = ({
         name="address.city"
         label="Cidade"
         type="text"
+        value={values.address?.city || ''}
+        onChange={(value) => setFieldValue('address.city', value)}
         required
         disabled={disabled}
         error={touched.address?.city ? errors.address?.city : undefined}
@@ -320,6 +345,8 @@ export const BeneficiaryForm: React.FC<BeneficiaryFormProps> = ({
         name="address.state"
         label="Estado"
         type="text"
+        value={values.address?.state || ''}
+        onChange={(value) => setFieldValue('address.state', value)}
         required
         disabled={disabled}
         error={touched.address && (touched as any).address.state && errors.address ? (errors as any).address.state : undefined}
@@ -331,6 +358,8 @@ export const BeneficiaryForm: React.FC<BeneficiaryFormProps> = ({
         name="address.zipCode"
         label="CEP"
         type="text"
+        value={values.address?.zipCode || ''}
+        onChange={(value) => setFieldValue('address.zipCode', value)}
         required
         disabled={disabled}
         mask="99999-999"
@@ -344,6 +373,8 @@ export const BeneficiaryForm: React.FC<BeneficiaryFormProps> = ({
           name="guardianId"
           label="ID do Responsável Legal"
           type="text"
+          value={values.guardianId || ''}
+          onChange={(value) => setFieldValue('guardianId', value)}
           required
           disabled={disabled}
           error={touched.guardianId ? errors.guardianId : undefined}

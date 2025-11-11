@@ -23,6 +23,8 @@ interface ButtonProps {
   className?: string;
   /** Accessible label for screen readers */
   ariaLabel?: string;
+  /** Inline CSS styles */
+  style?: React.CSSProperties;
 }
 
 const Button = React.memo<ButtonProps>(({
@@ -36,6 +38,7 @@ const Button = React.memo<ButtonProps>(({
   type = 'button',
   className,
   ariaLabel,
+  style,
 }) => {
   // Compose class names based on props
   const buttonClasses = classNames(
@@ -92,6 +95,7 @@ const Button = React.memo<ButtonProps>(({
         // Ensure minimum touch target size for mobile
         minWidth: '44px',
         minHeight: '44px',
+        ...style,
       }}
     >
       {loading && <LoadingSpinner />}

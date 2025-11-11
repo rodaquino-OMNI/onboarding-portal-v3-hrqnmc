@@ -8,14 +8,11 @@ import { THEME } from '../../constants/app.constants';
 // Styled components with AUSTA design system specifications
 const ErrorContainer = styled(Card)({
   padding: THEME.SPACING.XXLARGE,
-  margin: THEME.SPACING.XLARGE,
+  margin: '2rem auto',
   textAlign: 'center',
   backgroundColor: '#FFF5F5',
-  role: 'alert',
-  'aria-live': 'polite',
   border: `1px solid ${THEME.COLORS.ERROR}`,
   maxWidth: '600px',
-  margin: '2rem auto',
 });
 
 const ErrorMessage = styled(Typography)({
@@ -129,10 +126,10 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
 
       // Return default error UI with accessibility features
       return (
-        <ErrorContainer>
-          <ErrorMessage 
+        <ErrorContainer role="alert" aria-live="polite">
+          <ErrorMessage
             variant="h5"
-            component="h2"
+            as="h2"
             role="alert"
             aria-live="assertive"
           >

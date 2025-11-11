@@ -190,7 +190,7 @@ const Employees: React.FC = () => {
         </Card>
       </div>
 
-      <style jsx>{`
+      <style>{`
         .employees-page {
           padding: ${THEME.SPACING.LARGE};
         }

@@ -136,7 +136,7 @@ const Documents: React.FC = React.memo(() => {
           />
         )}
 
-        <style jsx>{`
+        <style>{`
           .documents-page {
             padding: var(--spacing-lg);
             max-width: var(--container-max-width);

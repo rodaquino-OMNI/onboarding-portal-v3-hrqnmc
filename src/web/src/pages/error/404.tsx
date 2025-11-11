@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom'; // ^6.0.0
 import { Box, Typography, Container } from '@mui/material'; // ^5.0.0
+import { styled } from '@mui/material/styles';
 import { useTranslation } from 'react-i18next'; // ^21.0.0
 import * as Sentry from '@sentry/browser'; // ^7.0.0
 

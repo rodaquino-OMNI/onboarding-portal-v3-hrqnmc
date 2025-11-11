@@ -1,0 +1,163 @@
+
+> austa-health-onboarding-backend@1.0.0 build
+> tsc -b tsconfig.json
+
+auth-service/src/controllers/auth.controller.ts(26,29): error TS2769: No overload matches this call.
+  Overload 1 of 8, '(options: RedisOptions): Redis', gave the following error.
+    Type 'boolean' has no properties in common with type 'ConnectionOptions'.
+  Overload 2 of 8, '(port: number): Redis', gave the following error.
+    Argument of type '{ host: string | undefined; port: number; password: string | undefined; tls: boolean; }' is not assignable to parameter of type 'number'.
+  Overload 3 of 8, '(path: string): Redis', gave the following error.
+    Argument of type '{ host: string | undefined; port: number; password: string | undefined; tls: boolean; }' is not assignable to parameter of type 'string'.
+auth-service/src/controllers/auth.controller.ts(44,15): error TS2304: Cannot find name 'winston'.
+auth-service/src/controllers/auth.controller.ts(55,38): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string | number'.
+  Type 'undefined' is not assignable to type 'string | number'.
+auth-service/src/controllers/auth.controller.ts(64,51): error TS2339: Property 'detectSuspiciousActivity' does not exist on type 'AuthService'.
+auth-service/src/controllers/auth.controller.ts(77,68): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+auth-service/src/controllers/auth.controller.ts(97,16): error TS18046: 'error' is of type 'unknown'.
+auth-service/src/controllers/auth.controller.ts(146,16): error TS18046: 'error' is of type 'unknown'.
+auth-service/src/controllers/auth.controller.ts(169,41): error TS2339: Property 'user' does not exist on type 'Request<ParamsDictionary, any, any, ParsedQs, Record<string, any>>'.
+auth-service/src/controllers/auth.controller.ts(184,16): error TS18046: 'error' is of type 'unknown'.
+auth-service/src/controllers/auth.controller.ts(207,46): error TS2339: Property 'validateSession' does not exist on type 'AuthService'.
+auth-service/src/controllers/auth.controller.ts(216,45): error TS2339: Property 'refreshToken' does not exist on type 'AuthService'.
+auth-service/src/controllers/auth.controller.ts(232,16): error TS18046: 'error' is of type 'unknown'.
+auth-service/src/index.ts(19,1): error TS6133: 'authConfig' is declared but its value is never read.
+auth-service/src/index.ts(134,45): error TS2345: Argument of type 'Repository<User>' is not assignable to parameter of type 'AuthService'.
+  Type 'Repository<User>' is missing the following properties from type 'AuthService': logger, rateLimiter, circuitBreaker, redis, and 7 more.
+auth-service/src/index.ts(141,23): error TS6133: 'req' is declared but its value is never read.
+auth-service/src/index.ts(146,53): error TS6133: 'next' is declared but its value is never read.
+auth-service/src/index.ts(156,22): error TS2339: Property 'id' does not exist on type 'Request<ParamsDictionary, any, any, ParsedQs, Record<string, any>>'.
+auth-service/src/index.ts(191,14): error TS2339: Property 'close' does not exist on type 'Application | Server<typeof IncomingMessage, typeof ServerResponse>'.
+  Property 'close' does not exist on type 'Application'.
+auth-service/src/middleware/jwt.middleware.ts(58,21): error TS2352: Conversion of type 'Jwt & JwtPayload & void' to type '{ payload: JWTPayload; }' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Types of property 'payload' are incompatible.
+    Type 'string | JwtPayload' is not comparable to type 'JWTPayload'.
+      Type 'JwtPayload' is missing the following properties from type 'JWTPayload': userId, role, mfaVerified, permissions, sessionId
+auth-service/src/middleware/jwt.middleware.ts(59,20): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Type 'string' is not assignable to type 'Algorithm'.
+auth-service/src/middleware/jwt.middleware.ts(75,9): error TS2339: Property 'user' does not exist on type 'Request<ParamsDictionary, any, any, ParsedQs, Record<string, any>>'.
+auth-service/src/middleware/jwt.middleware.ts(87,14): error TS18046: 'error' is of type 'unknown'.
+auth-service/src/middleware/jwt.middleware.ts(94,16): error TS18046: 'error' is of type 'unknown'.
+auth-service/src/middleware/jwt.middleware.ts(108,28): error TS2339: Property 'user' does not exist on type 'Request<ParamsDictionary, any, any, ParsedQs, Record<string, any>>'.
+auth-service/src/middleware/jwt.middleware.ts(125,38): error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{ ADMINISTRATOR: UserRole[]; UNDERWRITER: UserRole[]; BROKER: UserRole[]; HR_PERSONNEL: UserRole[]; BENEFICIARY: UserRole[]; PARENT_GUARDIAN: UserRole[]; }'.
+auth-service/src/middleware/jwt.middleware.ts(126,37): error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{ ADMINISTRATOR: UserRole[]; UNDERWRITER: UserRole[]; BROKER: UserRole[]; HR_PERSONNEL: UserRole[]; BENEFICIARY: UserRole[]; PARENT_GUARDIAN: UserRole[]; }'.
+auth-service/src/middleware/jwt.middleware.ts(134,21): error TS2339: Property 'user' does not exist on type 'Request<ParamsDictionary, any, any, ParsedQs, Record<string, any>>'.
+auth-service/src/middleware/jwt.middleware.ts(142,21): error TS2339: Property 'user' does not exist on type 'Request<ParamsDictionary, any, any, ParsedQs, Record<string, any>>'.
+auth-service/src/middleware/jwt.middleware.ts(143,19): error TS2339: Property 'user' does not exist on type 'Request<ParamsDictionary, any, any, ParsedQs, Record<string, any>>'.
+auth-service/src/middleware/jwt.middleware.ts(145,16): error TS18046: 'error' is of type 'unknown'.
+auth-service/src/middleware/jwt.middleware.ts(150,18): error TS18046: 'error' is of type 'unknown'.
+auth-service/src/middleware/jwt.middleware.ts(165,50): error TS2339: Property 'user' does not exist on type 'Request<ParamsDictionary, any, any, ParsedQs, Record<string, any>>'.
+auth-service/src/middleware/jwt.middleware.ts(186,19): error TS2339: Property 'user' does not exist on type 'Request<ParamsDictionary, any, any, ParsedQs, Record<string, any>>'.
+auth-service/src/middleware/jwt.middleware.ts(194,19): error TS2339: Property 'user' does not exist on type 'Request<ParamsDictionary, any, any, ParsedQs, Record<string, any>>'.
+auth-service/src/middleware/jwt.middleware.ts(195,17): error TS2339: Property 'user' does not exist on type 'Request<ParamsDictionary, any, any, ParsedQs, Record<string, any>>'.
+auth-service/src/middleware/jwt.middleware.ts(196,14): error TS18046: 'error' is of type 'unknown'.
+auth-service/src/middleware/jwt.middleware.ts(201,16): error TS18046: 'error' is of type 'unknown'.
+auth-service/src/models/user.model.ts(25,3): error TS6133: 'ValidateIf' is declared but its value is never read.
+auth-service/src/models/user.model.ts(28,20): error TS6133: 'session' is declared but its value is never read.
+auth-service/src/models/user.model.ts(50,3): error TS2564: Property 'id' has no initializer and is not definitely assigned in the constructor.
+auth-service/src/models/user.model.ts(55,3): error TS2564: Property 'email' has no initializer and is not definitely assigned in the constructor.
+auth-service/src/models/user.model.ts(60,3): error TS2564: Property 'password' has no initializer and is not definitely assigned in the constructor.
+auth-service/src/models/user.model.ts(64,3): error TS2564: Property 'firstName' has no initializer and is not definitely assigned in the constructor.
+auth-service/src/models/user.model.ts(68,3): error TS2564: Property 'lastName' has no initializer and is not definitely assigned in the constructor.
+auth-service/src/models/user.model.ts(72,3): error TS2564: Property 'cpf' has no initializer and is not definitely assigned in the constructor.
+auth-service/src/models/user.model.ts(75,3): error TS2564: Property 'role' has no initializer and is not definitely assigned in the constructor.
+auth-service/src/models/user.model.ts(79,3): error TS2564: Property 'mfaEnabled' has no initializer and is not definitely assigned in the constructor.
+auth-service/src/models/user.model.ts(97,3): error TS2564: Property 'loginAttempts' has no initializer and is not definitely assigned in the constructor.
+auth-service/src/models/user.model.ts(110,3): error TS2564: Property 'passwordHistory' has no initializer and is not definitely assigned in the constructor.
+auth-service/src/models/user.model.ts(114,3): error TS2564: Property 'isActive' has no initializer and is not definitely assigned in the constructor.
+auth-service/src/models/user.model.ts(121,3): error TS2564: Property 'createdAt' has no initializer and is not definitely assigned in the constructor.
+auth-service/src/models/user.model.ts(124,3): error TS2564: Property 'updatedAt' has no initializer and is not definitely assigned in the constructor.
+auth-service/src/models/user.model.ts(129,3): error TS2564: Property 'auditLog' has no initializer and is not definitely assigned in the constructor.
+auth-service/src/models/user.model.ts(140,25): error TS2565: Property 'email' is used before being assigned.
+auth-service/src/models/user.model.ts(145,16): error TS2565: Property 'mfaEnabled' is used before being assigned.
+auth-service/src/services/auth.service.ts(8,16): error TS6133: 'verify' is declared but its value is never read.
+auth-service/src/services/auth.service.ts(10,28): error TS7016: Could not find a declaration file for module 'opossum'. '/home/user/onboarding-portal-v3-hrqnmc/src/backend/node_modules/opossum/index.js' implicitly has an 'any' type.
+  Try `npm i --save-dev @types/opossum` if it exists or add a new declaration (.d.ts) file containing `declare module 'opossum';`
+auth-service/src/services/auth.service.ts(14,16): error TS6133: 'UserRole' is declared but its value is never read.
+auth-service/src/services/auth.service.ts(17,23): error TS6133: 'decryptData' is declared but its value is never read.
+auth-service/src/services/auth.service.ts(33,22): error TS2769: No overload matches this call.
+  Overload 1 of 8, '(options: RedisOptions): Redis', gave the following error.
+    Type 'boolean' has no properties in common with type 'ConnectionOptions'.
+  Overload 2 of 8, '(port: number): Redis', gave the following error.
+    Argument of type '{ host: string | undefined; port: number; password: string | undefined; tls: boolean; }' is not assignable to parameter of type 'number'.
+  Overload 3 of 8, '(path: string): Redis', gave the following error.
+    Argument of type '{ host: string | undefined; port: number; password: string | undefined; tls: boolean; }' is not assignable to parameter of type 'string'.
+auth-service/src/services/auth.service.ts(129,16): error TS18046: 'error' is of type 'unknown'.
+auth-service/src/services/auth.service.ts(174,16): error TS18046: 'error' is of type 'unknown'.
+auth-service/src/services/auth.service.ts(208,28): error TS2339: Property 'tokenVersion' does not exist on type 'User'.
+auth-service/src/services/auth.service.ts(253,16): error TS18046: 'error' is of type 'unknown'.
+auth-service/src/services/mfa.service.ts(3,25): error TS7016: Could not find a declaration file for module 'qrcode'. '/home/user/onboarding-portal-v3-hrqnmc/src/backend/node_modules/qrcode/lib/index.js' implicitly has an 'any' type.
+  Try `npm i --save-dev @types/qrcode` if it exists or add a new declaration (.d.ts) file containing `declare module 'qrcode';`
+auth-service/src/services/mfa.service.ts(36,7): error TS2322: Type 'string' is not assignable to type 'HashAlgorithms | undefined'.
+auth-service/src/services/mfa.service.ts(105,16): error TS18046: 'error' is of type 'unknown'.
+auth-service/src/services/mfa.service.ts(136,16): error TS18046: 'error' is of type 'unknown'.
+auth-service/src/services/mfa.service.ts(174,16): error TS18046: 'error' is of type 'unknown'.
+auth-service/src/services/mfa.service.ts(208,16): error TS18046: 'error' is of type 'unknown'.
+auth-service/src/services/mfa.service.ts(242,16): error TS18046: 'error' is of type 'unknown'.
+auth-service/src/utils/encryption.ts(3,65): error TS6133: 'timingSafeEqual' is declared but its value is never read.
+auth-service/src/utils/encryption.ts(5,25): error TS7016: Could not find a declaration file for module 'bcrypt'. '/home/user/onboarding-portal-v3-hrqnmc/src/backend/node_modules/bcrypt/bcrypt.js' implicitly has an 'any' type.
+  Try `npm i --save-dev @types/bcrypt` if it exists or add a new declaration (.d.ts) file containing `declare module 'bcrypt';`
+auth-service/src/utils/encryption.ts(6,20): error TS2614: Module '"../config/auth.config"' has no exported member 'keyRotation'. Did you mean to use 'import keyRotation from "../config/auth.config"' instead?
+auth-service/src/utils/encryption.ts(83,59): error TS18046: 'error' is of type 'unknown'.
+auth-service/src/utils/encryption.ts(102,64): error TS18046: 'error' is of type 'unknown'.
+auth-service/src/utils/encryption.ts(125,7): error TS2554: Expected 3 arguments, but got 4.
+auth-service/src/utils/encryption.ts(129,20): error TS2769: No overload matches this call.
+  Overload 1 of 5, '(algorithm: CipherGCMTypes, key: CipherKey, iv: BinaryLike, options?: CipherGCMOptions | undefined): CipherGCM', gave the following error.
+    Argument of type 'string' is not assignable to parameter of type 'CipherGCMTypes'.
+  Overload 2 of 5, '(algorithm: "chacha20-poly1305", key: CipherKey, iv: BinaryLike, options?: CipherChaCha20Poly1305Options | undefined): CipherChaCha20Poly1305', gave the following error.
+    Argument of type 'string' is not assignable to parameter of type '"chacha20-poly1305"'.
+  Overload 3 of 5, '(algorithm: string, key: CipherKey, iv: BinaryLike | null, options?: TransformOptions<Transform> | undefined): Cipher', gave the following error.
+    Argument of type 'unknown' is not assignable to parameter of type 'CipherKey'.
+auth-service/src/utils/encryption.ts(145,58): error TS18046: 'error' is of type 'unknown'.
+auth-service/src/utils/encryption.ts(149,7): error TS2552: Cannot find name 'keyBuffer'. Did you mean 'Buffer'?
+auth-service/src/utils/encryption.ts(150,7): error TS2304: Cannot find name 'iv'.
+auth-service/src/utils/encryption.ts(176,7): error TS2554: Expected 3 arguments, but got 4.
+auth-service/src/utils/encryption.ts(180,22): error TS2769: No overload matches this call.
+  Overload 1 of 5, '(algorithm: CipherGCMTypes, key: CipherKey, iv: BinaryLike, options?: CipherGCMOptions | undefined): DecipherGCM', gave the following error.
+    Argument of type 'string' is not assignable to parameter of type 'CipherGCMTypes'.
+  Overload 2 of 5, '(algorithm: "chacha20-poly1305", key: CipherKey, iv: BinaryLike, options?: CipherChaCha20Poly1305Options | undefined): DecipherChaCha20Poly1305', gave the following error.
+    Argument of type 'string' is not assignable to parameter of type '"chacha20-poly1305"'.
+  Overload 3 of 5, '(algorithm: string, key: CipherKey, iv: BinaryLike | null, options?: TransformOptions<Transform> | undefined): Decipher', gave the following error.
+    Argument of type 'unknown' is not assignable to parameter of type 'CipherKey'.
+auth-service/src/utils/encryption.ts(189,58): error TS18046: 'error' is of type 'unknown'.
+auth-service/src/utils/encryption.ts(193,7): error TS2552: Cannot find name 'keyBuffer'. Did you mean 'Buffer'?
+auth-service/src/utils/encryption.ts(238,59): error TS18046: 'error' is of type 'unknown'.
+auth-service/src/validators/auth.validator.ts(31,3): error TS2564: Property 'email' has no initializer and is not definitely assigned in the constructor.
+auth-service/src/validators/auth.validator.ts(39,3): error TS2564: Property 'password' has no initializer and is not definitely assigned in the constructor.
+auth-service/src/validators/auth.validator.ts(43,3): error TS2564: Property 'ipAddress' has no initializer and is not definitely assigned in the constructor.
+auth-service/src/validators/auth.validator.ts(47,3): error TS2564: Property 'deviceId' has no initializer and is not definitely assigned in the constructor.
+auth-service/src/validators/auth.validator.ts(50,3): error TS2564: Property 'rememberMe' has no initializer and is not definitely assigned in the constructor.
+auth-service/src/validators/auth.validator.ts(60,3): error TS2564: Property 'email' has no initializer and is not definitely assigned in the constructor.
+auth-service/src/validators/auth.validator.ts(68,3): error TS2564: Property 'password' has no initializer and is not definitely assigned in the constructor.
+auth-service/src/validators/auth.validator.ts(72,3): error TS2564: Property 'confirmPassword' has no initializer and is not definitely assigned in the constructor.
+auth-service/src/validators/auth.validator.ts(79,3): error TS2564: Property 'firstName' has no initializer and is not definitely assigned in the constructor.
+auth-service/src/validators/auth.validator.ts(86,3): error TS2564: Property 'lastName' has no initializer and is not definitely assigned in the constructor.
+auth-service/src/validators/auth.validator.ts(91,3): error TS2564: Property 'cpf' has no initializer and is not definitely assigned in the constructor.
+auth-service/src/validators/auth.validator.ts(95,3): error TS2564: Property 'phoneNumber' has no initializer and is not definitely assigned in the constructor.
+auth-service/src/validators/auth.validator.ts(99,3): error TS2564: Property 'role' has no initializer and is not definitely assigned in the constructor.
+auth-service/src/validators/auth.validator.ts(103,3): error TS2564: Property 'deviceId' has no initializer and is not definitely assigned in the constructor.
+auth-service/src/validators/auth.validator.ts(107,3): error TS2564: Property 'securityQuestions' has no initializer and is not definitely assigned in the constructor.
+auth-service/src/validators/auth.validator.ts(121,3): error TS2564: Property 'token' has no initializer and is not definitely assigned in the constructor.
+auth-service/src/validators/auth.validator.ts(126,3): error TS2564: Property 'method' has no initializer and is not definitely assigned in the constructor.
+auth-service/src/validators/auth.validator.ts(130,3): error TS2564: Property 'sessionId' has no initializer and is not definitely assigned in the constructor.
+auth-service/src/validators/auth.validator.ts(135,3): error TS2564: Property 'timestamp' has no initializer and is not definitely assigned in the constructor.
+auth-service/src/validators/auth.validator.ts(139,3): error TS2564: Property 'deviceId' has no initializer and is not definitely assigned in the constructor.
+auth-service/src/validators/auth.validator.ts(149,3): error TS2564: Property 'email' has no initializer and is not definitely assigned in the constructor.
+auth-service/src/validators/auth.validator.ts(155,3): error TS2564: Property 'token' has no initializer and is not definitely assigned in the constructor.
+auth-service/src/validators/auth.validator.ts(163,3): error TS2564: Property 'newPassword' has no initializer and is not definitely assigned in the constructor.
+auth-service/src/validators/auth.validator.ts(167,3): error TS2564: Property 'confirmPassword' has no initializer and is not definitely assigned in the constructor.
+auth-service/src/validators/auth.validator.ts(171,3): error TS2564: Property 'deviceId' has no initializer and is not definitely assigned in the constructor.
+auth-service/src/validators/auth.validator.ts(176,3): error TS2564: Property 'timestamp' has no initializer and is not definitely assigned in the constructor.
+error TS5083: Cannot read file '/home/user/onboarding-portal-v3-hrqnmc/src/backend/api-gateway/tsconfig.json'.
+error TS5083: Cannot read file '/home/user/onboarding-portal-v3-hrqnmc/src/backend/document-service/tsconfig.json'.
+error TS5083: Cannot read file '/home/user/onboarding-portal-v3-hrqnmc/src/backend/enrollment-service/tsconfig.json'.
+error TS5083: Cannot read file '/home/user/onboarding-portal-v3-hrqnmc/src/backend/health-service/tsconfig.json'.
+error TS5083: Cannot read file '/home/user/onboarding-portal-v3-hrqnmc/src/backend/policy-service/tsconfig.json'.
+tsconfig.json(31,5): error TS6306: Referenced project '/home/user/onboarding-portal-v3-hrqnmc/src/backend/auth-service' must have setting "composite": true.
+tsconfig.json(32,5): error TS6053: File '/home/user/onboarding-portal-v3-hrqnmc/src/backend/api-gateway' not found.
+tsconfig.json(33,5): error TS6053: File '/home/user/onboarding-portal-v3-hrqnmc/src/backend/document-service' not found.
+tsconfig.json(34,5): error TS6053: File '/home/user/onboarding-portal-v3-hrqnmc/src/backend/enrollment-service' not found.
+tsconfig.json(35,5): error TS6053: File '/home/user/onboarding-portal-v3-hrqnmc/src/backend/health-service' not found.
+tsconfig.json(36,5): error TS6053: File '/home/user/onboarding-portal-v3-hrqnmc/src/backend/policy-service' not found.

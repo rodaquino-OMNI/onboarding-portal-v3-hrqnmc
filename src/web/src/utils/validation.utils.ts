@@ -4,6 +4,7 @@ import validator from 'validator'; // v13.11.0
 import CryptoJS from 'crypto-js'; // v4.2.0
 import { ApiValidationError } from '../types/api.types';
 import { Address } from '../types/enrollment.types';
+import { BRAZILIAN_STATES, BrazilianState, isBrazilianState } from './type-guards.utils';
 
 /**
  * Constants for validation rules and error messages
@@ -31,11 +32,7 @@ const VALIDATION_CONSTANTS = {
     CRO: /^\d{5}-[A-Z]{2}$/,
     CRF: /^\d{5}-[A-Z]{2}$/
   },
-  BRAZILIAN_STATES: [
-    'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA',
-    'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN',
-    'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO'
-  ]
+  BRAZILIAN_STATES
 } as const;
 
 /**
@@ -189,14 +186,14 @@ export function validateHealthcareProvider(
  */
 export function validateAddress(address: Address): ValidationResult {
   // Validate state
-  if (!VALIDATION_CONSTANTS.BRAZILIAN_STATES.includes(address.state)) {
+  if (!isBrazilianState(address.state)) {
     return {
       isValid: false,
       error: {
         field: 'state',
         message: ERROR_MESSAGES.STATE_INVALID,
         code: ERROR_CODES.STATE_INVALID,
-        context: { validStates: VALIDATION_CONSTANTS.BRAZILIAN_STATES }
+        context: { validStates: BRAZILIAN_STATES }
       }
     };
   }

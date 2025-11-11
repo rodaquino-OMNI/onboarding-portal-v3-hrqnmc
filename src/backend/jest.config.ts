@@ -1,5 +1,4 @@
-import type { Config } from '@types/jest';
-import { defaults as tsjPreset } from 'ts-jest/presets';
+import type { Config } from 'jest';
 
 /**
  * Enterprise-grade Jest configuration for Pre-paid Health Plan Onboarding Portal backend services
@@ -18,12 +17,11 @@ const config: Config = {
 
   // Define root directories for all microservices
   roots: [
-    '<rootDir>/auth-service/src',
-    '<rootDir>/api-gateway/src',
-    '<rootDir>/health-service/src',
-    '<rootDir>/enrollment-service/src',
-    '<rootDir>/policy-service/src',
-    '<rootDir>/document-service/src'
+    '<rootDir>/auth-service',
+    '<rootDir>/api-gateway',
+    '<rootDir>/health-service',
+    '<rootDir>/enrollment-service',
+    '<rootDir>/policy-service'
   ],
 
   // Test file patterns for TypeScript
@@ -83,7 +81,7 @@ const config: Config = {
   maxWorkers: '50%',
 
   // Test setup and global configuration
-  setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
+  // setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
   globals: {
     'ts-jest': {
       tsconfig: '<rootDir>/tsconfig.json'
@@ -103,11 +101,10 @@ const config: Config = {
   detectOpenHandles: true,
 
   // Display individual test results
-  notify: true,
-  notifyMode: 'failure-change',
+  notify: false,
+  // notifyMode: 'failure-change',
 
-  // Project configuration for monorepo structure
-  projects: null,
+  // Root directory for monorepo structure
   rootDir: '.',
 
   // Test result caching for faster reruns

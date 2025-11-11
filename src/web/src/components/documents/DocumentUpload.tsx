@@ -143,7 +143,7 @@ const DocumentUpload: React.FC<DocumentUploadProps> = React.memo(({
         </div>
       )}
 
-      <style jsx>{`
+      <style>{`
         .document-upload {
           margin-bottom: var(--spacing-lg);
           position: relative;

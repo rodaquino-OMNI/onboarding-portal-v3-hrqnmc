@@ -16,6 +16,7 @@ import PrivateRoute from './PrivateRoute';
 import { ROUTES } from '../constants/routes.constants';
 import { useAuth } from '../contexts/AuthContext';
 import { useNotification } from '../hooks/useNotification';
+import { UserRole } from '../types/auth.types';
 
 // Lazy-loaded components for better performance
 const BeneficiaryDashboard = React.lazy(() => import('../pages/beneficiary/Dashboard'));
@@ -27,7 +28,7 @@ const Coverage = React.lazy(() => import('../pages/beneficiary/Coverage'));
 const Dependents = React.lazy(() => import('../pages/beneficiary/Dependents'));
 
 // Constants for session management
-const BENEFICIARY_ROLE = ['BENEFICIARY'];
+const BENEFICIARY_ROLE = [UserRole.BENEFICIARY];
 const SESSION_TIMEOUT = 1800000; // 30 minutes as per specification
 const ROUTE_AUDIT_EVENTS = {
   ROUTE_ENTER: 'route_enter',

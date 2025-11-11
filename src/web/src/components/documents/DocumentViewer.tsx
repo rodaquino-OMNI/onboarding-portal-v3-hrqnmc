@@ -175,7 +175,7 @@ const DocumentViewer: React.FC<DocumentViewerProps> = React.memo(({
   const renderContent = () => {
     if (loadStatus.error) {
       return (
-        <div className={styles.viewer.error} role="alert">
+        <div style={styles.viewer.error} role="alert">
           <p>{loadStatus.error}</p>
         </div>
       );
@@ -183,19 +183,19 @@ const DocumentViewer: React.FC<DocumentViewerProps> = React.memo(({
 
     if (!loadStatus.loaded || !secureContent) {
       return (
-        <div className={styles.viewer.loading} role="status">
+        <div style={styles.viewer.loading} role="status">
           <span>Loading document...</span>
         </div>
       );
     }
 
     return (
-      <div 
-        className={styles.viewer.content}
+      <div
+        style={styles.viewer.content}
         data-high-contrast={highContrastMode}
       >
         {watermarkText && (
-          <div className={styles.viewer.watermark}>
+          <div style={styles.viewer.watermark}>
             {watermarkText}
           </div>
         )}
@@ -226,12 +226,12 @@ const DocumentViewer: React.FC<DocumentViewerProps> = React.memo(({
     >
       <div
         ref={viewerRef}
-        className={styles.viewer.container}
+        style={styles.viewer.container}
         role="document"
         aria-busy={!loadStatus.loaded}
       >
         {renderContent()}
-        <div className={styles.viewer.accessibilityControls}>
+        <div style={styles.viewer.accessibilityControls}>
           <button
             onClick={() => window.print()}
             aria-label="Print document"

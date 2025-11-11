@@ -2,6 +2,7 @@
 import { z } from 'zod'; // v3.22.0 - Runtime type validation
 import { ApiResponse } from './api.types';
 import { Question, Questionnaire, RiskLevel } from './health.types';
+import { BrazilianState } from '../utils/type-guards.utils';
 
 /**
  * Enumeration of possible enrollment statuses with strict state management
@@ -35,7 +36,7 @@ export interface Address {
   complement: string;
   neighborhood: string;
   city: string;
-  state: string;
+  state: BrazilianState;
   zipCode: string; // CEP format: 00000-000
 }
 
@@ -159,7 +160,7 @@ export const addressSchema = z.object({
   complement: z.string().max(50),
   neighborhood: z.string().min(1).max(50),
   city: z.string().min(1).max(50),
-  state: z.string().length(2),
+  state: z.enum(['AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO']),
   zipCode: z.string().regex(/^\d{5}-\d{3}$/)
 });
 
