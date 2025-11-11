@@ -132,3 +132,16 @@ lerna-debug.log*
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 trace.json
 *.heapsnapshot
+
+# TypeScript Build Cache
+*.tsbuildinfo
+
+# Claude Flow / Swarm Coordination
+.claude-flow/
+.hive-mind/
+.swarm/
+
+# SQLite Databases
+*.db
+*.db-shm
+*.db-wal
