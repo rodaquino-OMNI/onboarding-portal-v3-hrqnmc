@@ -119,7 +119,7 @@ const Toast: React.FC<ToastProps> = ({
   const getAnchorOrigin = useCallback(() => {
     const [vertical, horizontal] = position.split('-');
     return {
-      vertical,
+      vertical: vertical as 'top' | 'bottom',
       horizontal: horizontal === 'center' ? 'center' : `${horizontal}` as 'left' | 'right' | 'center',
     };
   }, [position]);

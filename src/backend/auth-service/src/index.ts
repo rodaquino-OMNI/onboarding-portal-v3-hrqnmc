@@ -13,11 +13,13 @@ import { DataSource } from 'typeorm';
 import winston from 'winston';
 import dotenv from 'dotenv';
 import rateLimit from 'express-rate-limit';
-import { createServer } from 'https';
+import { createServer as createHttpsServer, Server as HttpsServer } from 'https';
+import { Server as HttpServer } from 'http';
 import { readFileSync } from 'fs';
 
-import { authConfig } from './config/auth.config';
 import { AuthController } from './controllers/auth.controller';
+import { AuthService } from './services/auth.service';
+import { MFAService } from './services/mfa.service';
 import { User } from './models/user.model';
 
 // Load environment variables
@@ -130,20 +132,23 @@ const initializeApp = async (): Promise<Application> => {
   });
   app.use('/api/', limiter);
 
-  // Routes
-  const authController = new AuthController(AppDataSource.getRepository(User));
+  // Initialize services
+  const userRepository = AppDataSource.getRepository(User);
+  const mfaService = new MFAService();
+  const authService = new AuthService(userRepository, mfaService);
+  const authController = new AuthController(authService);
 
   app.post('/api/auth/login', authController.login.bind(authController));
   app.post('/api/auth/verify-mfa', authController.verifyMFA.bind(authController));
   app.post('/api/auth/refresh-token', authController.refreshToken.bind(authController));
 
   // Health check endpoint
-  app.get('/health', (req: Request, res: Response) => {
+  app.get('/health', (_req: Request, res: Response) => {
     res.status(200).json({ status: 'healthy', timestamp: new Date().toISOString() });
   });
 
   // Error handling middleware
-  app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+  app.use((err: Error, req: Request, res: Response, _next: NextFunction) => {
     logger.error('Unhandled error', {
       error: err.message,
       stack: err.stack,
@@ -152,8 +157,7 @@ const initializeApp = async (): Promise<Application> => {
     });
 
     res.status(500).json({
-      error: 'Internal server error',
-      requestId: req.id
+      error: 'Internal server error'
     });
   });
 
@@ -171,18 +175,25 @@ const startServer = async (): Promise<void> => {
     const app = await initializeApp();
 
     // Create HTTPS server in production
-    const server = process.env.NODE_ENV === 'production'
-      ? createServer({
-          key: readFileSync(process.env.SSL_KEY_PATH || ''),
-          cert: readFileSync(process.env.SSL_CERT_PATH || ''),
-          ca: readFileSync(process.env.SSL_CA_PATH || '')
-        }, app)
-      : app;
+    let server: HttpsServer | HttpServer;
+    if (process.env.NODE_ENV === 'production') {
+      server = createHttpsServer({
+        key: readFileSync(process.env.SSL_KEY_PATH || ''),
+        cert: readFileSync(process.env.SSL_CERT_PATH || ''),
+        ca: readFileSync(process.env.SSL_CA_PATH || '')
+      }, app);
+    } else {
+      server = app.listen(PORT);
+    }
 
-    // Start server
-    server.listen(PORT, () => {
+    // Start server (only if HTTPS in production)
+    if (process.env.NODE_ENV === 'production') {
+      server.listen(PORT, () => {
+        logger.info(`Auth service listening on port ${PORT}`);
+      });
+    } else {
       logger.info(`Auth service listening on port ${PORT}`);
-    });
+    }
 
     // Graceful shutdown handling
     const shutdown = async (signal: string) => {

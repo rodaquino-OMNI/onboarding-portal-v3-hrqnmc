@@ -63,11 +63,9 @@ const DocumentList: React.FC<DocumentListProps> = ({
       key: 'status',
       header: t('document.column.status'),
       render: (document) => (
-        <StatusBadge
-          status={document.status}
-          type="document"
-          size="small"
-        />
+        <span className={`status-badge status-${document.status.toLowerCase()}`}>
+          {document.status}
+        </span>
       )
     },
     {
@@ -76,10 +74,10 @@ const DocumentList: React.FC<DocumentListProps> = ({
       render: (document) => new Date(document.createdAt).toLocaleDateString('pt-BR')
     },
     {
-      key: 'actions',
+      key: 'id' as any,
       header: t('document.column.actions'),
       render: (document) => (
-        <div className={styles.documentList__actions}>
+        <div style={styles.documentList__actions as React.CSSProperties}>
           <button
             onClick={() => handleDocumentView(document)}
             className="view-button"
@@ -139,7 +137,7 @@ const DocumentList: React.FC<DocumentListProps> = ({
 
   if (error) {
     return (
-      <div className={styles.documentList__empty} role="alert">
+      <div style={styles.documentList__empty as React.CSSProperties} role="alert">
         {t('document.error.loading')}
       </div>
     );
@@ -147,7 +145,7 @@ const DocumentList: React.FC<DocumentListProps> = ({
 
   return (
     <ErrorBoundary>
-      <div className={`${styles.documentList} ${className || ''}`}>
+      <div style={styles.documentList as React.CSSProperties} className={className}>
         <Table
           columns={columns}
           data={documents?.items || []}
@@ -204,7 +202,7 @@ const styles = {
   },
   documentList__empty: {
     padding: 'var(--spacing-6)',
-    textAlign: 'center',
+    textAlign: 'center' as const,
     color: 'var(--color-text-secondary)'
   },
   documentList__virtualRow: {
@@ -215,7 +213,7 @@ const styles = {
   documentList__actions: {
     display: 'flex',
     gap: 'var(--spacing-2)',
-    justifyContent: 'flex-end'
+    justifyContent: 'flex-end' as const
   }
 };
 

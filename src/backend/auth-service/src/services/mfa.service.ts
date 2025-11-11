@@ -33,7 +33,7 @@ export class MFAService {
     // Configure TOTP authenticator with enhanced security settings
     this.authenticator = authenticator;
     this.authenticator.options = {
-      algorithm: authConfig.mfa.methods.totp.algorithm,
+      algorithm: authConfig.mfa.methods.totp.algorithm as any,
       digits: authConfig.mfa.methods.totp.digits,
       step: authConfig.mfa.methods.totp.period,
       window: authConfig.mfa.methods.totp.window
@@ -102,7 +102,7 @@ export class MFAService {
     } catch (error) {
       this.logger.error('TOTP setup failed', {
         userId: user.id,
-        error: error.message
+        error: (error as Error).message
       });
       throw error;
     }
@@ -133,7 +133,7 @@ export class MFAService {
     } catch (error) {
       this.logger.error('TOTP verification failed', {
         userId: user.id,
-        error: error.message
+        error: (error as Error).message
       });
       throw error;
     }
@@ -171,7 +171,7 @@ export class MFAService {
     } catch (error) {
       this.logger.error('SMS token generation failed', {
         userId: user.id,
-        error: error.message
+        error: (error as Error).message
       });
       throw error;
     }
@@ -205,7 +205,7 @@ export class MFAService {
     } catch (error) {
       this.logger.error('SMS token verification failed', {
         userId: user.id,
-        error: error.message
+        error: (error as Error).message
       });
       throw error;
     }
@@ -239,7 +239,7 @@ export class MFAService {
     } catch (error) {
       this.logger.error('MFA requirement check failed', {
         userId: user.id,
-        error: error.message
+        error: (error as Error).message
       });
       throw error;
     }

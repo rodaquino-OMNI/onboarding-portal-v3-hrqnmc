@@ -257,12 +257,12 @@ const styles = {
       maxHeight: '80vh',
       overflow: 'auto',
       backgroundColor: 'var(--color-background)',
-      position: 'relative'
+      position: 'relative' as const
     },
     content: {
       padding: 'var(--spacing-lg)',
       display: 'flex',
-      flexDirection: 'column',
+      flexDirection: 'column' as const,
       alignItems: 'center',
       justifyContent: 'center',
       minHeight: '200px'
@@ -270,7 +270,7 @@ const styles = {
     error: {
       color: 'var(--color-error)',
       padding: 'var(--spacing-md)',
-      textAlign: 'center',
+      textAlign: 'center' as const,
       backgroundColor: 'var(--color-error-bg)',
       borderRadius: 'var(--border-radius-sm)'
     },
@@ -282,13 +282,13 @@ const styles = {
       backgroundColor: 'var(--color-background-secondary)'
     },
     watermark: {
-      position: 'absolute',
+      position: 'absolute' as const,
       opacity: '0.2',
-      pointerEvents: 'none',
-      userSelect: 'none'
+      pointerEvents: 'none' as const,
+      userSelect: 'none' as const
     },
     accessibilityControls: {
-      position: 'absolute',
+      position: 'absolute' as const,
       top: 'var(--spacing-md)',
       right: 'var(--spacing-md)',
       zIndex: 'var(--z-index-controls)'

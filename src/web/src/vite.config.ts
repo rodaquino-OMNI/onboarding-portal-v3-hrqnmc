@@ -24,8 +24,7 @@ export default defineConfig({
     
     // SWC for faster builds and development
     reactSwc({
-      tsDecorators: true,
-      plugins: true
+      tsDecorators: true
     })
   ],
 

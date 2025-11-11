@@ -1,0 +1,208 @@
+name: CI - Java Backend Services
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'src/backend/enrollment-service/**'
+      - 'src/backend/policy-service/**'
+      - '.github/workflows/ci-backend-java.yml'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'src/backend/enrollment-service/**'
+      - 'src/backend/policy-service/**'
+
+env:
+  JAVA_VERSION: '17'
+
+jobs:
+  detect-changes:
+    name: Detect Service Changes
+    runs-on: ubuntu-latest
+    outputs:
+      enrollment: ${{ steps.filter.outputs.enrollment }}
+      policy: ${{ steps.filter.outputs.policy }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: |
+            enrollment:
+              - 'src/backend/enrollment-service/**'
+            policy:
+              - 'src/backend/policy-service/**'
+
+  test-enrollment-service:
+    name: Test Enrollment Service
+    needs: detect-changes
+    if: needs.detect-changes.outputs.enrollment == 'true'
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: testpass
+          POSTGRES_DB: enrollment_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: 'maven'
+
+      - name: Run tests
+        working-directory: src/backend/enrollment-service
+        run: mvn clean test
+
+      - name: Run integration tests
+        working-directory: src/backend/enrollment-service
+        run: mvn verify -Pintegration-tests
+        env:
+          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/enrollment_test
+          SPRING_DATASOURCE_USERNAME: postgres
+          SPRING_DATASOURCE_PASSWORD: testpass
+
+      - name: Generate coverage report
+        working-directory: src/backend/enrollment-service
+        run: mvn jacoco:report
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./src/backend/enrollment-service/target/site/jacoco/jacoco.xml
+          flags: enrollment-service
+          name: enrollment-service-coverage
+
+      - name: Check coverage threshold
+        working-directory: src/backend/enrollment-service
+        run: |
+          COVERAGE=$(mvn jacoco:check -Djacoco.haltOnFailure=false | grep -oP 'Total.*?(\d+)%' | grep -oP '\d+')
+          echo "Coverage: $COVERAGE%"
+          if [ "$COVERAGE" -lt 60 ]; then
+            echo "Coverage below 60% threshold"
+            exit 1
+          fi
+
+      - name: Build JAR
+        working-directory: src/backend/enrollment-service
+        run: mvn clean package -DskipTests
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: enrollment-service-jar
+          path: src/backend/enrollment-service/target/*.jar
+
+  test-policy-service:
+    name: Test Policy Service
+    needs: detect-changes
+    if: needs.detect-changes.outputs.policy == 'true'
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: testpass
+          POSTGRES_DB: policy_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: 'maven'
+
+      - name: Run tests
+        working-directory: src/backend/policy-service
+        run: mvn clean test
+
+      - name: Run integration tests
+        working-directory: src/backend/policy-service
+        run: mvn verify -Pintegration-tests
+        env:
+          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/policy_test
+          SPRING_DATASOURCE_USERNAME: postgres
+          SPRING_DATASOURCE_PASSWORD: testpass
+
+      - name: Generate coverage report
+        working-directory: src/backend/policy-service
+        run: mvn jacoco:report
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./src/backend/policy-service/target/site/jacoco/jacoco.xml
+          flags: policy-service
+          name: policy-service-coverage
+
+      - name: Build JAR
+        working-directory: src/backend/policy-service
+        run: mvn clean package -DskipTests
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: policy-service-jar
+          path: src/backend/policy-service/target/*.jar
+
+  sonarqube-analysis:
+    name: SonarQube Analysis
+    needs: [test-enrollment-service, test-policy-service]
+    runs-on: ubuntu-latest
+    if: always()
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: 'maven'
+
+      - name: Run SonarQube scan
+        working-directory: src/backend
+        run: |
+          if [ -d "enrollment-service" ]; then
+            cd enrollment-service
+            mvn sonar:sonar -Dsonar.projectKey=enrollment-service
+            cd ..
+          fi
+          if [ -d "policy-service" ]; then
+            cd policy-service
+            mvn sonar:sonar -Dsonar.projectKey=policy-service
+          fi
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}

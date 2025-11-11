@@ -28,7 +28,7 @@ export class LoginDto {
   @IsEmail({}, { message: 'Invalid email format' })
   @Transform(({ value }) => value.toLowerCase())
   @IsNotEmpty()
-  email: string;
+  email!: string;
 
   @IsString()
   @MinLength(authConfig.security.passwordMinLength)
@@ -36,18 +36,18 @@ export class LoginDto {
     message: 'Password must contain uppercase, lowercase, number and special character'
   })
   @IsNotEmpty()
-  password: string;
+  password!: string;
 
   @IsIP(4, { message: 'Invalid IP address format' })
   @IsNotEmpty()
-  ipAddress: string;
+  ipAddress!: string;
 
   @IsUUID(4, { message: 'Invalid device ID format' })
   @IsNotEmpty()
-  deviceId: string;
+  deviceId!: string;
 
   @IsBoolean()
-  rememberMe: boolean;
+  rememberMe!: boolean;
 }
 
 /**
@@ -57,7 +57,7 @@ export class RegisterDto {
   @IsEmail({}, { message: 'Invalid email format' })
   @Transform(({ value }) => value.toLowerCase())
   @IsNotEmpty()
-  email: string;
+  email!: string;
 
   @IsString()
   @MinLength(authConfig.security.passwordMinLength)
@@ -65,46 +65,46 @@ export class RegisterDto {
     message: 'Password must contain uppercase, lowercase, number and special character'
   })
   @IsNotEmpty()
-  password: string;
+  password!: string;
 
   @IsString()
   @IsNotEmpty()
-  confirmPassword: string;
+  confirmPassword!: string;
 
   @IsString()
   @MinLength(2)
   @MaxLength(100)
   @Matches(/^[A-Za-zÀ-ÿ\s]+$/, { message: 'First name can only contain letters' })
   @IsNotEmpty()
-  firstName: string;
+  firstName!: string;
 
   @IsString()
   @MinLength(2)
   @MaxLength(100)
   @Matches(/^[A-Za-zÀ-ÿ\s]+$/, { message: 'Last name can only contain letters' })
   @IsNotEmpty()
-  lastName: string;
+  lastName!: string;
 
   @IsString()
   @Matches(/^\d{3}\.\d{3}\.\d{3}-\d{2}$/, { message: 'Invalid CPF format' })
   @IsNotEmpty()
-  cpf: string;
+  cpf!: string;
 
   @IsPhoneNumber('BR', { message: 'Invalid Brazilian phone number' })
   @IsNotEmpty()
-  phoneNumber: string;
+  phoneNumber!: string;
 
   @IsEnum(UserRole)
   @IsNotEmpty()
-  role: UserRole;
+  role!: UserRole;
 
   @IsUUID(4, { message: 'Invalid device ID format' })
   @IsNotEmpty()
-  deviceId: string;
+  deviceId!: string;
 
   @IsObject()
   @ValidateIf(o => o.role === UserRole.BENEFICIARY || o.role === UserRole.PARENT_GUARDIAN)
-  securityQuestions: {
+  securityQuestions!: {
     [key: string]: string;
   };
 }
@@ -118,25 +118,25 @@ export class MfaVerificationDto {
   @MaxLength(authConfig.mfa.tokenLength)
   @Matches(/^\d+$/, { message: 'Token must contain only numbers' })
   @IsNotEmpty()
-  token: string;
+  token!: string;
 
   @IsString()
   @IsEnum(['sms', 'totp'], { message: 'Invalid MFA method' })
   @IsNotEmpty()
-  method: string;
+  method!: string;
 
   @IsUUID(4, { message: 'Invalid session ID format' })
   @IsNotEmpty()
-  sessionId: string;
+  sessionId!: string;
 
   @IsNumber()
   @Type(() => Number)
   @IsNotEmpty()
-  timestamp: number;
+  timestamp!: number;
 
   @IsUUID(4, { message: 'Invalid device ID format' })
   @IsNotEmpty()
-  deviceId: string;
+  deviceId!: string;
 }
 
 /**
@@ -146,13 +146,13 @@ export class PasswordResetDto {
   @IsEmail({}, { message: 'Invalid email format' })
   @Transform(({ value }) => value.toLowerCase())
   @IsNotEmpty()
-  email: string;
+  email!: string;
 
   @IsString()
   @MinLength(32)
   @MaxLength(64)
   @IsNotEmpty()
-  token: string;
+  token!: string;
 
   @IsString()
   @MinLength(authConfig.security.passwordMinLength)
@@ -160,20 +160,20 @@ export class PasswordResetDto {
     message: 'Password must contain uppercase, lowercase, number and special character'
   })
   @IsNotEmpty()
-  newPassword: string;
+  newPassword!: string;
 
   @IsString()
   @IsNotEmpty()
-  confirmPassword: string;
+  confirmPassword!: string;
 
   @IsUUID(4, { message: 'Invalid device ID format' })
   @IsNotEmpty()
-  deviceId: string;
+  deviceId!: string;
 
   @IsNumber()
   @Type(() => Number)
   @IsNotEmpty()
-  timestamp: number;
+  timestamp!: number;
 }
 
 /**

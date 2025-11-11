@@ -5,27 +5,25 @@ description = "Health assessment and questionnaire service for AUSTA's Pre-paid 
 authors = ["AUSTA Healthcare"]
 readme = "README.md"
 packages = [{include = "src"}]
-python = "^3.11"
 
-[tool.poetry]
-dependencies = {
-    "fastapi" = "^0.100.0",
-    "uvicorn" = "^0.23.0",
-    "pydantic" = "^2.0.0",
-    "sqlalchemy" = "^2.0.0",
-    "asyncpg" = "^0.28.0",
-    "python-jose" = {extras = ["cryptography"], version = "^3.3.0"},
-    "langchain" = "^0.0.300",
-    "openai" = "^1.0.0",
-    "prometheus-fastapi-instrumentator" = "^6.1.0",
-    "starlette" = "^0.31.0",
-    "python-multipart" = "^0.0.6",
-    "httpx" = "^0.24.1",
-    "redis" = "^4.6.0",
-    "tenacity" = "^8.2.2",
-    "structlog" = "^23.1.0",
-    "python-dotenv" = "^1.0.0"
-}
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = "^0.100.0"
+uvicorn = "^0.23.0"
+pydantic = "^2.0.0"
+sqlalchemy = "^2.0.0"
+asyncpg = "^0.28.0"
+python-jose = {extras = ["cryptography"], version = "^3.3.0"}
+langchain = "^0.0.300"
+openai = "^1.0.0"
+prometheus-fastapi-instrumentator = "^6.1.0"
+starlette = "^0.31.0"
+python-multipart = "^0.0.6"
+httpx = "^0.24.1"
+redis = "^4.6.0"
+tenacity = "^8.2.2"
+structlog = "^23.1.0"
+python-dotenv = "^1.0.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.0.0"
@@ -44,7 +42,7 @@ faker = "^19.3.0"
 
 [tool.poetry.scripts]
 start = "uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload"
-start:prod = "uvicorn src.main:app --host 0.0.0.0 --port 8000 --workers 4"
+"start:prod" = "uvicorn src.main:app --host 0.0.0.0 --port 8000 --workers 4"
 test = "pytest tests/ --cov=src --cov-report=xml --cov-report=term-missing"
 lint = "flake8 src/ tests/ && mypy src/ tests/"
 format = "black src/ tests/ && isort src/ tests/"

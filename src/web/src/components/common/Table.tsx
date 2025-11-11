@@ -87,7 +87,7 @@ export const Table = <T extends object>({
       },
       role: column.sortable ? 'columnheader button' : 'columnheader',
       tabIndex: column.sortable ? 0 : undefined,
-      'aria-sort': isSorted ? sortOrder : undefined,
+      'aria-sort': isSorted ? (sortOrder === 'asc' ? 'ascending' : 'descending') as const : undefined,
       'aria-label': column.ariaLabel || column.header
     };
 
@@ -115,27 +115,29 @@ export const Table = <T extends object>({
   // Row selection handler
   const handleRowSelect = useCallback((row: T, event: React.ChangeEvent<HTMLInputElement>) => {
     event.stopPropagation();
-    onRowSelect?.(row[Object.keys(row)[0] as keyof T]);
+    const firstKey = Object.keys(row)[0] as keyof T;
+    onRowSelect?.(firstKey);
   }, [onRowSelect]);
 
   // Render table cell with custom rendering support
   const renderCell = useCallback((row: T, column: TableColumn<T>) => {
     const value = column.render ? column.render(row) : row[column.key];
     return (
-      <td 
+      <td
         key={String(column.key)}
         className="table-cell"
         style={column.width ? { width: column.width } : undefined}
       >
-        {value}
+        {value as React.ReactNode}
       </td>
     );
   }, []);
 
   // Render table row with selection and accessibility support
   const renderRow = useCallback((row: T, index: number) => {
-    const rowKey = row[Object.keys(row)[0] as keyof T];
-    const isSelected = selectedRows.includes(rowKey);
+    const rowKeyName = Object.keys(row)[0] as keyof T;
+    const rowKey = row[rowKeyName];
+    const isSelected = selectedRows.includes(rowKeyName);
     
     const rowProps: React.HTMLAttributes<HTMLTableRowElement> = {
       key: String(rowKey),

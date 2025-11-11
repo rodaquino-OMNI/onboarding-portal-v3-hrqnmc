@@ -2,14 +2,15 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { isBrazilianState } from '../../utils/type-guards.utils';
 import { z } from 'zod'; // v3.22.0
 import Form, { useForm } from '../common/Form';
-import Input from '../common/Input';
-import { 
-  validateCPF, 
-  validatePhone, 
-  validateEmail, 
+import Input, { InputMaskType } from '../common/Input';
+import Select from '../common/Select';
+import {
+  validateCPF,
+  validatePhone,
+  validateEmail,
   validateZipCode,
   VALIDATION_CONSTANTS,
-  ERROR_MESSAGES 
+  ERROR_MESSAGES
 } from '../../utils/validation.utils';
 import type { Address, Guardian } from '../../types/enrollment.types';
 
@@ -180,7 +181,7 @@ const GuardianForm: React.FC<GuardianFormProps> = ({
   const handleSubmit = useCallback(async (values: Record<string, any>) => {
     try {
       // Validate form data
-      const guardian = await guardianSchema.parseAsync(values);
+      const guardian = await guardianSchema.parseAsync(values) as Guardian;
 
       // Create audit trail
       const submitAudit: AuditLog = {
@@ -243,10 +244,10 @@ const GuardianForm: React.FC<GuardianFormProps> = ({
         value={formValues.cpf || ''}
         onChange={(value) => handleFieldChange('cpf', value)}
         required
-        maskType="cpf"
+        maskType={InputMaskType.CPF}
         validationRules={{
           required: true,
-          custom: validateCPF
+          custom: (value) => validateCPF(value).isValid
         }}
         data-testid="guardian-cpf-input"
       />
@@ -271,7 +272,7 @@ const GuardianForm: React.FC<GuardianFormProps> = ({
         name="dateOfBirth"
         label="Data de Nascimento"
         type="date"
-        value={formValues.dateOfBirth || ''}
+        value={formValues.dateOfBirth instanceof Date ? formValues.dateOfBirth.toISOString().split('T')[0] : formValues.dateOfBirth || ''}
         onChange={(value) => handleFieldChange('dateOfBirth', value)}
         required
         validationRules={{
@@ -294,7 +295,7 @@ const GuardianForm: React.FC<GuardianFormProps> = ({
         required
         validationRules={{
           required: true,
-          custom: validateEmail
+          custom: (value) => validateEmail(value).isValid
         }}
         data-testid="guardian-email-input"
       />
@@ -306,10 +307,10 @@ const GuardianForm: React.FC<GuardianFormProps> = ({
         value={formValues.phone || ''}
         onChange={(value) => handleFieldChange('phone', value)}
         required
-        maskType="phone"
+        maskType={InputMaskType.PHONE}
         validationRules={{
           required: true,
-          custom: validatePhone
+          custom: (value) => validatePhone(value).isValid
         }}
         data-testid="guardian-phone-input"
       />
@@ -321,10 +322,10 @@ const GuardianForm: React.FC<GuardianFormProps> = ({
         value={formValues.address?.zipCode || ''}
         onChange={(value) => handleFieldChange('address.zipCode', value)}
         required
-        maskType="zipcode"
+        maskType={InputMaskType.ZIPCODE}
         validationRules={{
           required: true,
-          custom: validateZipCode
+          custom: (value) => validateZipCode(value).isValid
         }}
         onBlur={async (e) => {
           try {
@@ -417,17 +418,17 @@ const GuardianForm: React.FC<GuardianFormProps> = ({
         required
         validationRules={{
           required: true,
-          length: 2,
+          minLength: 2,
+          maxLength: 2,
           custom: (state) => isBrazilianState(state)
         }}
         data-testid="guardian-state-input"
       />
 
-      <Input
+      <Select
         id="relationship"
         name="relationship"
         label="Tipo de Responsável"
-        type="select"
         value={formValues.relationship || ''}
         onChange={(value) => handleFieldChange('relationship', value)}
         required
@@ -435,7 +436,7 @@ const GuardianForm: React.FC<GuardianFormProps> = ({
           { value: 'PARENT', label: 'Pai/Mãe' },
           { value: 'LEGAL_GUARDIAN', label: 'Responsável Legal' }
         ]}
-        data-testid="guardian-relationship-input"
+        testId="guardian-relationship-input"
       />
     </Form>
   );

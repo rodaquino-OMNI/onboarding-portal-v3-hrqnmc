@@ -11,10 +11,10 @@ import CircuitBreaker from 'opossum';
 import * as winston from 'winston';
 import Redis from 'ioredis';
 
-import { User, UserRole } from '../models/user.model';
+import { User } from '../models/user.model';
 import { authConfig } from '../config/auth.config';
 import { MFAService } from './mfa.service';
-import { encryptData, decryptData, generateSecureToken } from '../utils/encryption';
+import { encryptData, generateSecureToken } from '../utils/encryption';
 
 /**
  * Enhanced authentication service with comprehensive security features
@@ -34,7 +34,7 @@ export class AuthService {
       host: process.env.REDIS_HOST,
       port: parseInt(process.env.REDIS_PORT || '6379'),
       password: process.env.REDIS_PASSWORD,
-      tls: process.env.NODE_ENV === 'production'
+      ...(process.env.NODE_ENV === 'production' && { tls: {} })
     });
 
     // Configure rate limiter
@@ -80,7 +80,7 @@ export class AuthService {
       // Find user with circuit breaker protection
       const user = await this.circuitBreaker.fire(async () => {
         return await this.userRepository.findOne({ where: { email: email.toLowerCase() } });
-      });
+      }) as User | null;
 
       if (!user) {
         throw new Error('Invalid credentials');
@@ -126,7 +126,7 @@ export class AuthService {
       this.logger.error('Login failed', {
         email,
         ipAddress,
-        error: error.message
+        error: (error as Error).message
       });
       throw error;
     }
@@ -171,7 +171,7 @@ export class AuthService {
       this.logger.error('MFA verification failed', {
         userId,
         method,
-        error: error.message
+        error: (error as Error).message
       });
       throw error;
     }
@@ -250,7 +250,102 @@ export class AuthService {
     } catch (error) {
       this.logger.error('Logout failed', {
         userId,
-        error: error.message
+        error: (error as Error).message
+      });
+      throw error;
+    }
+  }
+
+  /**
+   * Detect suspicious activity from IP address
+   */
+  async detectSuspiciousActivity(ipAddress: string): Promise<boolean> {
+    try {
+      // Check for rapid login attempts from same IP
+      const recentAttempts = await this.redis.get(`suspicious:${ipAddress}`);
+      if (recentAttempts && parseInt(recentAttempts) > 10) {
+        this.logger.warn('Suspicious activity detected', { ipAddress, attempts: recentAttempts });
+        return true;
+      }
+
+      // Track attempt
+      await this.redis.incr(`suspicious:${ipAddress}`);
+      await this.redis.expire(`suspicious:${ipAddress}`, 300); // 5 minute window
+
+      return false;
+    } catch (error) {
+      this.logger.error('Error detecting suspicious activity', {
+        ipAddress,
+        error: (error as Error).message
+      });
+      return false;
+    }
+  }
+
+  /**
+   * Validate session token
+   */
+  async validateSession(refreshToken: string): Promise<boolean> {
+    try {
+      // Check if token is blacklisted
+      const tokenHash = await encryptData(refreshToken);
+      const isBlacklisted = await this.redis.get(`blacklist:${tokenHash}`);
+
+      if (isBlacklisted) {
+        this.logger.warn('Blacklisted token used', { tokenHash });
+        return false;
+      }
+
+      // Verify token signature and expiry
+      const decoded = verify(refreshToken, authConfig.jwt.secret) as { userId: string; tokenVersion: number };
+
+      // Verify user exists and token version matches
+      const user = await this.userRepository.findOne({ where: { id: decoded.userId } });
+      if (!user || user.tokenVersion !== decoded.tokenVersion) {
+        this.logger.warn('Invalid session', { userId: decoded.userId });
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      this.logger.error('Session validation failed', {
+        error: (error as Error).message
+      });
+      return false;
+    }
+  }
+
+  /**
+   * Refresh access token using refresh token
+   */
+  async refreshToken(refreshToken: string): Promise<{
+    accessToken: string;
+    refreshToken: string;
+  }> {
+    try {
+      // Verify refresh token
+      const decoded = verify(refreshToken, authConfig.jwt.secret) as { userId: string; tokenVersion: number };
+
+      // Get user
+      const user = await this.userRepository.findOne({ where: { id: decoded.userId } });
+      if (!user) {
+        throw new Error('User not found');
+      }
+
+      // Verify token version
+      if (user.tokenVersion !== decoded.tokenVersion) {
+        throw new Error('Token version mismatch');
+      }
+
+      // Generate new tokens
+      const tokens = await this.generateTokens(user);
+
+      this.logger.info('Token refreshed successfully', { userId: user.id });
+
+      return tokens;
+    } catch (error) {
+      this.logger.error('Token refresh failed', {
+        error: (error as Error).message
       });
       throw error;
     }

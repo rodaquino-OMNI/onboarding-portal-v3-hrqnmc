@@ -33,7 +33,7 @@ export interface InputProps {
   name: string;
   label: string;
   value: string;
-  type?: 'text' | 'password' | 'email' | 'tel' | 'number';
+  type?: React.HTMLInputTypeAttribute;
   placeholder?: string;
   required?: boolean;
   disabled?: boolean;
@@ -166,7 +166,7 @@ export const Input: React.FC<InputProps> = ({
     onFocus?.(event);
   }, [label, required, onFocus]);
 
-  const inputProps = {
+  const baseInputProps = {
     id,
     name,
     type,
@@ -187,7 +187,6 @@ export const Input: React.FC<InputProps> = ({
     ),
     'data-testid': dataTestId,
     autoComplete: autoComplete ? 'on' : 'off',
-    ref: inputRef,
     className: classNames(
       'input-field',
       {
@@ -198,9 +197,14 @@ export const Input: React.FC<InputProps> = ({
     )
   };
 
+  const inputPropsWithRef = {
+    ...baseInputProps,
+    ref: inputRef
+  };
+
   return (
     <div className="input-container">
-      <label 
+      <label
         htmlFor={id}
         className="input-label"
       >
@@ -210,12 +214,12 @@ export const Input: React.FC<InputProps> = ({
 
       {maskType || mask ? (
         <InputMask
-          {...inputProps}
+          {...baseInputProps}
           mask={mask ?? MASK_PATTERNS[maskType!]}
           maskChar={null}
         />
       ) : (
-        <input {...inputProps} />
+        <input {...inputPropsWithRef} />
       )}
 
       {internalError && (
