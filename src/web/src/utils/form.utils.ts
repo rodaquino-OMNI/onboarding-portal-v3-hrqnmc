@@ -177,6 +177,38 @@ export function formatFieldValue(fieldName: string, value: any): string {
   }
 }
 
+/**
+ * Masks sensitive data for logging and display purposes (LGPD compliance)
+ */
+export function maskSensitiveData(data: Record<string, any>): Record<string, any> {
+  const masked: Record<string, any> = {};
+  const sensitiveFields = ['cpf', 'password', 'email', 'phone', 'ssn', 'healthData'];
+
+  Object.entries(data).forEach(([key, value]) => {
+    if (sensitiveFields.includes(key)) {
+      if (key === 'cpf' && typeof value === 'string') {
+        // Mask CPF: XXX.XXX.XXX-XX
+        masked[key] = value.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, 'XXX.XXX.$3-XX');
+      } else if (key === 'email' && typeof value === 'string') {
+        // Mask email: x***@domain.com
+        const [local, domain] = value.split('@');
+        masked[key] = `${local[0]}***@${domain}`;
+      } else if (key === 'phone' && typeof value === 'string') {
+        // Mask phone: +55 (XX) XXXXX-1234
+        masked[key] = value.replace(/(\d{2})(\d{5})(\d{4})/, '+55 (XX) XXXXX-$3');
+      } else {
+        masked[key] = '***';
+      }
+    } else if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+      masked[key] = maskSensitiveData(value);
+    } else {
+      masked[key] = value;
+    }
+  });
+
+  return masked;
+}
+
 export {
   DATE_FORMAT,
   NUMERIC_FIELDS,

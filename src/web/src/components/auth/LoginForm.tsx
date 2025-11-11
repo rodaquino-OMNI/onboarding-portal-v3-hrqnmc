@@ -8,7 +8,7 @@ import { Analytics } from '@segment/analytics-next'; // v1.51.0
 
 import Form from '../common/Form';
 import { useAuth } from '../../contexts/AuthContext';
-import { LoginRequest } from '../../types/auth.types';
+import type { LoginRequest } from '../../types/auth.types';
 
 // Initialize analytics
 const analytics = new Analytics({

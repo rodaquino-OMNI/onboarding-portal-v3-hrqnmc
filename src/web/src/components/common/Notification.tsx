@@ -1,6 +1,7 @@
 import React, { useEffect, useCallback } from 'react';
 import { captureException } from '@sentry/react'; // v7.0.0
-import Toast, { ToastProps } from './Toast';
+import type { ToastProps } from './Toast';
+import Toast from './Toast';
 import { useNotificationContext } from '../../contexts/NotificationContext';
 
 // Constants for notification configuration

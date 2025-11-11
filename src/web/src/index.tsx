@@ -9,7 +9,7 @@
 import React from 'react'; // ^18.2.0
 import { createRoot } from 'react-dom/client'; // ^18.2.0
 import { StrictMode } from 'react'; // ^18.2.0
-import * as NewRelic from 'newrelic-browser'; // ^1.0.0
+// import * as NewRelic from 'newrelic-browser'; // ^1.0.0 - Disabled: package not available
 
 import App from './App';
 import initI18n from './config/i18n.config';
@@ -29,24 +29,25 @@ const PERFORMANCE_CONFIG = {
 const setupErrorHandling = (): void => {
   // Global error handler
   window.onerror = (message, source, lineno, colno, error) => {
-    NewRelic.noticeError(error || new Error(String(message)), {
-      source,
-      lineno,
-      colno
-    });
+    //     // NewRelic.noticeError(error || new Error(String(message)), {
+    //   source,
+    //   lineno,
+    //   colno
+    // });
+    console.error('Global error:', { message, source, lineno, colno, error });
     return false;
   };
 
   // Unhandled promise rejection handler
   window.addEventListener('unhandledrejection', (event) => {
-    NewRelic.noticeError(event.reason);
+    //     NewRelic.noticeError(event.reason);
     event.preventDefault();
   });
 
   // React error boundary fallback
   if (process.env.NODE_ENV === 'production') {
     console.error = (message, ...args) => {
-      NewRelic.noticeError(new Error(String(message)));
+    //       NewRelic.noticeError(new Error(String(message)));
       // Preserve original console.error behavior
       console.warn(message, ...args);
     };
@@ -57,23 +58,24 @@ const setupErrorHandling = (): void => {
  * Initializes performance monitoring and tracking
  */
 const setupPerformanceMonitoring = (): void => {
-  // Initialize NewRelic monitoring
-  NewRelic.setCustomAttribute('environment', process.env.NODE_ENV);
-  NewRelic.setErrorHandler((error) => {
-    return {
-      ignore: error.message.includes('ResizeObserver loop limit exceeded')
-    };
-  });
+  // Initialize NewRelic monitoring - DISABLED
+  // NewRelic.setCustomAttribute('environment', process.env.NODE_ENV);
+  // NewRelic.setErrorHandler((error) => {
+  //   return {
+  //     ignore: error.message.includes('ResizeObserver loop limit exceeded')
+  //   };
+  // });
 
   // Core Web Vitals monitoring
   if ('PerformanceObserver' in window) {
     const vitalsObserver = new PerformanceObserver((entries) => {
       entries.getEntries().forEach((entry) => {
-        NewRelic.addPageAction('web-vitals', {
-          name: entry.name,
-          value: entry.value,
-          rating: entry.rating
-        });
+        // NewRelic.addPageAction('web-vitals', {
+        //   name: entry.name,
+        //   value: entry.value,
+        //   rating: entry.rating
+        // });
+        console.log('Web Vitals:', entry.name, entry.value);
       });
     });
 
@@ -139,7 +141,7 @@ const renderApp = async (): Promise<void> => {
 
   } catch (error) {
     console.error('Failed to initialize application:', error);
-    NewRelic.noticeError(error as Error);
+    //     NewRelic.noticeError(error as Error);
     
     // Show error message to user
     const rootElement = document.getElementById(ROOT_ELEMENT_ID);

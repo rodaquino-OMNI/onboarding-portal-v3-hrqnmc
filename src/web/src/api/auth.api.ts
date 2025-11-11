@@ -7,9 +7,9 @@
  */
 
 import axios from 'axios'; // ^1.5.0
-import { 
-  LoginRequest, 
-  LoginResponse, 
+import type {
+  LoginRequest,
+  LoginResponse,
   MFARequest,
   User,
   AuthState,

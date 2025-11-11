@@ -10,12 +10,14 @@ import axios from 'axios'; // ^1.5.0
 import axiosRetry from 'axios-retry'; // ^3.8.0
 import { trace, SpanStatusCode } from '@opentelemetry/api'; // ^1.4.0
 
-import {
+import type {
   Document,
   DocumentUploadRequest,
-  DocumentType,
-  DocumentStatus,
   DocumentListResponse
+} from '../types/document.types';
+import {
+  DocumentType,
+  DocumentStatus
 } from '../types/document.types';
 import { apiConfig, retryConfig, createAxiosConfig } from '../config/api.config';
 import { API_ENDPOINTS, UPLOAD_CONFIG, HTTP_STATUS } from '../constants/api.constants';

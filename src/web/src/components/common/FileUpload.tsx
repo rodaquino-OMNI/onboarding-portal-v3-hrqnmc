@@ -2,7 +2,8 @@ import React, { useCallback, useRef, useState, useEffect } from 'react'; // v18.
 import classnames from 'classnames'; // v2.3.2
 import axios from 'axios'; // v1.6.0
 import CryptoJS from 'crypto-js'; // v4.1.1
-import { DocumentType, DocumentStatus, Document } from '../../types/document.types';
+import type { Document } from '../../types/document.types';
+import { DocumentType, DocumentStatus } from '../../types/document.types';
 import Button from './Button';
 
 // Constants for file upload configuration

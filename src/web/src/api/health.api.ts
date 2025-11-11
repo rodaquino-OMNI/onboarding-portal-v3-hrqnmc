@@ -7,25 +7,26 @@
  */
 
 import axios from 'axios'; // ^1.5.0
-import { 
-  ApiResponse, 
-  ApiError, 
-  ApiRequestConfig 
+import type {
+  ApiResponse,
+  ApiError,
+  ApiRequestConfig
 } from '../types/api.types';
-import { 
-  Question, 
-  QuestionResponse, 
-  Questionnaire, 
-  RiskAssessment, 
+import type {
+  Question,
+  QuestionResponse,
+  RiskAssessment
+} from '../types/health.types';
+import {
   RiskLevel,
   questionResponseSchema,
   riskAssessmentSchema
 } from '../types/health.types';
 import { apiConfig } from '../config/api.config';
-import { 
-  createApiClient, 
-  handleApiError, 
-  createRequestConfig 
+import {
+  createApiClient,
+  handleApiError,
+  createRequestConfig
 } from '../utils/api.utils';
 import { validateHealthData } from '../utils/validation.utils';
 

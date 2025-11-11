@@ -3,11 +3,13 @@ import { useTranslation } from 'react-i18next'; // v13.0.0
 import { useVirtualizer } from '@tanstack/react-virtual'; // v3.0.0
 import { Dialog } from '@mui/material'; // v5.0.0
 
-import { Table, TableColumn } from '../common/Table';
+import type { TableColumn } from '../common/Table';
+import type { Document } from '../../types/document.types';
+import { Table } from '../common/Table';
 import StatusBadge from '../common/StatusBadge';
 import ErrorBoundary from '../common/ErrorBoundary';
 import DocumentViewer from './DocumentViewer';
-import { Document, DocumentType, DocumentStatus } from '../../types/document.types';
+import { DocumentType, DocumentStatus } from '../../types/document.types';
 import { useDocuments } from '../../hooks/useDocuments';
 
 interface DocumentListProps {

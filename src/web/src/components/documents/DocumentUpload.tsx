@@ -5,7 +5,8 @@ import CryptoJS from 'crypto-js'; // v4.1.1
 
 import FileUpload from '../common/FileUpload';
 import { useDocuments } from '../../hooks/useDocuments';
-import { DocumentType, DocumentStatus, Document } from '../../types/document.types';
+import type { Document } from '../../types/document.types';
+import { DocumentType, DocumentStatus } from '../../types/document.types';
 import { UPLOAD_CONFIG } from '../../constants/api.constants';
 
 interface DocumentUploadProps {

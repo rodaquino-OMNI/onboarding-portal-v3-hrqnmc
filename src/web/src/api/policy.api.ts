@@ -12,11 +12,13 @@ import CircuitBreaker from 'opossum'; // ^7.1.0
 import winston from 'winston'; // ^3.8.0
 import { trace, SpanStatusCode } from '@opentelemetry/api';
 
-import {
+import type {
   Policy,
-  PolicyStatus,
   CoverageDetails,
-  WaitingPeriod,
+  WaitingPeriod
+} from '../types/policy.types';
+import {
+  PolicyStatus,
   isPolicyStatus
 } from '../types/policy.types';
 import { apiConfig, createAxiosConfig, circuitBreakerConfig } from '../config/api.config';

@@ -136,8 +136,8 @@ export const Navigation: React.FC<NavigationProps> = React.memo(({
   // Handle navigation item click with tracking
   const handleNavClick = useCallback((item: NavigationItem) => {
     // Track navigation event
-    if (window.newrelic) {
-      window.newrelic.addPageAction('navigation_click', {
+    if (// window.newrelic) {
+      // window.newrelic.addPageAction('navigation_click', {
         trackingId: item.trackingId,
         path: item.path,
         userRole: user?.role
