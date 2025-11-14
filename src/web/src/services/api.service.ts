@@ -29,6 +29,7 @@ import { API_SECURITY, HTTP_STATUS, API_PERFORMANCE } from '../constants/api.con
  * Enhanced API Service with comprehensive security and monitoring
  */
 export class ApiService {
+  private static instance: ApiService;
   private readonly apiClient: AxiosInstance;
   private readonly circuitBreaker: CircuitBreaker;
   private readonly telemetry: ApplicationInsights;
@@ -333,4 +334,68 @@ export class ApiService {
       timestamp: Date.now()
     });
   }
+
+  /**
+   * Gets cached response if available (public instance method)
+   */
+  public getCached<T>(url: string): ApiResponse<T> | null {
+    return this.getCachedResponse<T>(url);
+  }
+
+  /**
+   * Gets singleton instance of ApiService
+   */
+  private static getInstance(): ApiService {
+    if (!ApiService.instance) {
+      ApiService.instance = new ApiService();
+    }
+    return ApiService.instance;
+  }
+
+  /**
+   * Static GET method for convenience
+   */
+  static async get<T>(url: string, config?: ApiRequestConfig): Promise<ApiResponse<T>> {
+    return ApiService.getInstance().get<T>(url, config);
+  }
+
+  /**
+   * Static PUT method for convenience
+   */
+  static async put<T>(url: string, data: any, config?: ApiRequestConfig): Promise<ApiResponse<T>> {
+    return ApiService.getInstance().put<T>(url, data, config);
+  }
+
+  /**
+   * Static POST method for convenience
+   */
+  static async post<T>(url: string, data: any, config?: ApiRequestConfig): Promise<ApiResponse<T>> {
+    return ApiService.getInstance().post<T>(url, data, config);
+  }
+
+  /**
+   * Static DELETE method for convenience
+   */
+  static async delete<T>(url: string, config?: ApiRequestConfig): Promise<ApiResponse<T>> {
+    return ApiService.getInstance().delete<T>(url, config);
+  }
+
+  /**
+   * Audit log method for tracking user actions
+   */
+  static async auditLog(action: string, metadata?: Record<string, any>): Promise<void> {
+    try {
+      await ApiService.getInstance().post('/api/v1/audit/log', {
+        action,
+        metadata,
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      // Log but don't throw - audit failures shouldn't break functionality
+      console.error('Audit log failed:', error);
+    }
+  }
 }
+
+// Default export for backward compatibility
+export default ApiService;
