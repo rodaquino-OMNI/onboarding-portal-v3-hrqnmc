@@ -159,19 +159,19 @@ const Users: React.FC = () => {
   // Table columns configuration with security controls
   const columns = [
     {
-      key: 'name',
+      key: 'name' as keyof UserTableData,
       header: t('users.name'),
       filterable: true,
       filterType: 'text' as const
     },
     {
-      key: 'email',
+      key: 'email' as keyof UserTableData,
       header: t('users.email'),
       filterable: true,
       filterType: 'text' as const
     },
     {
-      key: 'role',
+      key: 'role' as keyof UserTableData,
       header: t('users.role'),
       filterable: true,
       filterType: 'select' as const,
@@ -181,7 +181,7 @@ const Users: React.FC = () => {
       }))
     },
     {
-      key: 'status',
+      key: 'status' as keyof UserTableData,
       header: t('users.status'),
       filterable: true,
       filterType: 'select' as const,
@@ -194,7 +194,7 @@ const Users: React.FC = () => {
       )
     },
     {
-      key: 'mfaEnabled',
+      key: 'mfaEnabled' as keyof UserTableData,
       header: t('users.mfa'),
       render: (user: UserTableData) => (
         <span className={`mfa-status ${user.mfaEnabled ? 'enabled' : 'disabled'}`}>
@@ -203,7 +203,7 @@ const Users: React.FC = () => {
       )
     },
     {
-      key: 'lastLogin',
+      key: 'lastLogin' as keyof UserTableData,
       header: t('users.lastLogin'),
       render: (user: UserTableData) => (
         new Date(user.lastLogin).toLocaleString()

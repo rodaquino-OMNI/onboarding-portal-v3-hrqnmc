@@ -92,10 +92,10 @@ const EmployeeManagement: React.FC = () => {
   // Table columns configuration
   const columns = [
     {
-      id: 'select',
-      label: '',
-      minWidth: 50,
-      format: (_value: any, row: Employee) => (
+      key: 'id' as keyof Employee,
+      header: '',
+      width: '50px',
+      render: (row: Employee) => (
         <Checkbox
           checked={selectedEmployees.has(row.id)}
           onChange={() => handleSelectEmployee(row.id)}
@@ -103,25 +103,25 @@ const EmployeeManagement: React.FC = () => {
       )
     },
     {
-      id: 'name',
-      label: t('hr.employees.name'),
-      minWidth: 170
+      key: 'name' as keyof Employee,
+      header: t('hr.employees.name'),
+      width: '170px'
     },
     {
-      id: 'email',
-      label: t('hr.employees.email'),
-      minWidth: 200
+      key: 'email' as keyof Employee,
+      header: t('hr.employees.email'),
+      width: '200px'
     },
     {
-      id: 'department',
-      label: t('hr.employees.department'),
-      minWidth: 130
+      key: 'department' as keyof Employee,
+      header: t('hr.employees.department'),
+      width: '130px'
     },
     {
-      id: 'enrollmentStatus',
-      label: t('hr.employees.status'),
-      minWidth: 150,
-      format: (value: string) => {
+      key: 'enrollmentStatus' as keyof Employee,
+      header: t('hr.employees.status'),
+      width: '150px',
+      render: (row: Employee) => {
         const colors: Record<string, 'default' | 'info' | 'warning' | 'success' | 'error'> = {
           NOT_STARTED: 'default',
           IN_PROGRESS: 'info',
@@ -133,33 +133,33 @@ const EmployeeManagement: React.FC = () => {
         };
         return (
           <Chip
-            label={t(`hr.employees.statuses.${value.toLowerCase()}`)}
+            label={t(`hr.employees.statuses.${row.enrollmentStatus.toLowerCase()}`)}
             size="small"
-            color={colors[value] || 'default'}
+            color={colors[row.enrollmentStatus] || 'default'}
           />
         );
       }
     },
     {
-      id: 'completionPercentage',
-      label: t('hr.employees.completion'),
-      minWidth: 120,
-      format: (value: number) => `${value}%`
+      key: 'completionPercentage' as keyof Employee,
+      header: t('hr.employees.completion'),
+      width: '120px',
+      render: (row: Employee) => `${row.completionPercentage}%`
     },
     {
-      id: 'lastActivity',
-      label: t('hr.employees.lastActivity'),
-      minWidth: 150,
-      format: (value: Date | undefined) =>
-        value ? new Date(value).toLocaleDateString('pt-BR') : '-'
+      key: 'lastActivity' as keyof Employee,
+      header: t('hr.employees.lastActivity'),
+      width: '150px',
+      render: (row: Employee) =>
+        row.lastActivity ? new Date(row.lastActivity).toLocaleDateString('pt-BR') : '-'
     },
     {
-      id: 'hasDependent',
-      label: t('hr.employees.dependents'),
-      minWidth: 100,
-      format: (value: boolean) => (
+      key: 'hasDependent' as keyof Employee,
+      header: t('hr.employees.dependents'),
+      width: '100px',
+      render: (row: Employee) => (
         <Chip
-          label={value ? t('common.yes') : t('common.no')}
+          label={row.hasDependent ? t('common.yes') : t('common.no')}
           size="small"
           variant="outlined"
         />

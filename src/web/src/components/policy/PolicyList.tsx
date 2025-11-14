@@ -61,7 +61,7 @@ const PolicyList: React.FC<PolicyListProps> = ({
   // Memoized table columns with accessibility and role-based visibility
   const columns: DataTableColumn<Policy>[] = React.useMemo(() => [
     {
-      key: 'policyNumber',
+      key: 'policyNumber' as keyof Policy,
       header: t('policy.number'),
       width: '150px',
       sortable: true,
@@ -70,7 +70,7 @@ const PolicyList: React.FC<PolicyListProps> = ({
       ariaLabel: t('aria.policy.number'),
     },
     {
-      key: 'status',
+      key: 'status' as keyof Policy,
       header: t('policy.status'),
       width: '120px',
       sortable: true,
@@ -86,21 +86,21 @@ const PolicyList: React.FC<PolicyListProps> = ({
       ariaLabel: t('aria.policy.status'),
     },
     {
-      key: 'effectiveDate',
+      key: 'effectiveDate' as keyof Policy,
       header: t('policy.effectiveDate'),
       width: '150px',
       sortable: true,
       filterable: true,
       filterType: 'date',
       render: (row: Policy) => (
-        isValid(row.effectiveDate) 
+        isValid(row.effectiveDate)
           ? format(row.effectiveDate, DATE_TIME_FORMATS.SHORT_DATE)
           : '-'
       ),
       ariaLabel: t('aria.policy.effectiveDate'),
     },
     {
-      key: 'monthlyPremium',
+      key: 'monthlyPremium' as keyof Policy,
       header: t('policy.premium'),
       width: '120px',
       sortable: true,
@@ -113,7 +113,7 @@ const PolicyList: React.FC<PolicyListProps> = ({
       ariaLabel: t('aria.policy.premium'),
     },
     {
-      key: 'coverageDetails.coverageTier',
+      key: 'coverageDetails' as keyof Policy,
       header: t('policy.coverage'),
       width: '120px',
       sortable: true,
@@ -123,6 +123,7 @@ const PolicyList: React.FC<PolicyListProps> = ({
         value: status,
         label: t(`policy.status.${status.toLowerCase()}`)
       })),
+      render: (row: Policy) => row.coverageDetails?.coverageTier || '-',
       ariaLabel: t('aria.policy.coverage'),
     }
   ], [t]);

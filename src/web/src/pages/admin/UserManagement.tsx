@@ -111,23 +111,24 @@ const UserManagement: React.FC = () => {
   // Table columns configuration
   const columns = [
     {
-      key: 'name',
+      key: 'firstName' as keyof User,
       header: t('admin.users.name'),
-      width: '170px'
+      width: '170px',
+      render: (row: User) => `${row.firstName} ${row.lastName}`
     },
     {
-      key: 'email',
+      key: 'email' as keyof User,
       header: t('admin.users.email'),
       width: '200px'
     },
     {
-      key: 'cpf',
+      key: 'cpf' as keyof User,
       header: t('admin.users.cpf'),
       width: '130px',
       render: (row: User) => row.cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4')
     },
     {
-      key: 'role',
+      key: 'role' as keyof User,
       header: t('admin.users.role'),
       width: '150px',
       render: (row: User) => (
@@ -140,19 +141,19 @@ const UserManagement: React.FC = () => {
       )
     },
     {
-      key: 'status',
+      key: 'isActive' as keyof User,
       header: t('admin.users.status'),
       width: '120px',
       render: (row: User) => (
         <Chip
-          label={t(`admin.users.statuses.${row.status.toLowerCase()}`)}
+          label={row.isActive ? t('admin.users.statuses.active') : t('admin.users.statuses.inactive')}
           size="small"
-          color={row.status === 'ACTIVE' ? 'success' : row.status === 'LOCKED' ? 'error' : 'default'}
+          color={row.isActive ? 'success' : 'error'}
         />
       )
     },
     {
-      key: 'mfaEnabled',
+      key: 'mfaEnabled' as keyof User,
       header: t('admin.users.mfa'),
       width: '100px',
       render: (row: User) => (

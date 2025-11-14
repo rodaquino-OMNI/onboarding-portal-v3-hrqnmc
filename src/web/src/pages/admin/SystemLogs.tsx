@@ -105,18 +105,18 @@ const SystemLogs: React.FC = () => {
   // Table columns configuration
   const columns = [
     {
-      key: 'timestamp',
+      key: 'timestamp' as keyof LogEntry,
       header: t('admin.logs.timestamp'),
       width: '180px',
       render: (row: LogEntry) => new Date(row.timestamp).toLocaleString('pt-BR')
     },
     {
-      key: 'userName',
+      key: 'userName' as keyof LogEntry,
       header: t('admin.logs.user'),
       width: '150px'
     },
     {
-      key: 'action',
+      key: 'action' as keyof LogEntry,
       header: t('admin.logs.action'),
       width: '120px',
       render: (row: LogEntry) => (
@@ -129,22 +129,22 @@ const SystemLogs: React.FC = () => {
       )
     },
     {
-      key: 'entity',
+      key: 'entity' as keyof LogEntry,
       header: t('admin.logs.entity'),
       width: '150px'
     },
     {
-      key: 'entityId',
+      key: 'entityId' as keyof LogEntry,
       header: t('admin.logs.entityId'),
       width: '120px'
     },
     {
-      key: 'ipAddress',
+      key: 'ipAddress' as keyof LogEntry,
       header: t('admin.logs.ipAddress'),
       width: '130px'
     },
     {
-      key: 'status',
+      key: 'status' as keyof LogEntry,
       header: t('admin.logs.status'),
       width: '100px',
       render: (row: LogEntry) => (

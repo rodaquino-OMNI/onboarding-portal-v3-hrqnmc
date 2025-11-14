@@ -116,37 +116,37 @@ const PolicyManagement: React.FC = () => {
   // Table columns configuration
   const columns = [
     {
-      id: 'policyNumber',
-      label: t('underwriter.policies.policyNumber'),
-      minWidth: 120
+      key: 'policyNumber' as keyof Policy,
+      header: t('underwriter.policies.policyNumber'),
+      width: '120px'
     },
     {
-      id: 'beneficiaryName',
-      label: t('underwriter.policies.beneficiary'),
-      minWidth: 170
+      key: 'beneficiaryName' as keyof Policy,
+      header: t('underwriter.policies.beneficiary'),
+      width: '170px'
     },
     {
-      id: 'planType',
-      label: t('underwriter.policies.planType'),
-      minWidth: 130
+      key: 'planType' as keyof Policy,
+      header: t('underwriter.policies.planType'),
+      width: '130px'
     },
     {
-      id: 'coverageAmount',
-      label: t('underwriter.policies.coverage'),
-      minWidth: 130,
-      format: (value: number) => `R$ ${value.toLocaleString('pt-BR')}`
+      key: 'coverageAmount' as keyof Policy,
+      header: t('underwriter.policies.coverage'),
+      width: '130px',
+      render: (row: Policy) => `R$ ${row.coverageAmount.toLocaleString('pt-BR')}`
     },
     {
-      id: 'premium',
-      label: t('underwriter.policies.premium'),
-      minWidth: 120,
-      format: (value: number) => `R$ ${value.toFixed(2)}`
+      key: 'premium' as keyof Policy,
+      header: t('underwriter.policies.premium'),
+      width: '120px',
+      render: (row: Policy) => `R$ ${row.premium.toFixed(2)}`
     },
     {
-      id: 'riskLevel',
-      label: t('underwriter.policies.risk'),
-      minWidth: 120,
-      format: (value: string) => {
+      key: 'riskLevel' as keyof Policy,
+      header: t('underwriter.policies.risk'),
+      width: '120px',
+      render: (row: Policy) => {
         const colors: Record<string, 'success' | 'info' | 'warning' | 'error'> = {
           LOW: 'success',
           MEDIUM: 'info',
@@ -155,37 +155,37 @@ const PolicyManagement: React.FC = () => {
         };
         return (
           <Chip
-            label={t(`underwriter.policies.riskLevels.${value.toLowerCase()}`)}
+            label={t(`underwriter.policies.riskLevels.${row.riskLevel.toLowerCase()}`)}
             size="small"
-            color={colors[value] || 'default'}
+            color={colors[row.riskLevel] || 'default'}
           />
         );
       }
     },
     {
-      id: 'hasAggravations',
-      label: t('underwriter.policies.aggravations'),
-      minWidth: 100,
-      format: (value: boolean) => (
+      key: 'hasAggravations' as keyof Policy,
+      header: t('underwriter.policies.aggravations'),
+      width: '100px',
+      render: (row: Policy) => (
         <Chip
-          label={value ? t('common.yes') : t('common.no')}
+          label={row.hasAggravations ? t('common.yes') : t('common.no')}
           size="small"
-          color={value ? 'warning' : 'default'}
+          color={row.hasAggravations ? 'warning' : 'default'}
           variant="outlined"
         />
       )
     },
     {
-      id: 'submittedDate',
-      label: t('underwriter.policies.submittedDate'),
-      minWidth: 130,
-      format: (value: Date) => new Date(value).toLocaleDateString('pt-BR')
+      key: 'submittedDate' as keyof Policy,
+      header: t('underwriter.policies.submittedDate'),
+      width: '130px',
+      render: (row: Policy) => new Date(row.submittedDate).toLocaleDateString('pt-BR')
     },
     {
-      id: 'actions',
-      label: t('common.actions'),
-      minWidth: 150,
-      format: (_value: any, row: Policy) => (
+      key: 'id' as keyof Policy,
+      header: t('common.actions'),
+      width: '150px',
+      render: (row: Policy) => (
         <Box>
           <Tooltip title={t('underwriter.policies.viewDetails')}>
             <IconButton

@@ -77,13 +77,13 @@ const PaymentSummary: React.FC<PaymentSummaryProps> = memo(({
   // Table columns configuration
   const columns = [
     {
-      key: 'description',
+      key: 'description' as keyof PaymentDetails['items'][0],
       header: t('payment.description'),
       width: '70%',
       ariaLabel: t('payment.descriptionColumn')
     },
     {
-      key: 'amount',
+      key: 'amount' as keyof PaymentDetails['items'][0],
       header: t('payment.amount'),
       width: '30%',
       render: (row: { amount: number }) => formatBRL(row.amount),
