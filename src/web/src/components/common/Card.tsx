@@ -7,7 +7,7 @@ import Loading from './Loading';
 
 // Interface for Card component props
 interface CardProps {
-  children: React.ReactNode;
+  children?: React.ReactNode;
   title?: string;
   subtitle?: string;
   headerActions?: React.ReactNode;
@@ -24,6 +24,7 @@ interface CardProps {
   style?: React.CSSProperties;
   onClick?: (event: React.MouseEvent) => void;
   hoverable?: boolean;
+  tabIndex?: number;
 }
 
 // Define custom props for styled component
