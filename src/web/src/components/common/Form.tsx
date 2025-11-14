@@ -61,9 +61,10 @@ interface FormProps {
  * Form component type with sub-components
  */
 interface FormComponent extends React.FC<FormProps> {
-  Input: typeof Input;
-  Select: typeof Select;
+  Input: React.FC<any>;
+  Select: React.FC<any>;
   Switch: React.FC<any>;
+  Checkbox: React.FC<any>;
   Number: React.FC<any>;
 }
 
@@ -170,23 +171,18 @@ const FormBase: React.FC<FormProps> = ({
     // Sanitize input
     const sanitizedValue = sanitizeInput(value);
 
-    // Handle sensitive data
-    let processedValue = sanitizedValue;
-    if (maskFields.includes(field)) {
-      processedValue = maskSensitiveData(processedValue);
-    }
-
     // Update form state
-    setValues(prev => setFormValue(prev, field, processedValue));
+    setValues(prev => setFormValue(prev, field, sanitizedValue));
     setTouched(prev => ({ ...prev, [field]: true }));
     setIsDirty(true);
 
-    // Log change
-    logAction('field_change', field, { oldValue: values[field], newValue: processedValue });
+    // Log change (mask sensitive data in logs only)
+    const logValue = maskFields.includes(field) ? '***masked***' : sanitizedValue;
+    logAction('field_change', field, { oldValue: values[field], newValue: logValue });
 
-    // Validate field if needed
-    if (containsHealthData) {
-      const healthValidation = validateHealthData(field, processedValue);
+    // Validate health data if needed
+    if (containsHealthData && field.toLowerCase().includes('health')) {
+      const healthValidation = validateHealthData(sanitizedValue);
       if (!healthValidation.isValid) {
         setErrors(prev => ({ ...prev, [field]: healthValidation.error!.message }));
         announceError(field, healthValidation.error!.message);
@@ -330,11 +326,76 @@ export const useForm = () => {
   return context;
 };
 
+/**
+ * Wrapped Input component that automatically connects to Form context
+ */
+const FormInput: React.FC<Omit<React.ComponentProps<typeof Input>, 'value' | 'onChange'>> = (props) => {
+  const { values, setFieldValue, errors } = useForm();
+  return (
+    <Input
+      {...props}
+      value={values[props.name] || ''}
+      onChange={(value) => setFieldValue(props.name, value)}
+      error={errors[props.name]}
+    />
+  );
+};
+
+/**
+ * Wrapped Select component that automatically connects to Form context
+ */
+const FormSelect: React.FC<Omit<React.ComponentProps<typeof Select>, 'value' | 'onChange'>> = (props) => {
+  const { values, setFieldValue, errors } = useForm();
+  return (
+    <Select
+      {...props}
+      value={values[props.name] || ''}
+      onChange={(value) => setFieldValue(props.name, value)}
+      error={errors[props.name]}
+    />
+  );
+};
+
+/**
+ * Checkbox/Switch component that automatically connects to Form context
+ */
+const FormSwitch: React.FC<{
+  id: string;
+  name: string;
+  label: string;
+  required?: boolean;
+  disabled?: boolean;
+}> = ({ id, name, label, required, disabled }) => {
+  const { values, setFieldValue, errors } = useForm();
+  return (
+    <div className="form-field">
+      <label htmlFor={id} className="form-checkbox-label">
+        <input
+          type="checkbox"
+          id={id}
+          name={name}
+          checked={!!values[name]}
+          onChange={(e) => setFieldValue(name, e.target.checked)}
+          required={required}
+          disabled={disabled}
+          aria-required={required}
+        />
+        <span>{label}</span>
+        {required && <span className="required-indicator" aria-label="required">*</span>}
+      </label>
+      {errors[name] && (
+        <span className="error-message" role="alert">{errors[name]}</span>
+      )}
+    </div>
+  );
+};
+
 // Create Form component with static properties
 export const Form = FormBase as FormComponent;
-Form.Input = Input;
-Form.Select = Select;
-Form.Switch = (props: any) => <input type="checkbox" {...props} />;
-Form.Number = (props: any) => <Input {...props} type="number" />;
+Form.Input = FormInput;
+Form.Select = FormSelect;
+Form.Switch = FormSwitch;
+Form.Checkbox = FormSwitch; // Alias for Switch
+Form.Number = (props: any) => <FormInput {...props} type="number" />;
 
 export default Form;

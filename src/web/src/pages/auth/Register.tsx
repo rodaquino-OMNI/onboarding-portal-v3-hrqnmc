@@ -94,25 +94,21 @@ const Register: React.FC = () => {
       setIsLoading(true);
 
       // Validate device fingerprint
-      const deviceInfo = await authService.validateDevice({
-        fingerprint: deviceFingerprint,
-        userAgent: navigator.userAgent,
-        platform: navigator.platform
-      });
+      const isDeviceValid = await authService.validateDevice(deviceFingerprint);
 
-      if (!deviceInfo.isValid) {
+      if (!isDeviceValid) {
         throw new Error('Dispositivo não autorizado');
       }
 
       // Register user with enhanced security
-      await authService.register({
+      const registrationResult = await authService.register({
         ...values,
         deviceFingerprint,
         ipAddress: window.location.hostname
       });
 
       // Perform initial login
-      await login({
+      const loginResult = await login({
         email: values.email,
         password: values.password,
         deviceFingerprint,
@@ -120,12 +116,13 @@ const Register: React.FC = () => {
       });
 
       // Set up MFA if required for role
-      if (values.role === UserRole.BROKER || 
+      if (values.role === UserRole.BROKER ||
           values.role === UserRole.ADMINISTRATOR) {
-        await authService.setupMFA({
-          phoneNumber: values.phoneNumber,
-          deviceFingerprint
-        });
+        // Get user ID from login result or registration result
+        const userId = loginResult?.user?.id || registrationResult?.user?.id || '';
+        if (userId) {
+          await authService.setupMFA(userId);
+        }
         navigate('/auth/mfa-setup');
       } else {
         navigate('/dashboard');
