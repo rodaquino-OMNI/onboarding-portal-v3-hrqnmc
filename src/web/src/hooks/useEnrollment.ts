@@ -36,7 +36,7 @@ const RETRY_DELAY = 1000; // 1 second
  */
 export function useEnrollment(
   enrollmentId?: string,
-  queryOptions?: UseQueryOptions<Enrollment>
+  queryOptions?: Partial<UseQueryOptions<Enrollment, Error>>
 ) {
   const { userRole, checkPermission } = useAuth();
   const { showSuccess, showError, showWarning } = useNotification();
@@ -59,10 +59,13 @@ export function useEnrollment(
     refetch
   } = useQuery({
     queryKey: [ENROLLMENT_QUERY_KEY, enrollmentId],
-    queryFn: () => getEnrollment(enrollmentId!),
+    queryFn: async () => {
+      const result = await getEnrollment(enrollmentId!);
+      return result.data;
+    },
     enabled: !!enrollmentId && checkPermission('view_enrollment'),
     staleTime: STALE_TIME,
-    cacheTime: CACHE_TIME,
+    gcTime: CACHE_TIME,
     retry: MAX_RETRIES,
     retryDelay: RETRY_DELAY,
     ...queryOptions

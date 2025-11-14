@@ -128,20 +128,20 @@ export function setupTelemetryInterceptors(axiosInstance: any): void {
 
   axiosInstance.interceptors.response.use(
     (response: any) => {
-      const context = trace.getActiveContext();
-      if (context) {
-        const span = trace.getSpan(context);
+      try {
+        const span = trace.getActiveSpan();
         if (span) {
           span.setStatus({ code: SpanStatusCode.OK });
           span.end();
         }
+      } catch (e) {
+        // Telemetry error - continue without throwing
       }
       return response;
     },
     (error: any) => {
-      const context = trace.getActiveContext();
-      if (context) {
-        const span = trace.getSpan(context);
+      try {
+        const span = trace.getActiveSpan();
         if (span) {
           span.setStatus({
             code: SpanStatusCode.ERROR,
@@ -149,6 +149,8 @@ export function setupTelemetryInterceptors(axiosInstance: any): void {
           });
           span.end();
         }
+      } catch (e) {
+        // Telemetry error - continue without throwing
       }
       return Promise.reject(error);
     }

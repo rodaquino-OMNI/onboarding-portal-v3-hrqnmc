@@ -100,10 +100,12 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
         palette: {
           ...baseTheme.palette,
           background: {
+            ...baseTheme.palette.background,
             default: isDarkMode ? '#000000' : '#FFFFFF',
             paper: isDarkMode ? '#000000' : '#FFFFFF',
           },
           text: {
+            ...baseTheme.palette.text,
             primary: isDarkMode ? '#FFFFFF' : '#000000',
             secondary: isDarkMode ? '#FFFFFF' : '#000000',
           },
