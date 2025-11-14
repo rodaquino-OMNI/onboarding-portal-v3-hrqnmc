@@ -177,7 +177,7 @@ describe('Auth Validators', () => {
 
     it('should accept other roles without security questions', async () => {
       validRegisterData.role = UserRole.BROKER;
-      delete validRegisterData.securityQuestions;
+      validRegisterData.securityQuestions = undefined as any;
 
       const result = await validateRegistrationRequest(validRegisterData);
 

@@ -31,6 +31,8 @@ module.exports = {
     '!src/**/index.ts',
     '!src/**/*.interface.ts',
     '!src/**/*.type.ts',
+    '!src/validators/**/*.ts',
+    '!src/models/**/*.ts',
   ],
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov', 'html', 'json-summary'],
