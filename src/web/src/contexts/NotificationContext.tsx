@@ -58,6 +58,8 @@ const defaultNotificationConfig: Required<NotificationConfig> = {
   'aria-atomic': false,
   'data-testid': undefined,
   tabIndex: 0,
+  action: undefined,
+  icon: undefined,
 };
 
 // Custom hook for accessing notification context
