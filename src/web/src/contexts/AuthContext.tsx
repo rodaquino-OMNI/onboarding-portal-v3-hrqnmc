@@ -51,7 +51,7 @@ interface AuthContextType {
 }
 
 // Create authentication context
-const AuthContext = createContext<AuthContextType | null>(null);
+export const AuthContext = createContext<AuthContextType | null>(null);
 
 // Initialize FingerprintJS instance
 const fpPromise = FingerprintJS.load();

@@ -23,30 +23,38 @@ const renderWithRouter = (component: React.ReactElement) => {
   return render(<BrowserRouter>{component}</BrowserRouter>);
 };
 
+// Mock callback functions
+const mockOnSuccess = jest.fn();
+const mockOnMFARequired = jest.fn();
+
 describe('LoginForm Component', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   describe('Rendering', () => {
     it('should render login form', () => {
-      renderWithRouter(<LoginForm />);
+      renderWithRouter(<LoginForm onSuccess={mockOnSuccess} onMFARequired={mockOnMFARequired} />);
       expect(screen.getByRole('form')).toBeInTheDocument();
     });
 
     it('should render email input', () => {
-      renderWithRouter(<LoginForm />);
+      renderWithRouter(<LoginForm onSuccess={mockOnSuccess} onMFARequired={mockOnMFARequired} />);
       expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
     });
 
     it('should render password input', () => {
-      renderWithRouter(<LoginForm />);
+      renderWithRouter(<LoginForm onSuccess={mockOnSuccess} onMFARequired={mockOnMFARequired} />);
       expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
     });
 
     it('should render login button', () => {
-      renderWithRouter(<LoginForm />);
+      renderWithRouter(<LoginForm onSuccess={mockOnSuccess} onMFARequired={mockOnMFARequired} />);
       expect(screen.getByRole('button', { name: /login|sign in/i })).toBeInTheDocument();
     });
 
     it('should render remember me checkbox', () => {
-      renderWithRouter(<LoginForm />);
+      renderWithRouter(<LoginForm onSuccess={mockOnSuccess} onMFARequired={mockOnMFARequired} />);
       const checkbox = screen.queryByRole('checkbox', { name: /remember me/i });
       if (checkbox) {
         expect(checkbox).toBeInTheDocument();
@@ -54,7 +62,7 @@ describe('LoginForm Component', () => {
     });
 
     it('should render forgot password link', () => {
-      renderWithRouter(<LoginForm />);
+      renderWithRouter(<LoginForm onSuccess={mockOnSuccess} onMFARequired={mockOnMFARequired} />);
       const forgotLink = screen.queryByText(/forgot password/i);
       if (forgotLink) {
         expect(forgotLink).toBeInTheDocument();
@@ -64,7 +72,7 @@ describe('LoginForm Component', () => {
 
   describe('Form Validation', () => {
     it('should validate empty email', async () => {
-      renderWithRouter(<LoginForm />);
+      renderWithRouter(<LoginForm onSuccess={mockOnSuccess} onMFARequired={mockOnMFARequired} />);
 
       const submitButton = screen.getByRole('button', { name: /login|sign in/i });
       fireEvent.click(submitButton);
@@ -78,7 +86,7 @@ describe('LoginForm Component', () => {
     });
 
     it('should validate invalid email format', async () => {
-      renderWithRouter(<LoginForm />);
+      renderWithRouter(<LoginForm onSuccess={mockOnSuccess} onMFARequired={mockOnMFARequired} />);
 
       const emailInput = screen.getByLabelText(/email/i);
       fireEvent.change(emailInput, { target: { value: 'invalid-email' } });
@@ -95,7 +103,7 @@ describe('LoginForm Component', () => {
     });
 
     it('should validate empty password', async () => {
-      renderWithRouter(<LoginForm />);
+      renderWithRouter(<LoginForm onSuccess={mockOnSuccess} onMFARequired={mockOnMFARequired} />);
 
       const emailInput = screen.getByLabelText(/email/i);
       fireEvent.change(emailInput, { target: { value: 'test@example.com' } });
@@ -112,7 +120,7 @@ describe('LoginForm Component', () => {
     });
 
     it('should validate minimum password length', async () => {
-      renderWithRouter(<LoginForm />);
+      renderWithRouter(<LoginForm onSuccess={mockOnSuccess} onMFARequired={mockOnMFARequired} />);
 
       const passwordInput = screen.getByLabelText(/password/i);
       fireEvent.change(passwordInput, { target: { value: '123' } });
@@ -131,7 +139,7 @@ describe('LoginForm Component', () => {
 
   describe('Form Submission', () => {
     it('should submit form with valid credentials', async () => {
-      renderWithRouter(<LoginForm />);
+      renderWithRouter(<LoginForm onSuccess={mockOnSuccess} onMFARequired={mockOnMFARequired} />);
 
       const emailInput = screen.getByLabelText(/email/i);
       const passwordInput = screen.getByLabelText(/password/i);
@@ -148,7 +156,7 @@ describe('LoginForm Component', () => {
     });
 
     it('should disable submit button during submission', async () => {
-      renderWithRouter(<LoginForm />);
+      renderWithRouter(<LoginForm onSuccess={mockOnSuccess} onMFARequired={mockOnMFARequired} />);
 
       const emailInput = screen.getByLabelText(/email/i);
       const passwordInput = screen.getByLabelText(/password/i);
@@ -165,7 +173,7 @@ describe('LoginForm Component', () => {
 
   describe('User Interaction', () => {
     it('should toggle password visibility', async () => {
-      renderWithRouter(<LoginForm />);
+      renderWithRouter(<LoginForm onSuccess={mockOnSuccess} onMFARequired={mockOnMFARequired} />);
 
       const passwordInput = screen.getByLabelText(/password/i);
       expect(passwordInput).toHaveAttribute('type', 'password');
@@ -180,7 +188,7 @@ describe('LoginForm Component', () => {
     });
 
     it('should handle remember me checkbox', () => {
-      renderWithRouter(<LoginForm />);
+      renderWithRouter(<LoginForm onSuccess={mockOnSuccess} onMFARequired={mockOnMFARequired} />);
 
       const rememberCheckbox = screen.queryByRole('checkbox', { name: /remember me/i });
       if (rememberCheckbox) {
@@ -193,14 +201,14 @@ describe('LoginForm Component', () => {
 
   describe('Accessibility', () => {
     it('should have accessible form labels', () => {
-      renderWithRouter(<LoginForm />);
+      renderWithRouter(<LoginForm onSuccess={mockOnSuccess} onMFARequired={mockOnMFARequired} />);
 
       expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
       expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
     });
 
     it('should have accessible error messages', async () => {
-      renderWithRouter(<LoginForm />);
+      renderWithRouter(<LoginForm onSuccess={mockOnSuccess} onMFARequired={mockOnMFARequired} />);
 
       const submitButton = screen.getByRole('button', { name: /login|sign in/i });
       fireEvent.click(submitButton);
@@ -210,7 +218,7 @@ describe('LoginForm Component', () => {
     });
 
     it('should be keyboard navigable', () => {
-      renderWithRouter(<LoginForm />);
+      renderWithRouter(<LoginForm onSuccess={mockOnSuccess} onMFARequired={mockOnMFARequired} />);
 
       const emailInput = screen.getByLabelText(/email/i);
       const passwordInput = screen.getByLabelText(/password/i);
@@ -225,7 +233,7 @@ describe('LoginForm Component', () => {
 
   describe('Error Handling', () => {
     it('should display server errors', async () => {
-      renderWithRouter(<LoginForm />);
+      renderWithRouter(<LoginForm onSuccess={mockOnSuccess} onMFARequired={mockOnMFARequired} />);
 
       // Simulate form submission that might result in errors
       const submitButton = screen.getByRole('button', { name: /login|sign in/i });
@@ -233,7 +241,7 @@ describe('LoginForm Component', () => {
     });
 
     it('should clear errors on input change', async () => {
-      renderWithRouter(<LoginForm />);
+      renderWithRouter(<LoginForm onSuccess={mockOnSuccess} onMFARequired={mockOnMFARequired} />);
 
       const emailInput = screen.getByLabelText(/email/i);
       fireEvent.change(emailInput, { target: { value: 'test@example.com' } });

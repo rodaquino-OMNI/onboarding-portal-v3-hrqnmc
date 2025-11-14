@@ -10,7 +10,7 @@ import { format, isValid } from 'date-fns';
 import { debounce } from 'lodash';
 import DataTable, { DataTableColumn, DataTableProps } from '../common/DataTable';
 import StatusBadge from '../common/StatusBadge';
-import useNotification from '../../hooks/useNotification';
+import { useNotification } from '../../hooks/useNotification';
 import { Policy, PolicyStatus } from '../../types/policy.types';
 import { DATE_TIME_FORMATS, THEME, ACCESSIBILITY } from '../../constants/app.constants';
 
