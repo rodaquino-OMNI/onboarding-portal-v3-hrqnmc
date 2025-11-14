@@ -23,9 +23,6 @@ const BeneficiaryDashboard = React.lazy(() => import('../pages/beneficiary/Dashb
 const HealthAssessment = React.lazy(() => import('../pages/beneficiary/HealthAssessment'));
 const Documents = React.lazy(() => import('../pages/beneficiary/Documents'));
 const Profile = React.lazy(() => import('../pages/beneficiary/Profile'));
-const Payment = React.lazy(() => import('../pages/beneficiary/Payment'));
-const Coverage = React.lazy(() => import('../pages/beneficiary/Coverage'));
-const Dependents = React.lazy(() => import('../pages/beneficiary/Dependents'));
 
 // Constants for session management
 const BENEFICIARY_ROLE = [UserRole.BENEFICIARY];

@@ -1,15 +1,23 @@
 /**
  * Authentication Routes Component
  * Version: 1.0.0
- * 
+ *
  * Implements secure authentication routes with role-based access control,
  * MFA verification, and LGPD compliance for the Pre-paid Health Plan Onboarding Portal.
  */
 
-import React, { useEffect } from 'react';
+import React, { useEffect, lazy, Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom'; // ^6.15.0
 import { useAuth } from '../hooks/useAuth';
 import PublicRoute from './PublicRoute';
+
+// Lazy load auth page components
+const LoginPage = lazy(() => import('../pages/auth/Login'));
+const RegisterPage = lazy(() => import('../pages/auth/Register'));
+const ResetPasswordPage = lazy(() => import('../pages/auth/ResetPassword'));
+const MFAVerificationPage = lazy(() => import('../pages/auth/MFAVerification'));
+const SecurityCheckPage = lazy(() => import('../pages/auth/SecurityCheck'));
+const LGPDConsentPage = lazy(() => import('../pages/auth/LGPDConsent'));
 
 // Constants for localized route paths
 const AUTH_ROUTES = {
@@ -34,26 +42,12 @@ const SECURITY_CONFIG = {
  * Enhanced authentication routes component with security features and LGPD compliance
  */
 const AuthRoutes: React.FC = React.memo(() => {
-  const { 
-    isAuthenticated, 
-    user, 
+  const {
+    isAuthenticated,
+    user,
     requiresMFA,
-    securityContext,
-    checkSessionValidity 
+    securityContext
   } = useAuth();
-
-  // Monitor session validity
-  useEffect(() => {
-    if (isAuthenticated) {
-      const sessionCheck = setInterval(() => {
-        if (!checkSessionValidity()) {
-          window.location.href = AUTH_ROUTES.LOGIN;
-        }
-      }, 60000); // Check every minute
-
-      return () => clearInterval(sessionCheck);
-    }
-  }, [isAuthenticated, checkSessionValidity]);
 
   // Determine MFA requirement based on user role
   const requiresMFAVerification = React.useMemo(() => {
@@ -62,7 +56,8 @@ const AuthRoutes: React.FC = React.memo(() => {
   }, [user]);
 
   return (
-    <Routes>
+    <Suspense fallback={<div>Carregando...</div>}>
+      <Routes>
       {/* Login Route */}
       <Route
         path={AUTH_ROUTES.LOGIN}
@@ -147,12 +142,13 @@ const AuthRoutes: React.FC = React.memo(() => {
         }
       />
 
-      {/* Redirect unmatched auth routes to login */}
-      <Route
-        path="*"
-        element={<Navigate to={AUTH_ROUTES.LOGIN} replace />}
-      />
-    </Routes>
+        {/* Redirect unmatched auth routes to login */}
+        <Route
+          path="*"
+          element={<Navigate to={AUTH_ROUTES.LOGIN} replace />}
+        />
+      </Routes>
+    </Suspense>
   );
 });
 

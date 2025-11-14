@@ -22,6 +22,7 @@ const MAX_RETRY_ATTEMPTS = 3;
  * Props interface for PrivateRoute component
  */
 interface PrivateRouteProps {
+  children?: React.ReactNode;
   allowedRoles?: UserRole[];
   requiresAuth?: boolean;
   sessionTimeout?: number;
@@ -42,6 +43,7 @@ const useRoleCheck = (allowedRoles?: UserRole[], userRoles?: UserRole[]): boolea
  * Enhanced PrivateRoute component with comprehensive security features
  */
 const PrivateRoute: React.FC<PrivateRouteProps> = ({
+  children,
   allowedRoles,
   requiresAuth = true,
   sessionTimeout = DEFAULT_SESSION_TIMEOUT,
@@ -120,7 +122,7 @@ const PrivateRoute: React.FC<PrivateRouteProps> = ({
   }
 
   // Render protected route content
-  return <Outlet />;
+  return <>{children || <Outlet />}</>;
 };
 
 export default PrivateRoute;
