@@ -162,19 +162,19 @@ const Users: React.FC = () => {
       key: 'name',
       header: t('users.name'),
       filterable: true,
-      filterType: 'text'
+      filterType: 'text' as const
     },
     {
       key: 'email',
       header: t('users.email'),
       filterable: true,
-      filterType: 'text'
+      filterType: 'text' as const
     },
     {
       key: 'role',
       header: t('users.role'),
       filterable: true,
-      filterType: 'select',
+      filterType: 'select' as const,
       filterOptions: enumToArray(UserRole).map(role => ({
         value: role,
         label: t(`roles.${role.toLowerCase()}`)
@@ -184,9 +184,9 @@ const Users: React.FC = () => {
       key: 'status',
       header: t('users.status'),
       filterable: true,
-      filterType: 'select',
+      filterType: 'select' as const,
       render: (user: UserTableData) => (
-        <StatusBadge 
+        <StatusBadge
           status={user.status}
           type="enrollment"
           className="user-status-badge"
