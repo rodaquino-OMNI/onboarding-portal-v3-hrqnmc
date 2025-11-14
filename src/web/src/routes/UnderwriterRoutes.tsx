@@ -65,7 +65,7 @@ const UnderwriterRoutes: React.FC<UnderwriterRoutesProps> = ({
     };
 
     validateAccess();
-  }, [location.pathname, user, checkSessionValidity, showError]);
+  }, [location.pathname, user, checkSessionTimeout, showError]);
 
   // Handle route errors with audit logging
   const handleRouteError = useCallback((error: Error) => {
