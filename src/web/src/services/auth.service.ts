@@ -332,6 +332,101 @@ async function checkResetAttempts(email: string): Promise<{ allowed: boolean; re
   return { allowed: true, remainingAttempts: 3 };
 }
 
+/**
+ * Get current user from storage
+ */
+async function getCurrentUser(): Promise<User | null> {
+  const user = await getSecureItem<User>(AUTH_STORAGE_KEYS.USER, {
+    type: 'session'
+  });
+  return user.success ? user.data : null;
+}
+
+/**
+ * Validate admin access for a user
+ */
+async function validateAdminAccess(userId: string): Promise<boolean> {
+  const user = await getCurrentUser();
+  return user?.role === UserRole.ADMINISTRATOR;
+}
+
+/**
+ * Validate device fingerprint
+ */
+async function validateDevice(deviceId: string): Promise<boolean> {
+  const storedDeviceId = await getSecureItem<string>(AUTH_STORAGE_KEYS.DEVICE_ID, {
+    type: 'session'
+  });
+  return storedDeviceId.success && storedDeviceId.data === deviceId;
+}
+
+/**
+ * Register a new user
+ */
+async function register(userData: any): Promise<AuthState> {
+  try {
+    const deviceId = await initializeDeviceFingerprint();
+    const response = await authApi.login({
+      email: userData.email,
+      password: userData.password,
+      deviceFingerprint: deviceId
+    });
+
+    await setSecureItem(AUTH_STORAGE_KEYS.TOKEN, response.accessToken, {
+      type: 'session',
+      role: response.user.role
+    });
+
+    await setSecureItem(AUTH_STORAGE_KEYS.USER, response.user, {
+      type: 'session',
+      role: response.user.role
+    });
+
+    const sessionExpiresAt = Date.now() +
+      (SESSION_DURATIONS[response.user.role] * 1000);
+
+    return {
+      isAuthenticated: true,
+      isLoading: false,
+      requiresMFA: false,
+      user: response.user,
+      accessToken: response.accessToken,
+      refreshToken: response.refreshToken,
+      error: null,
+      isSessionExpired: false,
+      sessionExpiresAt
+    };
+  } catch (error) {
+    return {
+      isAuthenticated: false,
+      isLoading: false,
+      requiresMFA: false,
+      user: null,
+      accessToken: null,
+      refreshToken: null,
+      error: error as Error,
+      isSessionExpired: false,
+      sessionExpiresAt: 0
+    };
+  }
+}
+
+/**
+ * Setup MFA for a user
+ */
+async function setupMFA(userId: string): Promise<{ qrCode: string; secret: string }> {
+  // Stub implementation - would call API to setup MFA
+  return { qrCode: '', secret: '' };
+}
+
+/**
+ * Update user status
+ */
+async function updateUserStatus(userId: string, status: string): Promise<void> {
+  // Stub implementation - would call API to update user status
+  return;
+}
+
 // Export authentication service
 export const authService = {
   login,
@@ -341,5 +436,11 @@ export const authService = {
   validateSession,
   getSecurityContext,
   resetPassword,
-  checkResetAttempts
+  checkResetAttempts,
+  getCurrentUser,
+  validateAdminAccess,
+  validateDevice,
+  register,
+  setupMFA,
+  updateUserStatus
 };
