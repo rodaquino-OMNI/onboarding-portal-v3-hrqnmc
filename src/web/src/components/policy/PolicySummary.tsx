@@ -96,15 +96,15 @@ const PolicySummary: React.FC<PolicySummaryProps> = React.memo(({
   }, [lastMessage, policy.status, onStatusChange]);
 
   // Status color mapping
-  const getStatusColor = useCallback((status: PolicyStatus) => {
+  const getStatusColor = useCallback((status: PolicyStatus): "default" | "success" | "error" | "primary" | "secondary" | "info" | "warning" => {
     const statusColors = {
-      [PolicyStatus.ACTIVE]: 'success',
-      [PolicyStatus.SUSPENDED]: 'warning',
-      [PolicyStatus.CANCELLED]: 'error',
-      [PolicyStatus.DRAFT]: 'default',
-      [PolicyStatus.EXPIRED]: 'error',
+      [PolicyStatus.ACTIVE]: 'success' as const,
+      [PolicyStatus.SUSPENDED]: 'warning' as const,
+      [PolicyStatus.CANCELLED]: 'error' as const,
+      [PolicyStatus.DRAFT]: 'default' as const,
+      [PolicyStatus.EXPIRED]: 'error' as const,
     };
-    return statusColors[status];
+    return statusColors[status] || 'default';
   }, []);
 
   // Format dates according to Brazilian locale

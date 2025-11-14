@@ -23,6 +23,7 @@ interface CardProps {
   role?: string;
   style?: React.CSSProperties;
   onClick?: (event: React.MouseEvent) => void;
+  onKeyDown?: (event: React.KeyboardEvent) => void;
   hoverable?: boolean;
   tabIndex?: number;
 }
@@ -80,6 +81,9 @@ const Card = React.memo<CardProps>(({
   testId = 'card',
   ariaLabel,
   role = 'region',
+  onClick,
+  onKeyDown,
+  tabIndex,
 }) => {
   const theme = useTheme();
 
@@ -92,6 +96,9 @@ const Card = React.memo<CardProps>(({
       aria-label={ariaLabel}
       role={role}
       aria-busy={loading}
+      onClick={onClick}
+      onKeyDown={onKeyDown}
+      tabIndex={tabIndex}
     >
       {loading ? (
         <Loading
