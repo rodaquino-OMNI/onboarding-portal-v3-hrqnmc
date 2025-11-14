@@ -146,15 +146,20 @@ trace.json
 *.db-shm
 *.db-wal
 
-# TypeScript Build Cache
-*.tsbuildinfo
+# Working/Temporary Documentation Files (exclude from root)
+/*_REPORT.md
+/*_GUIDE.md
+/*_COMPLETION.md
+/*_ANALYSIS.md
+/*_VERIFICATION*.md
+/*_verification*.txt
+/*_output*.txt
+/*_build*.txt
+/SPRINT_*.md
 
-# Claude Flow / Swarm Coordination
-.claude-flow/
-.hive-mind/
-.swarm/
-
-# SQLite Databases
-*.db
-*.db-shm
-*.db-wal
+# Preserve legitimate documentation directories
+!documentation/
+!docs/
+!README.md
+!CONTRIBUTING.md
+!CLAUDE.md
