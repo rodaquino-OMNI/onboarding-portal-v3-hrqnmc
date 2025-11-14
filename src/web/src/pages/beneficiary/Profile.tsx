@@ -84,7 +84,15 @@ const BeneficiaryProfile: React.FC = () => {
           email: user.email,
           cpf: maskCPF(user.cpf),
           phone: maskPhone(user.phoneNumber),
-          address: user.address,
+          address: {
+            street: '',
+            number: '',
+            complement: '',
+            neighborhood: '',
+            city: '',
+            state: '',
+            zipCode: ''
+          },
           preferredLanguage: 'pt-BR',
           marketingConsent: user.dataConsentGiven,
           accessibilityPreferences: {

@@ -91,7 +91,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     deviceFingerprint: '',
     ipAddress: '',
     userAgent: navigator.userAgent,
-    timestamp: new Date()
+    timestamp: Date.now()
   });
 
   const [deviceInfo, setDeviceInfo] = useState<DeviceInfo>({
