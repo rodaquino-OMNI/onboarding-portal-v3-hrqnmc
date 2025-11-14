@@ -80,8 +80,8 @@ const UnderwriterRiskAssessment: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { showSuccess, showError } = useNotification();
-  const { logAudit } = useAuditLog();
-  const { maskSensitiveData } = useMaskData();
+  const { logAction: logAudit } = useAuditLog();
+  const { mask: maskSensitiveData } = useMaskData();
 
   // State management
   const [isSubmitting, setIsSubmitting] = useState(false);

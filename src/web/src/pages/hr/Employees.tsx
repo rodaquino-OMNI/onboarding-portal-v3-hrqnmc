@@ -4,7 +4,8 @@ import { useDebounce } from 'use-debounce';
 import DataTable, { DataTableColumn } from '../../components/common/DataTable';
 import Card from '../../components/common/Card';
 import ErrorBoundary from '../../components/common/ErrorBoundary';
-import EnrollmentService from '../../services/enrollment.service';
+import { ApiService } from '../../services/api.service';
+import { EnrollmentService } from '../../services/enrollment.service';
 import { EnrollmentSummary, EnrollmentStatus } from '../../types/enrollment.types';
 import { useNotificationContext } from '../../contexts/NotificationContext';
 import { THEME } from '../../constants/app.constants';
@@ -45,7 +46,7 @@ const useEmployeeData = (
   const [total, setTotal] = useState(0);
   const [error, setError] = useState<Error | null>(null);
   const { showNotification } = useNotificationContext();
-  const enrollmentService = useMemo(() => new EnrollmentService(), []);
+  const enrollmentService = useMemo(() => new EnrollmentService(new ApiService()), []);
 
   const fetchData = useCallback(async () => {
     try {

@@ -18,7 +18,7 @@ import { HR } from '../constants/routes.constants';
 
 // Lazy load HR components for code splitting
 const HRDashboard = React.lazy(() => import('../pages/hr/Dashboard'));
-const EmployeeList = React.lazy(() => import('../pages/hr/EmployeeList'));
+const EmployeeList = React.lazy(() => import('../pages/hr/Employees'));
 const EmployeeDetails = React.lazy(() => import('../pages/hr/EmployeeDetails'));
 const BulkEnrollment = React.lazy(() => import('../pages/hr/BulkEnrollment'));
 const Reports = React.lazy(() => import('../pages/hr/Reports'));

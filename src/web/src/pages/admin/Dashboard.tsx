@@ -66,9 +66,8 @@ const AdminDashboard: React.FC = React.memo(() => {
   // Fetch dashboard metrics with error handling and caching
   const fetchMetrics = useCallback(async () => {
     try {
-      const response = await apiService.getCached<DashboardMetrics>(
-        '/api/v1/admin/metrics',
-        { duration: CACHE_DURATION }
+      const response = await apiService.get<DashboardMetrics>(
+        '/api/v1/admin/metrics'
       );
 
       setMetrics(response.data);

@@ -27,10 +27,15 @@ interface DashboardStats {
     enrollments: number;
     conversion: number;
     revenue: number;
+    daily?: number;
+    weekly?: number;
+    monthly?: number;
   };
   performance?: {
     avgProcessingTime: number;
     completionRate: number;
+    averageCompletionTime?: number;
+    successRate?: number;
   };
 }
 
@@ -87,7 +92,13 @@ const BrokerDashboard: React.FC = () => {
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        await fetchEnrollmentList(1, 10, filterOptions);
+        const enrollmentFilters = {
+          status: filterOptions.status?.[0],
+          startDate: filterOptions.dateRange?.start || undefined,
+          endDate: filterOptions.dateRange?.end || undefined,
+          searchTerm: filterOptions.searchTerm,
+        };
+        await fetchEnrollmentList(1, 10, enrollmentFilters);
       } catch (error) {
         console.error('Dashboard data fetch error:', error);
         showError(t('dashboard.errors.dataFetch'));
@@ -270,7 +281,12 @@ const BrokerDashboard: React.FC = () => {
                   // Handle enrollment selection
                 }}
                 className="enrollment-list"
-                initialFilters={filterOptions}
+                initialFilters={{
+                  status: filterOptions.status?.[0],
+                  startDate: filterOptions.dateRange?.start || undefined,
+                  endDate: filterOptions.dateRange?.end || undefined,
+                  searchTerm: filterOptions.searchTerm,
+                }}
               />
             </Card>
           </Grid>

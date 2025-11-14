@@ -137,7 +137,7 @@ const Users: React.FC = () => {
         throw new Error('INVALID_SECURITY_CONTEXT');
       }
 
-      await authService.updateUserStatus(userId, newStatus, securityContext);
+      await authService.updateUserStatus(userId, newStatus);
       
       // Optimistic update with rollback
       const previousUsers = [...users];

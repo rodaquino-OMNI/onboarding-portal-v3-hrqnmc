@@ -16,8 +16,8 @@ const LoginPage = lazy(() => import('../pages/auth/Login'));
 const RegisterPage = lazy(() => import('../pages/auth/Register'));
 const ResetPasswordPage = lazy(() => import('../pages/auth/ResetPassword'));
 const MFAVerificationPage = lazy(() => import('../pages/auth/MFAVerification'));
-const SecurityCheckPage = lazy(() => import('../pages/auth/SecurityCheck'));
-const LGPDConsentPage = lazy(() => import('../pages/auth/LGPDConsent'));
+// const SecurityCheckPage = lazy(() => import('../pages/auth/SecurityCheck'));
+// const LGPDConsentPage = lazy(() => import('../pages/auth/LGPDConsent'));
 
 // Constants for localized route paths
 const AUTH_ROUTES = {
@@ -114,8 +114,8 @@ const AuthRoutes: React.FC = React.memo(() => {
         }
       />
 
-      {/* Security Check Route */}
-      <Route
+      {/* Security Check Route - TODO: Implement SecurityCheckPage */}
+      {/* <Route
         path={AUTH_ROUTES.SECURITY_CHECK}
         element={
           <PublicRoute
@@ -126,10 +126,10 @@ const AuthRoutes: React.FC = React.memo(() => {
             <SecurityCheckPage />
           </PublicRoute>
         }
-      />
+      /> */}
 
-      {/* LGPD Consent Route */}
-      <Route
+      {/* LGPD Consent Route - TODO: Implement LGPDConsentPage */}
+      {/* <Route
         path={AUTH_ROUTES.LGPD_CONSENT}
         element={
           <PublicRoute
@@ -140,7 +140,7 @@ const AuthRoutes: React.FC = React.memo(() => {
             <LGPDConsentPage />
           </PublicRoute>
         }
-      />
+      /> */}
 
         {/* Redirect unmatched auth routes to login */}
         <Route

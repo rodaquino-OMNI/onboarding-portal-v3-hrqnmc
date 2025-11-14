@@ -134,8 +134,8 @@ const BeneficiaryRoutes: React.FC = () => {
         }
       />
 
-      {/* Payment Route */}
-      <Route
+      {/* Payment Route - TODO: Implement */}
+      {/* <Route
         path={ROUTES.BENEFICIARY.PAYMENT}
         element={
           <PrivateRoute
@@ -147,10 +147,10 @@ const BeneficiaryRoutes: React.FC = () => {
             </React.Suspense>
           </PrivateRoute>
         }
-      />
+      /> */}
 
-      {/* Coverage Route */}
-      <Route
+      {/* Coverage Route - TODO: Implement */}
+      {/* <Route
         path={ROUTES.BENEFICIARY.COVERAGE}
         element={
           <PrivateRoute
@@ -162,10 +162,10 @@ const BeneficiaryRoutes: React.FC = () => {
             </React.Suspense>
           </PrivateRoute>
         }
-      />
+      /> */}
 
-      {/* Dependents Route */}
-      <Route
+      {/* Dependents Route - TODO: Implement */}
+      {/* <Route
         path={ROUTES.BENEFICIARY.DEPENDENTS}
         element={
           <PrivateRoute
@@ -177,7 +177,7 @@ const BeneficiaryRoutes: React.FC = () => {
             </React.Suspense>
           </PrivateRoute>
         }
-      />
+      /> */}
 
       {/* Fallback for undefined routes */}
       <Route
