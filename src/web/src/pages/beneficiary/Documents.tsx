@@ -58,7 +58,7 @@ const Documents: React.FC = React.memo(() => {
   }, [refreshDocuments, t]);
 
   // Handle document upload error with retry mechanism
-  const handleUploadError = useCallback((error: Error) => {
+  const handleUploadError = useCallback((error: { code: string; message: string; retryCount: number }) => {
     toast.error(t('document.upload.error', { message: error.message }));
   }, [t]);
 

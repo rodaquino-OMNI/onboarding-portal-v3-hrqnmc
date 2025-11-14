@@ -187,7 +187,7 @@ const Users: React.FC = () => {
       filterType: 'select' as const,
       render: (user: UserTableData) => (
         <StatusBadge
-          status={user.status}
+          status={user.status as any}
           type="enrollment"
           className="user-status-badge"
         />

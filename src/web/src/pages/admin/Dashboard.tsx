@@ -231,17 +231,21 @@ const AdminDashboard: React.FC = React.memo(() => {
             <Typography variant="h6" gutterBottom>
               Métricas de Performance
             </Typography>
-            <ResponsiveChartContainer width="100%" height={CHART_HEIGHT}>
+            <Box sx={{ width: '100%', height: CHART_HEIGHT }}>
               <LineChart
-                data={[
+                series={[
                   {
-                    time: metrics?.processingTime.average || 0,
-                    peak: metrics?.processingTime.peak || 0,
-                    current: metrics?.processingTime.current || 0
+                    data: [
+                      metrics?.processingTime.average || 0,
+                      metrics?.processingTime.peak || 0,
+                      metrics?.processingTime.current || 0
+                    ]
                   }
                 ]}
+                width={500}
+                height={CHART_HEIGHT}
               />
-            </ResponsiveChartContainer>
+            </Box>
           </Card>
         </Grid>
 
