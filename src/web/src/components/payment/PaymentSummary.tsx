@@ -109,7 +109,7 @@ const PaymentSummary: React.FC<PaymentSummaryProps> = memo(({
 
       <div className="summaryContainer">
         <Table
-          columns={columns}
+          columns={columns as any}
           data={paymentDetails.items}
           ariaLabel={t('payment.itemsBreakdown')}
         />

@@ -363,15 +363,17 @@ const SystemLogs: React.FC = () => {
         <Grid item xs={12}>
           <Card>
             <DataTable
-              columns={columns}
-              data={logs}
-              loading={isLoading}
-              page={page}
-              rowsPerPage={rowsPerPage}
-              totalCount={totalCount}
-              onPageChange={setPage}
-              onRowsPerPageChange={setRowsPerPage}
-              emptyMessage={t('admin.logs.noLogs')}
+              {...{
+                columns: columns as any,
+                data: logs,
+                loading: isLoading,
+                page,
+                rowsPerPage,
+                totalCount,
+                onPageChange: setPage,
+                onRowsPerPageChange: setRowsPerPage,
+                emptyMessage: t('admin.logs.noLogs')
+              } as any}
             />
           </Card>
         </Grid>

@@ -212,7 +212,7 @@ const UserManagement: React.FC = () => {
     setIsLoading(true);
     try {
       // Simulated API call - replace with actual API service
-      const mockUsers: User[] = Array.from({ length: 20 }, (_, i) => ({
+      const mockUsers: any = Array.from({ length: 20 }, (_, i) => ({
         id: `user-${i}`,
         name: `Usuário ${i + 1}`,
         email: `usuario${i + 1}@exemplo.com`,
@@ -397,15 +397,17 @@ const UserManagement: React.FC = () => {
         <Grid item xs={12}>
           <Card>
             <DataTable
-              columns={columns}
-              data={users}
-              loading={isLoading}
-              page={page}
-              rowsPerPage={rowsPerPage}
-              totalCount={totalCount}
-              onPageChange={setPage}
-              onRowsPerPageChange={setRowsPerPage}
-              emptyMessage={t('admin.users.noUsers')}
+              {...{
+                columns: columns as any,
+                data: users,
+                loading: isLoading,
+                page,
+                rowsPerPage,
+                totalCount,
+                onPageChange: setPage,
+                onRowsPerPageChange: setRowsPerPage,
+                emptyMessage: t('admin.users.noUsers')
+              } as any}
             />
           </Card>
         </Grid>

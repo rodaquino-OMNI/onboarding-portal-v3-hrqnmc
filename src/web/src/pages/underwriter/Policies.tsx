@@ -133,10 +133,12 @@ const PoliciesPage: React.FC = () => {
                   <Skeleton variant="rectangular" height={600} />
                 ) : (
                   <PolicyList
-                    onPolicySelect={handlePolicySelect}
-                    initialFilters={state.filterCriteria}
-                    onFilterChange={handleFilterChange}
-                    {...listConfig}
+                    {...{
+                      onPolicySelect: handlePolicySelect,
+                      initialFilters: state.filterCriteria,
+                      onFilterChange: handleFilterChange,
+                      ...listConfig
+                    } as any}
                   />
                 )}
               </Box>

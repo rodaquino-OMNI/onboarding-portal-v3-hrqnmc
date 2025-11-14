@@ -210,7 +210,7 @@ const DatePicker: React.FC<DatePickerProps> = ({
           }
         }}
         slots={{
-          textField: (props) => (
+          textField: (props: any) => (
             <Input
               {...props}
               id={id}

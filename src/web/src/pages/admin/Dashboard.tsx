@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { Grid, Typography, CircularProgress, Skeleton, Alert, Button } from '@mui/material'; // ^5.0.0
+import { Grid, Typography, CircularProgress, Skeleton, Alert, Button, Box } from '@mui/material'; // ^5.0.0
 import { BarChart, LineChart, PieChart, ResponsiveChartContainer } from '@mui/x-charts'; // ^6.0.0
 
 import AdminLayout from '../../layouts/AdminLayout';

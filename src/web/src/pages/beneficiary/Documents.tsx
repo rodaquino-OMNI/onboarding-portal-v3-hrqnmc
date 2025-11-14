@@ -104,6 +104,7 @@ const Documents: React.FC = React.memo(() => {
             {requiredDocuments.map(doc => (
               <DocumentUpload
                 key={doc.type}
+                enrollmentId=""
                 documentType={doc.type}
                 onUploadComplete={handleUploadComplete}
                 onUploadError={handleUploadError}

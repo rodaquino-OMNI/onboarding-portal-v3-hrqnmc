@@ -381,15 +381,17 @@ const PolicyManagement: React.FC = () => {
         <Grid item xs={12}>
           <Card>
             <DataTable
-              columns={columns}
-              data={filteredPolicies}
-              loading={isLoading}
-              page={page}
-              rowsPerPage={rowsPerPage}
-              totalCount={totalCount}
-              onPageChange={setPage}
-              onRowsPerPageChange={setRowsPerPage}
-              emptyMessage={t('underwriter.policies.noPolicies')}
+              {...{
+                columns: columns as any,
+                data: filteredPolicies,
+                loading: isLoading,
+                page,
+                rowsPerPage,
+                totalCount,
+                onPageChange: setPage,
+                onRowsPerPageChange: setRowsPerPage,
+                emptyMessage: t('underwriter.policies.noPolicies')
+              } as any}
             />
           </Card>
         </Grid>

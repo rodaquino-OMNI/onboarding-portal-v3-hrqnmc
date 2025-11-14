@@ -407,15 +407,17 @@ const EmployeeManagement: React.FC = () => {
         <Grid item xs={12}>
           <Card>
             <DataTable
-              columns={columns}
-              data={employees}
-              loading={isLoading}
-              page={page}
-              rowsPerPage={rowsPerPage}
-              totalCount={totalCount}
-              onPageChange={setPage}
-              onRowsPerPageChange={setRowsPerPage}
-              emptyMessage={t('hr.employees.noEmployees')}
+              {...{
+                columns: columns as any,
+                data: employees,
+                loading: isLoading,
+                page,
+                rowsPerPage,
+                totalCount,
+                onPageChange: setPage,
+                onRowsPerPageChange: setRowsPerPage,
+                emptyMessage: t('hr.employees.noEmployees')
+              } as any}
             />
           </Card>
         </Grid>
