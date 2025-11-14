@@ -21,6 +21,7 @@ export const APP_CONFIG = {
 export const THEME = {
   COLORS: {
     PRIMARY: '#0047AB',
+    PRIMARY_DARK: '#003580',
     SECONDARY: '#00A86B',
     ERROR: '#DC3545',
     WARNING: '#FFC107',
@@ -79,6 +80,13 @@ export const THEME = {
     DRAWER: 800,
     HEADER: 700,
     TOOLTIP: 600,
+  },
+  BREAKPOINTS: {
+    XS: '0px',
+    SM: '600px',
+    MD: '960px',
+    LG: '1280px',
+    XL: '1920px',
   },
 } as const;
 

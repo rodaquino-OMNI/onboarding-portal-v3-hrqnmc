@@ -58,6 +58,8 @@ const USER_STATUS = ['ACTIVE', 'INACTIVE', 'LOCKED', 'PENDING'] as const;
 interface User {
   id: string;
   name: string;
+  firstName: string;
+  lastName: string;
   email: string;
   cpf: string;
   role: typeof USER_ROLES[number];
@@ -66,6 +68,7 @@ interface User {
   lastLogin?: Date;
   createdAt: Date;
   isLocked: boolean;
+  isActive: boolean;
 }
 
 interface UserFormData {
