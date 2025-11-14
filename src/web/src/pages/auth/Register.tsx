@@ -4,6 +4,7 @@ import { z } from 'zod';
 import FingerprintJS from '@fingerprintjs/fingerprintjs';
 
 import Form from '../../components/common/Form';
+import { InputMaskType } from '../../components/common/Input';
 import { useAuth } from '../../contexts/AuthContext';
 import { UserRole } from '../../types/auth.types';
 import { authService } from '../../services/auth.service';
@@ -164,14 +165,14 @@ const Register: React.FC = () => {
             id="firstName"
             name="firstName"
             label="Nome"
-            required
+            required={true}
             autoComplete="given-name"
           />
           <Form.Input
             id="lastName"
             name="lastName"
             label="Sobrenome"
-            required
+            required={true}
             autoComplete="family-name"
           />
         </div>
@@ -181,7 +182,7 @@ const Register: React.FC = () => {
           name="email"
           label="Email"
           type="email"
-          required
+          required={true}
           autoComplete="email"
         />
 
@@ -189,8 +190,8 @@ const Register: React.FC = () => {
           id="cpf"
           name="cpf"
           label="CPF"
-          required
-          maskType="cpf"
+          required={true}
+          maskType={InputMaskType.CPF}
           autoComplete="off"
         />
 
@@ -198,8 +199,8 @@ const Register: React.FC = () => {
           id="phoneNumber"
           name="phoneNumber"
           label="Telefone"
-          required
-          maskType="phone"
+          required={true}
+          maskType={InputMaskType.PHONE}
           autoComplete="tel"
         />
 
@@ -208,7 +209,7 @@ const Register: React.FC = () => {
           name="password"
           label="Senha"
           type="password"
-          required
+          required={true}
           autoComplete="new-password"
         />
 
@@ -217,7 +218,7 @@ const Register: React.FC = () => {
           name="confirmPassword"
           label="Confirmar Senha"
           type="password"
-          required
+          required={true}
           autoComplete="new-password"
         />
 
