@@ -324,6 +324,14 @@ async function resetPassword(email: string): Promise<void> {
   }
 }
 
+/**
+ * Check reset attempts for rate limiting
+ */
+async function checkResetAttempts(email: string): Promise<{ allowed: boolean; remainingAttempts: number }> {
+  // Stub implementation - would check rate limiting
+  return { allowed: true, remainingAttempts: 3 };
+}
+
 // Export authentication service
 export const authService = {
   login,
@@ -332,5 +340,6 @@ export const authService = {
   refreshToken,
   validateSession,
   getSecurityContext,
-  resetPassword
+  resetPassword,
+  checkResetAttempts
 };

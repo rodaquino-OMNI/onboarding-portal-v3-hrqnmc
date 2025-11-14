@@ -104,6 +104,12 @@ export interface Document {
     
     /** Document retention period in days */
     retentionPeriod: number;
+
+    /** Document content (for viewing) */
+    content?: string;
+
+    /** Access token for secure document viewing */
+    accessToken?: string;
 }
 
 /**
