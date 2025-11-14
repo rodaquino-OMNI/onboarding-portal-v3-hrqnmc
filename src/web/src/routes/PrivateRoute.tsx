@@ -50,11 +50,11 @@ const PrivateRoute: React.FC<PrivateRouteProps> = ({
   fallbackPath = LOGIN_PATH
 }) => {
   const location = useLocation();
-  const { 
+  const {
     isAuthenticated,
     isLoading,
     user,
-    refreshToken,
+    refreshSession,
     sessionExpiry
   } = useAuth();
 
@@ -68,14 +68,14 @@ const PrivateRoute: React.FC<PrivateRouteProps> = ({
    * Session validation and refresh handler
    */
   const validateAndRefreshSession = useCallback(async () => {
-    if (!sessionExpiry || !refreshToken) return;
+    if (!sessionExpiry || !refreshSession) return;
 
     const timeUntilExpiry = new Date(sessionExpiry).getTime() - Date.now();
     if (timeUntilExpiry < REFRESH_THRESHOLD) {
       let retryCount = 0;
       while (retryCount < MAX_RETRY_ATTEMPTS) {
         try {
-          await refreshToken();
+          await refreshSession();
           break;
         } catch (error) {
           retryCount++;
@@ -85,7 +85,7 @@ const PrivateRoute: React.FC<PrivateRouteProps> = ({
         }
       }
     }
-  }, [sessionExpiry, refreshToken]);
+  }, [sessionExpiry, refreshSession]);
 
   // Effect for session validation
   useEffect(() => {

@@ -65,9 +65,8 @@ export function useEnrollment(
     },
     enabled: !!enrollmentId && checkPermission('view_enrollment'),
     staleTime: STALE_TIME,
-    gcTime: CACHE_TIME,
+    cacheTime: CACHE_TIME,
     retry: MAX_RETRIES,
-    retryDelay: RETRY_DELAY,
     ...queryOptions
   });
 
