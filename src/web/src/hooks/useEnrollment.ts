@@ -57,18 +57,16 @@ export function useEnrollment(
     isLoading,
     isFetching,
     refetch
-  } = useQuery(
-    [ENROLLMENT_QUERY_KEY, enrollmentId],
-    () => getEnrollment(enrollmentId!),
-    {
-      enabled: !!enrollmentId && checkPermission('view_enrollment'),
-      staleTime: STALE_TIME,
-      cacheTime: CACHE_TIME,
-      retry: MAX_RETRIES,
-      retryDelay: RETRY_DELAY,
-      ...queryOptions
-    }
-  );
+  } = useQuery({
+    queryKey: [ENROLLMENT_QUERY_KEY, enrollmentId],
+    queryFn: () => getEnrollment(enrollmentId!),
+    enabled: !!enrollmentId && checkPermission('view_enrollment'),
+    staleTime: STALE_TIME,
+    cacheTime: CACHE_TIME,
+    retry: MAX_RETRIES,
+    retryDelay: RETRY_DELAY,
+    ...queryOptions
+  });
 
   // Create enrollment mutation
   const createMutation = useMutation(
@@ -77,7 +75,7 @@ export function useEnrollment(
       onSuccess: (newEnrollment) => {
         if (isMounted.current) {
           queryClient.setQueryData(
-            [ENROLLMENT_QUERY_KEY, newEnrollment.id],
+            [ENROLLMENT_QUERY_KEY, newEnrollment.data.id],
             newEnrollment
           );
           showSuccess('Enrollment created successfully');
@@ -98,7 +96,7 @@ export function useEnrollment(
       onSuccess: (updatedEnrollment) => {
         if (isMounted.current) {
           queryClient.setQueryData(
-            [ENROLLMENT_QUERY_KEY, updatedEnrollment.id],
+            [ENROLLMENT_QUERY_KEY, updatedEnrollment.data.id],
             updatedEnrollment
           );
           showSuccess('Enrollment updated successfully');
@@ -119,7 +117,7 @@ export function useEnrollment(
       onSuccess: (updatedEnrollment) => {
         if (isMounted.current) {
           queryClient.setQueryData(
-            [ENROLLMENT_QUERY_KEY, updatedEnrollment.id],
+            [ENROLLMENT_QUERY_KEY, updatedEnrollment.data.id],
             updatedEnrollment
           );
           showSuccess('Status updated successfully');
@@ -199,7 +197,7 @@ export function useEnrollment(
       try {
         const response = await listEnrollments({ page, pageSize, ...filters });
         if (isMounted.current) {
-          queryClient.setQueryData(ENROLLMENT_LIST_QUERY_KEY, response);
+          queryClient.setQueryData([ENROLLMENT_LIST_QUERY_KEY], response);
         }
       } catch (error) {
         console.error('Fetch enrollment list error:', error);
@@ -228,7 +226,6 @@ export function useEnrollment(
     changeEnrollmentStatus,
     fetchEnrollmentList,
     isFetching,
-    isValidating,
     retryFailedOperation
   };
 }
