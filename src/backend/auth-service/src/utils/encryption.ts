@@ -1,9 +1,14 @@
 // @package bcrypt ^5.1.1
 // @package crypto ^1.0.0
-import { randomBytes, createCipheriv, createDecipheriv, scrypt, timingSafeEqual } from 'crypto';
+import { randomBytes, createCipheriv, createDecipheriv, scrypt } from 'crypto';
 import { promisify } from 'util';
 import * as bcrypt from 'bcrypt';
-import { security, keyRotation } from '../config/auth.config';
+import { security } from '../config/auth.config';
+
+// Key rotation configuration
+const keyRotation = {
+  currentVersion: 1
+};
 
 // Promisify scrypt for async key derivation
 const scryptAsync = promisify(scrypt);
@@ -80,7 +85,7 @@ export const hashPassword = async (password: string): Promise<string> => {
     
     return hash;
   } catch (error) {
-    throw new EncryptionError(`Password hashing failed: ${error.message}`);
+    throw new EncryptionError(`Password hashing failed: ${(error as Error).message}`);
   }
 };
 
@@ -99,7 +104,7 @@ export const verifyPassword = async (password: string, hash: string): Promise<bo
     // Use constant-time comparison to prevent timing attacks
     return await bcrypt.compare(password, hash);
   } catch (error) {
-    throw new EncryptionError(`Password verification failed: ${error.message}`);
+    throw new EncryptionError(`Password verification failed: ${(error as Error).message}`);
   }
 };
 
@@ -109,29 +114,32 @@ export const verifyPassword = async (password: string, hash: string): Promise<bo
  * @returns Encrypted data object with IV, auth tag, and key version
  */
 export const encryptData = async (data: string): Promise<EncryptedData> => {
+  let keyBuffer: Buffer | undefined;
+  let iv: Buffer | undefined;
+
   try {
     if (!data) {
       throw new EncryptionError('No data provided for encryption');
     }
 
     // Generate cryptographically secure IV
-    const iv = randomBytes(16);
-    
+    iv = randomBytes(16);
+
     // Get current encryption key and version
-    const keyBuffer = await scryptAsync(
-      security.encryptionAlgorithm, 
-      randomBytes(32), 
-      32, 
-      { N: 1024, r: 8, p: 1 }
-    );
+    const salt = randomBytes(32);
+    keyBuffer = await scryptAsync(
+      process.env.ENCRYPTION_KEY || 'default-encryption-key',
+      salt,
+      32
+    ) as Buffer;
 
     // Create cipher with AES-256-GCM
-    const cipher = createCipheriv(security.encryptionAlgorithm, keyBuffer, iv);
-    
+    const cipher = createCipheriv('aes-256-gcm', keyBuffer, iv) as any;
+
     // Encrypt data with authenticated encryption
     let encryptedData = cipher.update(data, 'utf8', 'hex');
     encryptedData += cipher.final('hex');
-    
+
     // Get authentication tag
     const authTag = cipher.getAuthTag();
 
@@ -142,7 +150,7 @@ export const encryptData = async (data: string): Promise<EncryptedData> => {
       keyVersion: keyRotation.currentVersion
     };
   } catch (error) {
-    throw new EncryptionError(`Data encryption failed: ${error.message}`);
+    throw new EncryptionError(`Data encryption failed: ${(error as Error).message}`);
   } finally {
     // Implement secure memory wiping
     process.nextTick(() => {
@@ -158,6 +166,8 @@ export const encryptData = async (data: string): Promise<EncryptedData> => {
  * @returns Decrypted data string
  */
 export const decryptData = async (encryptedData: EncryptedData): Promise<string> => {
+  let keyBuffer: Buffer | undefined;
+
   try {
     // Validate encrypted data structure
     if (!encryptedData?.iv || !encryptedData?.encryptedData || !encryptedData?.authTag) {
@@ -169,15 +179,15 @@ export const decryptData = async (encryptedData: EncryptedData): Promise<string>
     const authTag = Buffer.from(encryptedData.authTag, 'hex');
 
     // Get appropriate key version
-    const keyBuffer = await scryptAsync(
-      security.encryptionAlgorithm,
-      randomBytes(32),
-      32,
-      { N: 1024, r: 8, p: 1 }
-    );
+    const salt = randomBytes(32);
+    keyBuffer = await scryptAsync(
+      process.env.ENCRYPTION_KEY || 'default-encryption-key',
+      salt,
+      32
+    ) as Buffer;
 
     // Create decipher
-    const decipher = createDecipheriv(security.encryptionAlgorithm, keyBuffer, iv);
+    const decipher = createDecipheriv('aes-256-gcm', keyBuffer, iv) as any;
     decipher.setAuthTag(authTag);
 
     // Decrypt data
@@ -186,7 +196,7 @@ export const decryptData = async (encryptedData: EncryptedData): Promise<string>
 
     return decrypted;
   } catch (error) {
-    throw new EncryptionError(`Data decryption failed: ${error.message}`);
+    throw new EncryptionError(`Data decryption failed: ${(error as Error).message}`);
   } finally {
     // Implement secure memory wiping
     process.nextTick(() => {
@@ -235,6 +245,6 @@ export const generateSecureToken = async (
 
     return token;
   } catch (error) {
-    throw new EncryptionError(`Token generation failed: ${error.message}`);
+    throw new EncryptionError(`Token generation failed: ${(error as Error).message}`);
   }
 };

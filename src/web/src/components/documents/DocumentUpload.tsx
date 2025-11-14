@@ -9,11 +9,17 @@ import type { Document } from '../../types/document.types';
 import { DocumentType, DocumentStatus } from '../../types/document.types';
 import { UPLOAD_CONFIG } from '../../constants/api.constants';
 
+interface UploadError {
+  code: string;
+  message: string;
+  retryCount: number;
+}
+
 interface DocumentUploadProps {
   enrollmentId: string;
   documentType: DocumentType;
   onUploadComplete: (document: Document) => void;
-  onUploadError: (error: Error) => void;
+  onUploadError: (error: UploadError) => void;
   onUploadProgress?: (progress: number) => void;
   className?: string;
 }
@@ -59,17 +65,9 @@ const DocumentUpload: React.FC<DocumentUploadProps> = React.memo(({
         hash,
         contentType: file.type,
         filename: file.name,
-        metadata: {
-          originalName: file.name,
-          contentHash: hash,
-          uploadTimestamp: new Date().toISOString()
-        }
-      }, {
-        onProgress: (progress) => {
-          setUploadProgress(progress);
-          onUploadProgress?.(progress);
-        },
-        signal: abortControllerRef.current.signal
+        originalName: file.name,
+        contentHash: hash,
+        uploadTimestamp: new Date().toISOString()
       });
 
       onUploadComplete(uploadedDocument);
@@ -77,7 +75,12 @@ const DocumentUpload: React.FC<DocumentUploadProps> = React.memo(({
 
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : t('document.error.uploadFailed');
-      onUploadError(new Error(errorMessage));
+      const uploadError: UploadError = {
+        code: 'UPLOAD_FAILED',
+        message: errorMessage,
+        retryCount: 0
+      };
+      onUploadError(uploadError);
       toast.error(errorMessage);
     } finally {
       setIsUploading(false);
@@ -111,10 +114,10 @@ const DocumentUpload: React.FC<DocumentUploadProps> = React.memo(({
       <FileUpload
         enrollmentId={enrollmentId}
         documentType={documentType}
-        onUploadComplete={handleUpload}
+        onUploadComplete={onUploadComplete}
         onUploadError={onUploadError}
         maxSize={UPLOAD_CONFIG.MAX_FILE_SIZE}
-        allowedTypes={UPLOAD_CONFIG.SUPPORTED_TYPES}
+        allowedTypes={[...UPLOAD_CONFIG.SUPPORTED_TYPES]}
         className="document-upload__uploader"
       />
 

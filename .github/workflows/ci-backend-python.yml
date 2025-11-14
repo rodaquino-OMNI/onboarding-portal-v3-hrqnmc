@@ -1,0 +1,151 @@
+name: CI - Python Backend Services
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'src/backend/health-service/**'
+      - '.github/workflows/ci-backend-python.yml'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'src/backend/health-service/**'
+
+env:
+  PYTHON_VERSION: '3.11'
+
+jobs:
+  test-health-service:
+    name: Test Health Service
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: testpass
+          POSTGRES_DB: health_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      redis:
+        image: redis:7
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install dependencies
+        working-directory: src/backend/health-service
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+
+      - name: Run linter (flake8)
+        working-directory: src/backend/health-service
+        run: flake8 app tests --max-line-length=100
+
+      - name: Run type checker (mypy)
+        working-directory: src/backend/health-service
+        run: mypy app --ignore-missing-imports
+
+      - name: Run security check (bandit)
+        working-directory: src/backend/health-service
+        run: bandit -r app -ll
+
+      - name: Run tests with pytest
+        working-directory: src/backend/health-service
+        run: pytest tests/ -v --cov=app --cov-report=xml --cov-report=html
+        env:
+          DATABASE_URL: postgresql://postgres:testpass@localhost:5432/health_test
+          REDIS_URL: redis://localhost:6379/0
+          APP_ENV: test
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./src/backend/health-service/coverage.xml
+          flags: health-service
+          name: health-service-coverage
+
+      - name: Check coverage threshold
+        working-directory: src/backend/health-service
+        run: |
+          COVERAGE=$(python -c "import xml.etree.ElementTree as ET; tree = ET.parse('coverage.xml'); print(tree.getroot().attrib['line-rate'])")
+          COVERAGE_PCT=$(python -c "print(int(float($COVERAGE) * 100))")
+          echo "Coverage: $COVERAGE_PCT%"
+          if [ "$COVERAGE_PCT" -lt 60 ]; then
+            echo "Coverage below 60% threshold"
+            exit 1
+          fi
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v3
+        with:
+          name: health-service-coverage
+          path: src/backend/health-service/htmlcov/
+
+  build-docker-health:
+    name: Build Health Service Docker Image
+    needs: test-health-service
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: src/backend/health-service
+          push: false
+          tags: austa/health-service:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  security-scan:
+    name: Security Scan - Health Service
+    needs: test-health-service
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run safety check
+        working-directory: src/backend/health-service
+        run: |
+          pip install safety
+          safety check --file requirements.txt --json
+        continue-on-error: true
+
+      - name: Run Snyk security scan
+        uses: snyk/actions/python@master
+        continue-on-error: true
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --file=src/backend/health-service/requirements.txt --severity-threshold=high

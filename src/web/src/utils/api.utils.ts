@@ -75,12 +75,11 @@ export function createApiClient(customConfig?: Partial<ApiRequestConfig>): Axios
   // Request interceptor for authentication and LGPD headers
   client.interceptors.request.use((config) => {
     const requestConfig = config;
-    requestConfig.headers = {
-      ...requestConfig.headers,
+    Object.assign(requestConfig.headers, {
       ...LGPD_HEADERS,
       'X-Request-Id': crypto.randomUUID()
-    };
-    
+    });
+
     // Add telemetry data
     // newrelic.addPageAction('api_request', {
     //   url: requestConfig.url,

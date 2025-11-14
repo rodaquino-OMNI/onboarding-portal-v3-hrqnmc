@@ -102,7 +102,7 @@ export const FormContext = React.createContext<FormContextValue | undefined>(und
 /**
  * Enterprise-grade form component with WCAG compliance and LGPD security
  */
-export const Form: FormComponent = ({
+const FormBase: React.FC<FormProps> = ({
   children,
   validationSchema,
   initialValues,
@@ -330,10 +330,11 @@ export const useForm = () => {
   return context;
 };
 
-// Add sub-components as static properties
-(Form as FormComponent).Input = Input;
-(Form as FormComponent).Select = Select;
-(Form as FormComponent).Switch = (props: any) => <input type="checkbox" {...props} />;
-(Form as FormComponent).Number = (props: any) => <Input {...props} type="number" />;
+// Create Form component with static properties
+export const Form = FormBase as FormComponent;
+Form.Input = Input;
+Form.Select = Select;
+Form.Switch = (props: any) => <input type="checkbox" {...props} />;
+Form.Number = (props: any) => <Input {...props} type="number" />;
 
 export default Form;

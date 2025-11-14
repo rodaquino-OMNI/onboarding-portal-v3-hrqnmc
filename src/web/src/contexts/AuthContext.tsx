@@ -41,8 +41,8 @@ interface AuthContextType {
   securityContext: SecurityContext;
   deviceInfo: DeviceInfo;
   sessionExpiry: Date | null;
-  login: (credentials: LoginRequest) => Promise<void>;
-  verifyMFA: (code: string, deviceInfo: DeviceInfo) => Promise<void>;
+  login: (credentials: LoginRequest) => Promise<AuthState>;
+  verifyMFA: (code: string, deviceInfo: DeviceInfo) => Promise<AuthState>;
   logout: () => Promise<void>;
   refreshSession: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
@@ -164,7 +164,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [authState.isAuthenticated]);
 
   // Login handler
-  const login = async (credentials: LoginRequest): Promise<void> => {
+  const login = async (credentials: LoginRequest): Promise<AuthState> => {
     try {
       const loginResult = await authService.login({
         ...credentials,
@@ -178,18 +178,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         await setSecureItem('auth_state', loginResult, { type: 'session' });
         await setSecureItem('security_context', securityContext, { type: 'session' });
       }
+
+      return loginResult;
     } catch (error) {
-      setAuthState(prev => ({
-        ...prev,
+      const errorState = {
+        ...authState,
         error: error as Error,
         isAuthenticated: false,
         isLoading: false
-      }));
+      };
+      setAuthState(errorState);
+      throw error;
     }
   };
 
   // MFA verification handler
-  const verifyMFA = async (code: string, deviceInfo: DeviceInfo): Promise<void> => {
+  const verifyMFA = async (code: string, deviceInfo: DeviceInfo): Promise<AuthState> => {
     try {
       const verificationResult = await authService.verifyMFA(code, {
         ...securityContext,
@@ -201,12 +205,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (verificationResult.isAuthenticated) {
         await setSecureItem('auth_state', verificationResult, { type: 'session' });
       }
+
+      return verificationResult;
     } catch (error) {
-      setAuthState(prev => ({
-        ...prev,
+      const errorState = {
+        ...authState,
         error: error as Error,
         requiresMFA: true
-      }));
+      };
+      setAuthState(errorState);
+      throw error;
     }
   };
 

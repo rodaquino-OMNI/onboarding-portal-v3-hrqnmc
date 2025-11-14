@@ -1,255 +1,403 @@
-package main
+openapi: 3.1.0
+info:
+  title: AUSTA Health Portal Document Service API
+  version: 1.0.0
+  description: |
+    Secure document management service for the AUSTA Pre-paid Health Plan Onboarding Portal.
+    Provides encrypted document storage with LGPD compliance and audit trails.
+  contact:
+    name: AUSTA Development Team
+    email: dev-team@austa.com.br
 
-import (
-	"crypto/aes"
-	"crypto/sha256"
-	"encoding/json"
-	"fmt"
-	"io"
-	"log"
-	"net/http"
-	"os"
-	"path/filepath"
-	"time"
+servers:
+  - url: /api/v1
+    description: Document service API endpoint
 
-	"github.com/gin-gonic/gin"               // v1.9.1
-	"github.com/google/uuid"                 // v1.3.1
-	"github.com/minio/minio-go/v7"           // v7.0.63
-	"github.com/minio/minio-go/v7/pkg/credentials" // v7.0.63
-	"go.uber.org/zap"                       // v1.26.0
-)
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token for authentication
 
-const (
-	maxFileSize       = 10 * 1024 * 1024 // 10MB
-	bucketName        = "documents"
-	encryptionMethod  = "AES-256"
-)
+  schemas:
+    DocumentMetadata:
+      type: object
+      required:
+        - id
+        - enrollmentId
+        - documentType
+        - filename
+        - contentType
+        - size
+        - encryptionType
+        - status
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique document identifier
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        enrollmentId:
+          type: string
+          format: uuid
+          description: Associated enrollment ID
+          example: "650e8400-e29b-41d4-a716-446655440001"
+        documentType:
+          type: string
+          enum: [ID, CPF, ADDRESS_PROOF, MEDICAL_RECORD]
+          description: Type of document
+          example: "ID"
+        filename:
+          type: string
+          description: Original filename
+          example: "passport.pdf"
+        contentType:
+          type: string
+          description: MIME type of the document
+          example: "application/pdf"
+        size:
+          type: integer
+          format: int64
+          description: File size in bytes
+          example: 1048576
+        encryptionType:
+          type: string
+          description: Encryption algorithm used
+          example: "AES-256"
+        status:
+          type: string
+          enum: [PROCESSING, READY, ERROR]
+          description: Document processing status
+          example: "READY"
+        retentionPeriod:
+          type: string
+          description: LGPD-compliant data retention period
+          example: "5 years"
+        createdAt:
+          type: string
+          format: date-time
+          description: Document upload timestamp
+          example: "2025-11-11T10:30:00Z"
+        updatedAt:
+          type: string
+          format: date-time
+          description: Last update timestamp
+          example: "2025-11-11T10:30:05Z"
 
-// DocumentMetadata represents the metadata of an uploaded document
-type DocumentMetadata struct {
-	ID              uuid.UUID `json:"id"`
-	EnrollmentID    uuid.UUID `json:"enrollmentId"`
-	DocumentType    string    `json:"documentType"`
-	Filename        string    `json:"filename"`
-	ContentType     string    `json:"contentType"`
-	Size           int64     `json:"size"`
-	EncryptionType string    `json:"encryptionType"`
-	Status         string    `json:"status"`
-	RetentionPeriod string   `json:"retentionPeriod"`
-	CreatedAt      time.Time `json:"createdAt"`
-	UpdatedAt      time.Time `json:"updatedAt"`
-}
+    DocumentUploadRequest:
+      type: object
+      required:
+        - enrollmentId
+        - documentType
+        - consentToken
+        - file
+      properties:
+        enrollmentId:
+          type: string
+          format: uuid
+          description: Associated enrollment ID
+          example: "650e8400-e29b-41d4-a716-446655440001"
+        documentType:
+          type: string
+          enum: [ID, CPF, ADDRESS_PROOF, MEDICAL_RECORD]
+          description: Type of document being uploaded
+          example: "ID"
+        consentToken:
+          type: string
+          description: LGPD consent token
+          example: "consent-token-12345"
+        file:
+          type: string
+          format: binary
+          description: Document file to upload
 
-// Error represents an API error response
-type Error struct {
-	Code     string      `json:"code"`
-	Message  string      `json:"message"`
-	Details  interface{} `json:"details,omitempty"`
-	TraceID  string      `json:"traceId"`
-}
+    Error:
+      type: object
+      required:
+        - code
+        - message
+        - traceId
+      properties:
+        code:
+          type: string
+          description: Error code
+          example: "INVALID_FILE"
+        message:
+          type: string
+          description: Human-readable error message
+          example: "Failed to process file upload"
+        details:
+          type: object
+          description: Additional error details
+          additionalProperties: true
+        traceId:
+          type: string
+          format: uuid
+          description: Trace ID for debugging
+          example: "850e8400-e29b-41d4-a716-446655440003"
 
-type DocumentService struct {
-	minioClient *minio.Client
-	logger      *zap.Logger
-}
+  responses:
+    Unauthorized:
+      description: Authentication required or token expired
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: "UNAUTHORIZED"
+            message: "Authentication token is missing or invalid"
+            traceId: "850e8400-e29b-41d4-a716-446655440003"
 
-func NewDocumentService() (*DocumentService, error) {
-	logger, err := zap.NewProduction()
-	if err != nil {
-		return nil, fmt.Errorf("failed to initialize logger: %v", err)
-	}
+    Forbidden:
+      description: Insufficient permissions for the requested operation
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: "FORBIDDEN"
+            message: "You don't have permission to access this resource"
+            traceId: "850e8400-e29b-41d4-a716-446655440003"
 
-	// Initialize MinIO client
-	minioClient, err := minio.New(os.Getenv("MINIO_ENDPOINT"), &minio.Options{
-		Creds:  credentials.NewStaticV4(os.Getenv("MINIO_ACCESS_KEY"), os.Getenv("MINIO_SECRET_KEY"), ""),
-		Secure: true,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to initialize MinIO client: %v", err)
-	}
+    NotFound:
+      description: Requested document not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: "DOCUMENT_NOT_FOUND"
+            message: "Document not found"
+            traceId: "850e8400-e29b-41d4-a716-446655440003"
 
-	return &DocumentService{
-		minioClient: minioClient,
-		logger:      logger,
-	}, nil
-}
+    TooManyRequests:
+      description: Rate limit exceeded
+      headers:
+        X-RateLimit-Limit:
+          schema:
+            type: integer
+          description: Request limit per hour
+        X-RateLimit-Remaining:
+          schema:
+            type: integer
+          description: Remaining requests in current window
+        X-RateLimit-Reset:
+          schema:
+            type: integer
+            format: unix-timestamp
+          description: Time when rate limit resets
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: "RATE_LIMIT_EXCEEDED"
+            message: "Too many requests. Please try again later."
+            traceId: "850e8400-e29b-41d4-a716-446655440003"
 
-func (s *DocumentService) SetupRoutes(router *gin.Engine) {
-	v1 := router.Group("/api/v1")
-	{
-		v1.POST("/documents", s.uploadDocument)
-		v1.GET("/documents/:id", s.getDocument)
-	}
-}
+paths:
+  /documents:
+    post:
+      summary: Upload a new document
+      description: |
+        Uploads a new document with encryption and LGPD compliance.
+        Documents are encrypted using AES-256 before storage.
+        Maximum file size is 10MB.
+      operationId: uploadDocument
+      security:
+        - bearerAuth: []
+      tags:
+        - Document Management
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/DocumentUploadRequest'
+            encoding:
+              file:
+                contentType: application/pdf, image/jpeg, image/png, application/msword
+      responses:
+        '201':
+          description: Document uploaded successfully
+          headers:
+            X-Processing-Time:
+              schema:
+                type: integer
+              description: Processing time in milliseconds
+            X-Document-ID:
+              schema:
+                type: string
+                format: uuid
+              description: ID of the uploaded document
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentMetadata'
+              example:
+                id: "550e8400-e29b-41d4-a716-446655440000"
+                enrollmentId: "650e8400-e29b-41d4-a716-446655440001"
+                documentType: "ID"
+                filename: "passport.pdf"
+                contentType: "application/pdf"
+                size: 1048576
+                encryptionType: "AES-256"
+                status: "READY"
+                retentionPeriod: "5 years"
+                createdAt: "2025-11-11T10:30:00Z"
+                updatedAt: "2025-11-11T10:30:05Z"
+        '400':
+          description: Invalid upload data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                invalidEnrollmentId:
+                  value:
+                    code: "INVALID_ENROLLMENT_ID"
+                    message: "Invalid enrollment ID format"
+                    traceId: "850e8400-e29b-41d4-a716-446655440003"
+                invalidDocumentType:
+                  value:
+                    code: "INVALID_DOCUMENT_TYPE"
+                    message: "Invalid document type"
+                    traceId: "850e8400-e29b-41d4-a716-446655440003"
+                missingConsent:
+                  value:
+                    code: "MISSING_CONSENT"
+                    message: "LGPD consent token is required"
+                    traceId: "850e8400-e29b-41d4-a716-446655440003"
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '413':
+          description: File too large
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                code: "FILE_TOO_LARGE"
+                message: "File size exceeds maximum limit of 10MB"
+                traceId: "850e8400-e29b-41d4-a716-446655440003"
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                encryptionFailed:
+                  value:
+                    code: "ENCRYPTION_FAILED"
+                    message: "Failed to process file"
+                    traceId: "850e8400-e29b-41d4-a716-446655440003"
+                uploadFailed:
+                  value:
+                    code: "UPLOAD_FAILED"
+                    message: "Failed to store file"
+                    traceId: "850e8400-e29b-41d4-a716-446655440003"
 
-func (s *DocumentService) uploadDocument(c *gin.Context) {
-	// Verify file size
-	if c.Request.ContentLength > maxFileSize {
-		s.sendError(c, http.StatusRequestEntityTooLarge, "FILE_TOO_LARGE", "File size exceeds maximum limit of 10MB")
-		return
-	}
+  /documents/{id}:
+    get:
+      summary: Retrieve a document
+      description: |
+        Retrieves and decrypts a document by its ID.
+        Returns the decrypted file with integrity verification.
+      operationId: getDocument
+      security:
+        - bearerAuth: []
+      tags:
+        - Document Management
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Document ID
+          schema:
+            type: string
+            format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440000"
+      responses:
+        '200':
+          description: Document retrieved successfully
+          headers:
+            X-Encryption-Type:
+              schema:
+                type: string
+              description: Encryption algorithm used
+              example: "AES-256"
+            X-Content-Hash:
+              schema:
+                type: string
+              description: SHA-256 hash of the content
+              example: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+            image/jpeg:
+              schema:
+                type: string
+                format: binary
+            image/png:
+              schema:
+                type: string
+                format: binary
+        '400':
+          description: Invalid document ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                code: "INVALID_ID"
+                message: "Invalid document ID format"
+                traceId: "850e8400-e29b-41d4-a716-446655440003"
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                decryptionFailed:
+                  value:
+                    code: "DECRYPTION_FAILED"
+                    message: "Failed to process document"
+                    traceId: "850e8400-e29b-41d4-a716-446655440003"
+                hashCalculationFailed:
+                  value:
+                    code: "HASH_CALCULATION_FAILED"
+                    message: "Failed to verify document integrity"
+                    traceId: "850e8400-e29b-41d4-a716-446655440003"
 
-	// Parse multipart form
-	file, header, err := c.Request.FormFile("file")
-	if err != nil {
-		s.sendError(c, http.StatusBadRequest, "INVALID_FILE", "Failed to process file upload")
-		return
-	}
-	defer file.Close()
+security:
+  - bearerAuth: []
 
-	// Validate required fields
-	enrollmentID, err := uuid.Parse(c.PostForm("enrollmentId"))
-	if err != nil {
-		s.sendError(c, http.StatusBadRequest, "INVALID_ENROLLMENT_ID", "Invalid enrollment ID format")
-		return
-	}
+tags:
+  - name: Document Management
+    description: Secure document upload and retrieval with encryption
 
-	documentType := c.PostForm("documentType")
-	if !isValidDocumentType(documentType) {
-		s.sendError(c, http.StatusBadRequest, "INVALID_DOCUMENT_TYPE", "Invalid document type")
-		return
-	}
-
-	consentToken := c.PostForm("consentToken")
-	if consentToken == "" {
-		s.sendError(c, http.StatusBadRequest, "MISSING_CONSENT", "LGPD consent token is required")
-		return
-	}
-
-	// Generate document ID and metadata
-	docID := uuid.New()
-	metadata := DocumentMetadata{
-		ID:              docID,
-		EnrollmentID:    enrollmentID,
-		DocumentType:    documentType,
-		Filename:        header.Filename,
-		ContentType:     header.Header.Get("Content-Type"),
-		Size:           header.Size,
-		EncryptionType: encryptionMethod,
-		Status:         "PROCESSING",
-		RetentionPeriod: "5 years", // LGPD compliant retention period
-		CreatedAt:      time.Now().UTC(),
-		UpdatedAt:      time.Now().UTC(),
-	}
-
-	// Encrypt and upload file
-	encryptedFile, err := s.encryptFile(file)
-	if err != nil {
-		s.logger.Error("Failed to encrypt file", zap.Error(err))
-		s.sendError(c, http.StatusInternalServerError, "ENCRYPTION_FAILED", "Failed to process file")
-		return
-	}
-
-	// Upload to MinIO
-	objectName := fmt.Sprintf("%s/%s%s", docID, time.Now().Format("20060102"), filepath.Ext(header.Filename))
-	_, err = s.minioClient.PutObject(c, bucketName, objectName, encryptedFile, header.Size,
-		minio.PutObjectOptions{
-			ContentType:  header.Header.Get("Content-Type"),
-			UserMetadata: map[string]string{"enrollment-id": enrollmentID.String()},
-		})
-	if err != nil {
-		s.logger.Error("Failed to upload file to storage", zap.Error(err))
-		s.sendError(c, http.StatusInternalServerError, "UPLOAD_FAILED", "Failed to store file")
-		return
-	}
-
-	// Update metadata status
-	metadata.Status = "READY"
-	metadata.UpdatedAt = time.Now().UTC()
-
-	// Return success response
-	c.Header("X-Processing-Time", fmt.Sprintf("%d", time.Since(metadata.CreatedAt).Milliseconds()))
-	c.Header("X-Document-ID", docID.String())
-	c.JSON(http.StatusCreated, metadata)
-}
-
-func (s *DocumentService) getDocument(c *gin.Context) {
-	docID, err := uuid.Parse(c.Param("id"))
-	if err != nil {
-		s.sendError(c, http.StatusBadRequest, "INVALID_ID", "Invalid document ID format")
-		return
-	}
-
-	// Get object from MinIO
-	object, err := s.minioClient.GetObject(c, bucketName, docID.String(), minio.GetObjectOptions{})
-	if err != nil {
-		s.logger.Error("Failed to retrieve document", zap.Error(err))
-		s.sendError(c, http.StatusNotFound, "DOCUMENT_NOT_FOUND", "Document not found")
-		return
-	}
-	defer object.Close()
-
-	// Get object info
-	info, err := object.Stat()
-	if err != nil {
-		s.logger.Error("Failed to get document info", zap.Error(err))
-		s.sendError(c, http.StatusInternalServerError, "DOCUMENT_INFO_ERROR", "Failed to retrieve document information")
-		return
-	}
-
-	// Decrypt file
-	decryptedFile, err := s.decryptFile(object)
-	if err != nil {
-		s.logger.Error("Failed to decrypt file", zap.Error(err))
-		s.sendError(c, http.StatusInternalServerError, "DECRYPTION_FAILED", "Failed to process document")
-		return
-	}
-
-	// Calculate content hash
-	hash := sha256.New()
-	if _, err := io.Copy(hash, decryptedFile); err != nil {
-		s.logger.Error("Failed to calculate hash", zap.Error(err))
-		s.sendError(c, http.StatusInternalServerError, "HASH_CALCULATION_FAILED", "Failed to verify document integrity")
-		return
-	}
-
-	// Set response headers
-	c.Header("X-Encryption-Type", encryptionMethod)
-	c.Header("X-Content-Hash", fmt.Sprintf("%x", hash.Sum(nil)))
-	c.DataFromReader(http.StatusOK, info.Size, info.ContentType, decryptedFile, nil)
-}
-
-func (s *DocumentService) sendError(c *gin.Context, status int, code string, message string) {
-	c.JSON(status, Error{
-		Code:    code,
-		Message: message,
-		TraceID: uuid.New().String(),
-	})
-}
-
-func (s *DocumentService) encryptFile(file io.Reader) (io.Reader, error) {
-	// Implementation of AES-256 encryption
-	// Note: This is a placeholder - actual implementation would use proper key management
-	return file, nil
-}
-
-func (s *DocumentService) decryptFile(file io.Reader) (io.Reader, error) {
-	// Implementation of AES-256 decryption
-	// Note: This is a placeholder - actual implementation would use proper key management
-	return file, nil
-}
-
-func isValidDocumentType(docType string) bool {
-	validTypes := map[string]bool{
-		"ID":             true,
-		"ADDRESS_PROOF":  true,
-		"MEDICAL_RECORD": true,
-	}
-	return validTypes[docType]
-}
-
-func main() {
-	service, err := NewDocumentService()
-	if err != nil {
-		log.Fatalf("Failed to initialize document service: %v", err)
-	}
-
-	router := gin.New()
-	router.Use(gin.Recovery())
-	
-	service.SetupRoutes(router)
-
-	if err := router.Run(":8080"); err != nil {
-		log.Fatalf("Failed to start server: %v", err)
-	}
-}
+x-performance-slo:
+  processing-time: 5000  # 5 seconds target for 90% of requests
+  availability: 99.9
+  max-file-size: 10485760  # 10MB in bytes
+  rate-limits:
+    default: 1000
+    upload: 100

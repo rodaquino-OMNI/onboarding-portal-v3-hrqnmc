@@ -113,7 +113,7 @@ export function validateCPF(cpf: string): ValidationResult {
   }
 
   // Check against blacklist
-  if (VALIDATION_CONSTANTS.INVALID_CPF_LIST.includes(cleanCPF)) {
+  if ((VALIDATION_CONSTANTS.INVALID_CPF_LIST as readonly string[]).includes(cleanCPF)) {
     return {
       isValid: false,
       error: {
