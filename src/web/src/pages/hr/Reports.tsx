@@ -5,9 +5,9 @@ import { useAuditLog } from '../../hooks/useAuditLog';
 
 import DataTable, { DataTableColumn } from '../../components/common/DataTable';
 import ErrorBoundary from '../../components/common/ErrorBoundary';
-import EnrollmentService from '../../services/enrollment.service';
-import { EnrollmentReport } from '../../types/enrollment.types';
-import { EnrollmentStatus } from '../../types/enrollment.types';
+import { EnrollmentService } from '../../services/enrollment.service';
+import { ApiService } from '../../services/api.service';
+import { EnrollmentSummary, EnrollmentStatus } from '../../types/enrollment.types';
 import { PolicyStatus } from '../../types/policy.types';
 import { THEME } from '../../constants/app.constants';
 
@@ -29,7 +29,8 @@ const Reports: React.FC = () => {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const auditLog = useAuditLog();
-  const enrollmentService = new EnrollmentService();
+  const apiService = new ApiService();
+  const enrollmentService = new EnrollmentService(apiService);
 
   // State management
   const [currentPage, setCurrentPage] = useState(1);
@@ -49,13 +50,13 @@ const Reports: React.FC = () => {
       staleTime: CACHE_TTL,
       retry: RETRY_ATTEMPTS,
       onError: (error) => {
-        auditLog.error('enrollment_report_fetch_failed', { error });
+        auditLog.logAccess('enrollment_report_fetch_failed', { error });
       }
     }
   );
 
   // Table columns configuration with LGPD compliance
-  const columns: DataTableColumn<EnrollmentReport>[] = useMemo(() => [
+  const columns: DataTableColumn<EnrollmentSummary>[] = useMemo(() => [
     {
       key: 'id',
       header: t('reports.columns.id'),
@@ -64,14 +65,14 @@ const Reports: React.FC = () => {
       filterType: 'text'
     },
     {
-      key: 'employeeName',
+      key: 'beneficiaryName',
       header: t('reports.columns.employeeName'),
       width: '200px',
       filterable: true,
       filterType: 'text',
       render: (row) => (
-        <span className="employee-name" title={row.employeeName}>
-          {row.employeeName}
+        <span className="employee-name" title={row.beneficiaryName}>
+          {row.beneficiaryName}
         </span>
       )
     },
@@ -82,38 +83,40 @@ const Reports: React.FC = () => {
       filterable: true,
       filterType: 'status',
       render: (row) => (
-        <StatusBadge 
-          status={row.status} 
-          type="enrollment"
+        <span
+          className={`status-badge status-${row.status.toLowerCase()}`}
           aria-label={t(`status.${row.status.toLowerCase()}`)}
-        />
+        >
+          {t(`status.${row.status.toLowerCase()}`)}
+        </span>
       )
     },
     {
-      key: 'submissionDate',
+      key: 'createdAt',
       header: t('reports.columns.submissionDate'),
       width: '150px',
       filterable: true,
       filterType: 'date',
-      render: (row) => new Date(row.submissionDate).toLocaleDateString('pt-BR')
+      render: (row) => new Date(row.createdAt).toLocaleDateString('pt-BR')
     },
     {
-      key: 'policyNumber',
-      header: t('reports.columns.policyNumber'),
+      key: 'cpf',
+      header: t('reports.columns.cpf'),
       width: '150px',
       filterable: true,
-      filterType: 'text'
+      filterType: 'text',
+      render: (row) => row.cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4')
     },
     {
-      key: 'planType',
-      header: t('reports.columns.planType'),
+      key: 'riskLevel',
+      header: t('reports.columns.riskLevel'),
       width: '150px',
       filterable: true,
       filterType: 'select',
       filterOptions: [
-        { value: 'BASIC', label: t('planTypes.basic') },
-        { value: 'STANDARD', label: t('planTypes.standard') },
-        { value: 'PREMIUM', label: t('planTypes.premium') }
+        { value: 'LOW', label: t('riskLevels.low') },
+        { value: 'MEDIUM', label: t('riskLevels.medium') },
+        { value: 'HIGH', label: t('riskLevels.high') }
       ]
     }
   ], [t]);
@@ -121,7 +124,7 @@ const Reports: React.FC = () => {
   // Handle page changes
   const handlePageChange = useCallback((page: number) => {
     setCurrentPage(page);
-    auditLog.info('enrollment_report_page_changed', { page });
+    auditLog.logAccess('enrollment_report_page_changed', { page });
   }, [auditLog]);
 
   // Handle filter changes
@@ -131,19 +134,32 @@ const Reports: React.FC = () => {
       ...newFilters
     }));
     setCurrentPage(1);
-    auditLog.info('enrollment_report_filters_changed', { filters: newFilters });
+    auditLog.logAccess('enrollment_report_filters_changed', { filters: newFilters });
   }, [auditLog]);
 
   // Handle export functionality
   const handleExport = useCallback(async () => {
     try {
-      auditLog.info('enrollment_report_export_started');
+      auditLog.logAccess('enrollment_report_export_started');
       setExportProgress(0);
 
-      const response = await enrollmentService.exportEnrollments(filters);
-      
+      // For now, export the current data as CSV
+      const data = enrollmentData?.data || [];
+      const csvContent = [
+        ['ID', 'Beneficiary Name', 'CPF', 'Status', 'Created At', 'Risk Level', 'Broker ID'].join(','),
+        ...data.map(row => [
+          row.id,
+          row.beneficiaryName || '',
+          row.cpf || '',
+          row.status,
+          new Date(row.createdAt).toLocaleDateString('pt-BR'),
+          row.riskLevel,
+          row.brokerId || ''
+        ].join(','))
+      ].join('\n');
+
       // Create and download file
-      const blob = new Blob([response.data], { type: 'text/csv' });
+      const blob = new Blob([csvContent], { type: 'text/csv' });
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
@@ -151,14 +167,14 @@ const Reports: React.FC = () => {
       document.body.appendChild(link);
       link.click();
       link.remove();
-      
+
       setExportProgress(100);
-      auditLog.info('enrollment_report_export_completed');
+      auditLog.logAccess('enrollment_report_export_completed');
     } catch (error) {
-      auditLog.error('enrollment_report_export_failed', { error });
+      auditLog.logAccess('enrollment_report_export_failed', { error });
       setExportProgress(0);
     }
-  }, [filters, auditLog, enrollmentService]);
+  }, [enrollmentData, auditLog]);
 
   return (
     <ErrorBoundary>
@@ -177,7 +193,7 @@ const Reports: React.FC = () => {
           </div>
         </header>
 
-        <DataTable<EnrollmentReport>
+        <DataTable<EnrollmentSummary>
           columns={columns}
           data={enrollmentData?.data || []}
           loading={isLoading}
