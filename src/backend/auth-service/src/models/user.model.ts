@@ -12,20 +12,19 @@ import {
   BeforeInsert, 
   BeforeUpdate 
 } from 'typeorm';
-import { 
-  IsEmail, 
-  IsString, 
-  MinLength, 
-  IsBoolean, 
-  IsPhoneNumber, 
-  IsArray, 
-  IsDate, 
-  IsInt, 
-  Min,
-  ValidateIf 
+import {
+  IsEmail,
+  IsString,
+  MinLength,
+  IsBoolean,
+  IsPhoneNumber,
+  IsArray,
+  IsDate,
+  IsInt,
+  Min
 } from 'class-validator';
 import { Exclude, Transform } from 'class-transformer';
-import { security, session } from '../config/auth.config';
+import { security } from '../config/auth.config';
 import { hashPassword } from '../utils/encryption';
 
 /**
@@ -47,36 +46,36 @@ export enum UserRole {
 @Index(['email', 'cpf', 'role'])
 export class User {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column({ unique: true })
   @IsEmail()
   @Transform(({ value }) => value.toLowerCase())
-  email: string;
+  email!: string;
 
   @Column()
   @Exclude({ toPlainOnly: true })
   @MinLength(security.passwordMinLength)
-  password: string;
+  password!: string;
 
   @Column()
   @IsString()
-  firstName: string;
+  firstName!: string;
 
   @Column()
   @IsString()
-  lastName: string;
+  lastName!: string;
 
   @Column({ unique: true })
   @IsString()
-  cpf: string;
+  cpf!: string;
 
   @Column({ type: 'enum', enum: UserRole })
-  role: UserRole;
+  role!: UserRole;
 
   @Column({ default: false })
   @IsBoolean()
-  mfaEnabled: boolean;
+  mfaEnabled!: boolean;
 
   @Column({ nullable: true })
   @Exclude({ toPlainOnly: true })
@@ -94,7 +93,7 @@ export class User {
   @Column({ default: 0 })
   @IsInt()
   @Min(0)
-  loginAttempts: number;
+  loginAttempts!: number;
 
   @Column({ nullable: true })
   @IsDate()
@@ -107,26 +106,31 @@ export class User {
   @Column('simple-array', { default: '' })
   @IsArray()
   @Exclude({ toPlainOnly: true })
-  passwordHistory: string[];
+  passwordHistory!: string[];
 
   @Column({ default: true })
   @IsBoolean()
-  isActive: boolean;
+  isActive!: boolean;
 
   @Column({ nullable: true })
   @IsString()
   lastIpAddress?: string;
 
+  @Column({ default: 0 })
+  @IsInt()
+  @Min(0)
+  tokenVersion!: number;
+
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn()
-  updatedAt: Date;
+  updatedAt!: Date;
 
   @Column('jsonb', { default: [] })
   @IsArray()
   @Exclude({ toPlainOnly: true })
-  auditLog: Array<{
+  auditLog!: Array<{
     action: string;
     timestamp: Date;
     ipAddress?: string;

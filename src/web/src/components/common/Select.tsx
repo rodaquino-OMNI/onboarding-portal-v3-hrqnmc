@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useRef } from 'react';
-import { Select as MuiSelect, FormControl, InputLabel, MenuItem, FormHelperText } from '@mui/material';
+import { Select as MuiSelect, FormControl, InputLabel, MenuItem, FormHelperText, SelectChangeEvent } from '@mui/material';
 import { useTheme } from '@mui/material';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { getFieldError } from '../../utils/form.utils';
@@ -57,7 +57,7 @@ const Select: React.FC<SelectProps> = ({
   /**
    * Handles select value changes with validation and ARIA announcements
    */
-  const handleChange = useCallback((event: React.ChangeEvent<{ value: unknown }>) => {
+  const handleChange = useCallback((event: SelectChangeEvent<string | number>) => {
     event.preventDefault();
     const newValue = event.target.value;
 

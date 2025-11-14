@@ -286,7 +286,7 @@ export const BeneficiaryForm: React.FC<BeneficiaryFormProps> = ({
         onChange={(value) => setFieldValue('address.street', value)}
         required
         disabled={disabled}
-        error={touched.address?.street ? errors.address?.street : undefined}
+        error={touched.address && (touched as any).address.street && errors.address ? (errors as any).address.street : undefined}
         validationRules={{ required: true }}
       />
 
@@ -299,7 +299,7 @@ export const BeneficiaryForm: React.FC<BeneficiaryFormProps> = ({
         onChange={(value) => setFieldValue('address.number', value)}
         required
         disabled={disabled}
-        error={touched.address?.number ? errors.address?.number : undefined}
+        error={touched.address && (touched as any).address.number && errors.address ? (errors as any).address.number : undefined}
         validationRules={{ required: true }}
       />
 
@@ -311,7 +311,7 @@ export const BeneficiaryForm: React.FC<BeneficiaryFormProps> = ({
         value={values.address?.complement || ''}
         onChange={(value) => setFieldValue('address.complement', value)}
         disabled={disabled}
-        error={touched.address?.complement ? errors.address?.complement : undefined}
+        error={touched.address && (touched as any).address.complement ? (errors as any).address?.complement : undefined}
       />
 
       <Input
@@ -323,7 +323,7 @@ export const BeneficiaryForm: React.FC<BeneficiaryFormProps> = ({
         onChange={(value) => setFieldValue('address.neighborhood', value)}
         required
         disabled={disabled}
-        error={touched.address?.neighborhood ? errors.address?.neighborhood : undefined}
+        error={touched.address && (touched as any).address.neighborhood && errors.address ? (errors as any).address.neighborhood : undefined}
         validationRules={{ required: true }}
       />
 
@@ -336,7 +336,7 @@ export const BeneficiaryForm: React.FC<BeneficiaryFormProps> = ({
         onChange={(value) => setFieldValue('address.city', value)}
         required
         disabled={disabled}
-        error={touched.address?.city ? errors.address?.city : undefined}
+        error={touched.address && (touched as any).address.city && errors.address ? (errors as any).address.city : undefined}
         validationRules={{ required: true }}
       />
 
@@ -363,7 +363,7 @@ export const BeneficiaryForm: React.FC<BeneficiaryFormProps> = ({
         required
         disabled={disabled}
         mask="99999-999"
-        error={touched.address?.zipCode ? errors.address?.zipCode : undefined}
+        error={touched.address && (touched as any).address.zipCode && errors.address ? (errors as any).address.zipCode : undefined}
         validationRules={{ required: true }}
       />
 

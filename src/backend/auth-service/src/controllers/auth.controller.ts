@@ -9,8 +9,8 @@ import { RateLimiterRedis } from 'rate-limiter-flexible';
 import { validate } from 'class-validator';
 import httpStatus from 'http-status';
 import Redis from 'ioredis';
+import * as winston from 'winston';
 import { AuthService } from '../services/auth.service';
-import { createLogger } from 'winston';
 
 /**
  * Enhanced authentication controller with comprehensive security features
@@ -27,7 +27,7 @@ export class AuthController {
       host: process.env.REDIS_HOST,
       port: parseInt(process.env.REDIS_PORT || '6379'),
       password: process.env.REDIS_PASSWORD,
-      tls: process.env.NODE_ENV === 'production'
+      ...(process.env.NODE_ENV === 'production' && { tls: {} })
     });
 
     // Configure rate limiter
@@ -39,10 +39,13 @@ export class AuthController {
     });
 
     // Configure logger
-    this.logger = createLogger({
+    this.logger = winston.createLogger({
       level: 'info',
       format: winston.format.json(),
-      defaultMeta: { service: 'auth-controller' }
+      defaultMeta: { service: 'auth-controller' },
+      transports: [
+        new winston.transports.Console()
+      ]
     });
   }
 
@@ -52,7 +55,8 @@ export class AuthController {
   async login(req: Request, res: Response): Promise<Response> {
     try {
       // Apply rate limiting
-      await this.rateLimiter.consume(req.ip);
+      const ipAddress = req.ip || 'unknown';
+      await this.rateLimiter.consume(ipAddress);
 
       // Validate request body
       const errors = await validate(req.body);
@@ -61,10 +65,10 @@ export class AuthController {
       }
 
       // Check for suspicious activity
-      const isSuspicious = await this.authService.detectSuspiciousActivity(req.ip);
+      const isSuspicious = await this.authService.detectSuspiciousActivity(ipAddress);
       if (isSuspicious) {
         this.logger.warn('Suspicious login attempt detected', {
-          ip: req.ip,
+          ip: ipAddress,
           userAgent: req.headers['user-agent']
         });
         return res.status(httpStatus.TOO_MANY_REQUESTS).json({
@@ -74,7 +78,7 @@ export class AuthController {
 
       // Process login
       const { email, password } = req.body;
-      const result = await this.authService.login(email, password, req.ip);
+      const result = await this.authService.login(email, password, ipAddress);
 
       // Set secure cookie if MFA not required
       if (!result.mfaRequired) {
@@ -94,7 +98,7 @@ export class AuthController {
 
     } catch (error) {
       this.logger.error('Login failed', {
-        error: error.message,
+        error: (error as Error).message,
         ip: req.ip
       });
 
@@ -143,7 +147,7 @@ export class AuthController {
 
     } catch (error) {
       this.logger.error('MFA verification failed', {
-        error: error.message,
+        error: (error as Error).message,
         ip: req.ip
       });
 
@@ -165,6 +169,12 @@ export class AuthController {
         });
       }
 
+      if (!req.user) {
+        return res.status(httpStatus.UNAUTHORIZED).json({
+          error: 'User not authenticated'
+        });
+      }
+
       // Process logout
       await this.authService.logout(req.user.id, refreshToken);
 
@@ -181,7 +191,7 @@ export class AuthController {
 
     } catch (error) {
       this.logger.error('Logout failed', {
-        error: error.message,
+        error: (error as Error).message,
         ip: req.ip
       });
 
@@ -229,7 +239,7 @@ export class AuthController {
 
     } catch (error) {
       this.logger.error('Token refresh failed', {
-        error: error.message,
+        error: (error as Error).message,
         ip: req.ip
       });
 

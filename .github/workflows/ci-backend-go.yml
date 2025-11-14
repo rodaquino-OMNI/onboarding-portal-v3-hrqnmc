@@ -1,0 +1,161 @@
+name: CI - Go Backend Services
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'src/backend/document-service/**'
+      - '.github/workflows/ci-backend-go.yml'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'src/backend/document-service/**'
+
+env:
+  GO_VERSION: '1.21'
+
+jobs:
+  test-document-service:
+    name: Test Document Service
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: testpass
+          POSTGRES_DB: document_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      minio:
+        image: minio/minio
+        env:
+          MINIO_ROOT_USER: minioadmin
+          MINIO_ROOT_PASSWORD: minioadmin
+        options: >-
+          --health-cmd "curl -f http://localhost:9000/minio/health/live"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 9000:9000
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+          cache-dependency-path: src/backend/document-service/go.sum
+
+      - name: Install dependencies
+        working-directory: src/backend/document-service
+        run: go mod download
+
+      - name: Run linter (golangci-lint)
+        uses: golangci/golangci-lint-action@v3
+        with:
+          version: latest
+          working-directory: src/backend/document-service
+
+      - name: Run tests
+        working-directory: src/backend/document-service
+        run: go test -v -race -coverprofile=coverage.out -covermode=atomic ./...
+        env:
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_NAME: document_test
+          DB_USER: postgres
+          DB_PASSWORD: testpass
+          MINIO_ENDPOINT: localhost:9000
+          MINIO_ACCESS_KEY: minioadmin
+          MINIO_SECRET_KEY: minioadmin
+          MINIO_USE_SSL: false
+
+      - name: Generate coverage report
+        working-directory: src/backend/document-service
+        run: go tool cover -html=coverage.out -o coverage.html
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./src/backend/document-service/coverage.out
+          flags: document-service
+          name: document-service-coverage
+
+      - name: Check coverage threshold
+        working-directory: src/backend/document-service
+        run: |
+          COVERAGE=$(go tool cover -func=coverage.out | grep total | awk '{print $3}' | sed 's/%//')
+          echo "Coverage: $COVERAGE%"
+          if (( $(echo "$COVERAGE < 60" | bc -l) )); then
+            echo "Coverage below 60% threshold"
+            exit 1
+          fi
+
+      - name: Build binary
+        working-directory: src/backend/document-service
+        run: go build -o bin/document-service ./cmd/server
+
+      - name: Run benchmarks
+        working-directory: src/backend/document-service
+        run: go test -bench=. -benchmem ./...
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: document-service-binary
+          path: src/backend/document-service/bin/
+
+  build-docker-document:
+    name: Build Document Service Docker Image
+    needs: test-document-service
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: src/backend/document-service
+          push: false
+          tags: austa/document-service:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  security-scan:
+    name: Security Scan - Document Service
+    needs: test-document-service
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run gosec security scanner
+        uses: securego/gosec@master
+        with:
+          args: '-no-fail -fmt json -out gosec-results.json ./...'
+          working-directory: src/backend/document-service
+
+      - name: Run govulncheck
+        working-directory: src/backend/document-service
+        run: |
+          go install golang.org/x/vuln/cmd/govulncheck@latest
+          govulncheck ./...
+        continue-on-error: true
