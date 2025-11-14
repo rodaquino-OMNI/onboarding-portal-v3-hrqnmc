@@ -21,6 +21,7 @@ interface EncryptedData {
   encryptedData: string;
   authTag: string;
   keyVersion: number;
+  salt?: string;
 }
 
 /**
@@ -147,7 +148,8 @@ export const encryptData = async (data: string): Promise<EncryptedData> => {
       iv: iv.toString('hex'),
       encryptedData,
       authTag: authTag.toString('hex'),
-      keyVersion: keyRotation.currentVersion
+      keyVersion: keyRotation.currentVersion,
+      salt: salt.toString('hex')
     };
   } catch (error) {
     throw new EncryptionError(`Data encryption failed: ${(error as Error).message}`);
@@ -178,8 +180,8 @@ export const decryptData = async (encryptedData: EncryptedData): Promise<string>
     const iv = Buffer.from(encryptedData.iv, 'hex');
     const authTag = Buffer.from(encryptedData.authTag, 'hex');
 
-    // Get appropriate key version
-    const salt = randomBytes(32);
+    // Get appropriate key version - use stored salt if available, otherwise generate new one
+    const salt = encryptedData.salt ? Buffer.from(encryptedData.salt, 'hex') : randomBytes(32);
     keyBuffer = await scryptAsync(
       process.env.ENCRYPTION_KEY || 'default-encryption-key',
       salt,

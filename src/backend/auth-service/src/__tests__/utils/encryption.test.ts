@@ -1,4 +1,4 @@
-import { describe, it, expect } from '@jest/globals';
+import { describe, it, expect, beforeAll } from '@jest/globals';
 import {
   encryptData,
   decryptData,
@@ -8,6 +8,11 @@ import {
 } from '../../utils/encryption';
 
 describe('Encryption Utils', () => {
+  // Setup test environment variables
+  beforeAll(() => {
+    process.env.ENCRYPTION_KEY = 'test-encryption-key-32-bytes-long!!';
+    process.env.JWT_SECRET = 'test-jwt-secret-key-for-testing';
+  });
   describe('encryptData', () => {
     it('should encrypt data successfully', async () => {
       const data = 'sensitive data';

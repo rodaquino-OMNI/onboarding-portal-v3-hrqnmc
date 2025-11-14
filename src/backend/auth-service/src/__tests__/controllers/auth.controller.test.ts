@@ -1,12 +1,46 @@
-import { describe, it, expect, jest, beforeEach } from '@jest/globals';
+import { describe, it, expect, jest, beforeAll, beforeEach } from '@jest/globals';
 import { Request, Response } from 'express';
 import { AuthController } from '../../controllers/auth.controller';
 import { AuthService } from '../../services/auth.service';
 import httpStatus from 'http-status';
 
 // Mock dependencies
-jest.mock('ioredis');
+jest.mock('ioredis', () => {
+  return jest.fn().mockImplementation(() => ({
+    get: jest.fn().mockResolvedValue(null),
+    set: jest.fn().mockResolvedValue('OK'),
+    del: jest.fn().mockResolvedValue(1),
+    expire: jest.fn().mockResolvedValue(1),
+    incr: jest.fn().mockResolvedValue(1),
+    decr: jest.fn().mockResolvedValue(1),
+    // Rate limiting methods required by rate-limiter-flexible
+    rlflxIncr: jest.fn().mockResolvedValue([0, 1]),
+    rlflxReset: jest.fn().mockResolvedValue('OK'),
+    multi: jest.fn().mockReturnValue({
+      exec: jest.fn().mockResolvedValue([[null, 1], [null, 1]]),
+      incr: jest.fn().mockReturnThis(),
+      pexpire: jest.fn().mockReturnThis(),
+      expire: jest.fn().mockReturnThis()
+    }),
+    on: jest.fn(),
+    connect: jest.fn().mockResolvedValue(undefined),
+    disconnect: jest.fn().mockResolvedValue(undefined),
+    quit: jest.fn().mockResolvedValue('OK'),
+    pipeline: jest.fn().mockReturnValue({
+      exec: jest.fn().mockResolvedValue([]),
+      set: jest.fn().mockReturnThis(),
+      expire: jest.fn().mockReturnThis()
+    })
+  }));
+});
 jest.mock('../../services/auth.service');
+jest.mock('class-validator', () => {
+  const actual = jest.requireActual('class-validator') as any;
+  return {
+    ...(actual || {}),
+    validate: jest.fn().mockResolvedValue([])
+  };
+});
 
 describe('AuthController', () => {
   let authController: AuthController;
@@ -16,6 +50,14 @@ describe('AuthController', () => {
   let jsonMock: jest.Mock;
   let statusMock: jest.Mock;
   let cookieMock: jest.Mock;
+
+  beforeAll(() => {
+    // Setup test environment variables
+    process.env.JWT_SECRET = 'test-jwt-secret-key-for-testing-purposes';
+    process.env.ENCRYPTION_KEY = 'test-encryption-key-32-bytes!!';
+    process.env.REDIS_HOST = 'localhost';
+    process.env.REDIS_PORT = '6379';
+  });
 
   beforeEach(() => {
     // Mock AuthService
@@ -30,14 +72,14 @@ describe('AuthController', () => {
     authController = new AuthController(mockAuthService);
 
     // Mock Express response
-    jsonMock = jest.fn();
+    jsonMock = jest.fn().mockReturnThis();
     statusMock = jest.fn().mockReturnThis();
-    cookieMock = jest.fn();
+    cookieMock = jest.fn().mockReturnThis();
 
     mockResponse = {
-      json: jsonMock,
-      status: statusMock,
-      cookie: cookieMock,
+      json: jsonMock as any,
+      status: statusMock as any,
+      cookie: cookieMock as any,
     };
 
     // Mock Express request
@@ -161,6 +203,9 @@ describe('AuthController', () => {
     });
 
     it('should handle validation errors', async () => {
+      const { validate } = require('class-validator');
+      validate.mockResolvedValueOnce([{ property: 'email', constraints: { isEmail: 'invalid email' } }]);
+
       mockRequest.body = {
         email: 'invalid-email',
         password: '123'
@@ -170,6 +215,7 @@ describe('AuthController', () => {
 
       // The validation would fail and return BAD_REQUEST
       // This test verifies the controller handles validation
+      expect(statusMock).toHaveBeenCalledWith(httpStatus.BAD_REQUEST);
       expect(mockAuthService.login).not.toHaveBeenCalled();
     });
   });
@@ -196,14 +242,16 @@ describe('AuthController', () => {
       const verifyMFAMethod = jest.fn().mockImplementation(async (req, res) => {
         const { userId, token, method } = req.body;
         const result = await mockAuthService.verifyMFA(userId, token, method);
-        res.cookie('refreshToken', result.tokens.refreshToken, {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: 'strict'
-        });
+        if (result.tokens) {
+          res.cookie('refreshToken', result.tokens.refreshToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict'
+          });
+        }
         return res.status(httpStatus.OK).json({
           verified: result.verified,
-          accessToken: result.tokens.accessToken
+          accessToken: result.tokens?.accessToken
         });
       });
 

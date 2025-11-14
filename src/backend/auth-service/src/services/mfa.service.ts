@@ -33,7 +33,7 @@ export class MFAService {
     // Configure TOTP authenticator with enhanced security settings
     this.authenticator = authenticator;
     this.authenticator.options = {
-      algorithm: authConfig.mfa.methods.totp.algorithm as any,
+      algorithm: authConfig.mfa.methods.totp.algorithm.toLowerCase() as any,
       digits: authConfig.mfa.methods.totp.digits,
       step: authConfig.mfa.methods.totp.period,
       window: authConfig.mfa.methods.totp.window
@@ -144,6 +144,11 @@ export class MFAService {
    */
   async generateSMSToken(user: User): Promise<void> {
     try {
+      // Validate phone number exists
+      if (!user.phoneNumber) {
+        throw new Error('User phone number is required for SMS MFA');
+      }
+
       // Check rate limiting
       await this.rateLimiter.consume(user.id);
 
