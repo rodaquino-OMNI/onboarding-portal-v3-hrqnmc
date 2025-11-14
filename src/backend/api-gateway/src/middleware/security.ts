@@ -11,7 +11,6 @@ import { kongConfig } from '../config/kong.config';
 
 // Environment variables
 const JWT_SECRET = process.env.JWT_SECRET;
-const NODE_ENV = process.env.NODE_ENV || 'development';
 const TOTP_SECRET = process.env.TOTP_SECRET;
 const ALLOWED_REGIONS = process.env.ALLOWED_REGIONS?.split(',') || ['BR'];
 
@@ -37,13 +36,8 @@ const SECURITY_CONFIG = {
       preload: true
     },
     noSniff: true,
-    referrerPolicy: 'same-origin',
-    xssFilter: true,
-    featurePolicy: {
-      geolocation: ["'none'"],
-      microphone: ["'none'"],
-      camera: ["'none'"]
-    }
+    referrerPolicy: { policy: 'same-origin' as const },
+    xssFilter: true
   },
   jwt: {
     algorithms: ['HS256'],
@@ -93,13 +87,13 @@ const validateJWT = async (req: Request, res: Response, next: NextFunction): Pro
 
     const token = authHeader.split(' ')[1];
     const decoded = jwt.verify(token, JWT_SECRET!, {
-      algorithms: SECURITY_CONFIG.jwt.algorithms,
+      algorithms: SECURITY_CONFIG.jwt.algorithms as jwt.Algorithm[],
       issuer: SECURITY_CONFIG.jwt.issuer,
       audience: SECURITY_CONFIG.jwt.audience
     }) as any;
 
     // Validate role-specific expiration
-    const roleExpiration = SECURITY_CONFIG.jwt.expiresIn[decoded.role];
+    const roleExpiration = SECURITY_CONFIG.jwt.expiresIn[decoded.role as keyof typeof SECURITY_CONFIG.jwt.expiresIn];
     if (!roleExpiration) {
       throw new Error('Invalid role');
     }
@@ -116,7 +110,7 @@ const validateJWT = async (req: Request, res: Response, next: NextFunction): Pro
       }
     }
 
-    req.user = decoded;
+    (req as any).user = decoded;
     logger.info('JWT validated successfully', {
       userId: decoded.sub,
       role: decoded.role
@@ -124,7 +118,7 @@ const validateJWT = async (req: Request, res: Response, next: NextFunction): Pro
 
     next();
   } catch (error) {
-    logger.error('JWT validation failed', { error: error.message });
+    logger.error('JWT validation failed', { error: (error as Error).message });
     res.status(401).json({ error: 'Authentication failed' });
   }
 };
@@ -135,11 +129,11 @@ const validateJWT = async (req: Request, res: Response, next: NextFunction): Pro
 const detectBots = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const userAgent = req.headers['user-agent'] || '';
-    const requestsPerSecond = await getRateForIP(req.ip);
+    const requestsPerSecond = await getRateForIP(req.ip || '');
 
     // Check against bot patterns
     const isSuspiciousBot = kongConfig.plugins.bot_detection.config.deny.some(
-      pattern => new RegExp(pattern).test(userAgent)
+      (pattern: string) => new RegExp(pattern).test(userAgent)
     );
 
     if (isSuspiciousBot || requestsPerSecond > 10) {
@@ -148,12 +142,13 @@ const detectBots = async (req: Request, res: Response, next: NextFunction): Prom
         userAgent,
         requestsPerSecond
       });
-      return res.status(403).json({ error: 'Bot activity detected' });
+      res.status(403).json({ error: 'Bot activity detected' });
+      return;
     }
 
     next();
   } catch (error) {
-    logger.error('Bot detection error', { error: error.message });
+    logger.error('Bot detection error', { error: (error as Error).message });
     next(error);
   }
 };
@@ -163,7 +158,7 @@ const detectBots = async (req: Request, res: Response, next: NextFunction): Prom
  */
 const filterIPs = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const ip = req.ip;
+    const ip = req.ip || '';
     const geo = geoip.lookup(ip);
 
     if (!geo || !ALLOWED_REGIONS.includes(geo.country)) {
@@ -171,20 +166,22 @@ const filterIPs = async (req: Request, res: Response, next: NextFunction): Promi
         ip,
         country: geo?.country
       });
-      return res.status(403).json({ error: 'Access denied by location' });
+      res.status(403).json({ error: 'Access denied by location' });
+      return;
     }
 
     // Check against dynamic IP lists
     const ipConfig = kongConfig.plugins.ip_restriction.config;
-    if (ipConfig.deny.includes(ip) || 
+    if (ipConfig.deny.includes(ip) ||
         (ipConfig.allow.length > 0 && !ipConfig.allow.includes(ip))) {
       logger.warn('IP blocked by restriction list', { ip });
-      return res.status(403).json({ error: 'Access denied by IP restriction' });
+      res.status(403).json({ error: 'Access denied by IP restriction' });
+      return;
     }
 
     next();
   } catch (error) {
-    logger.error('IP filtering error', { error: error.message });
+    logger.error('IP filtering error', { error: (error as Error).message });
     next(error);
   }
 };
@@ -192,7 +189,7 @@ const filterIPs = async (req: Request, res: Response, next: NextFunction): Promi
 /**
  * Helper function to get request rate for an IP
  */
-const getRateForIP = async (ip: string): Promise<number> => {
+const getRateForIP = async (_ip: string): Promise<number> => {
   // Implementation would typically use Redis for rate tracking
   return 0;
 };
@@ -225,7 +222,8 @@ const configureSecurityMiddleware = () => {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
         logger.warn('Request validation failed', { errors: errors.array() });
-        return res.status(400).json({ errors: errors.array() });
+        res.status(400).json({ errors: errors.array() });
+        return;
       }
       next();
     }

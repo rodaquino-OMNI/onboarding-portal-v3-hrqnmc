@@ -5,7 +5,6 @@ import express, { Express, Request, Response, NextFunction } from 'express'; // 
 import morgan from 'morgan'; // @version ^1.10.0
 import winston from 'winston'; // @version ^3.8.2
 import { v4 as uuidv4 } from 'uuid'; // @version ^9.0.0
-import { kongConfig } from './config/kong.config';
 import configureCorsMiddleware from './middleware/cors';
 import rateLimiter from './middleware/rate-limiter';
 import securityMiddleware from './middleware/security';
@@ -100,7 +99,7 @@ const setupMiddleware = (app: Express): void => {
   app.use(rateLimiter.createRateLimiter());
 
   // Error handling middleware
-  app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+  app.use((err: Error, req: Request, res: Response, _next: NextFunction) => {
     logger.error('Unhandled error', {
       error: err.message,
       stack: err.stack,
@@ -117,12 +116,12 @@ const setupMiddleware = (app: Express): void => {
 // Configure routes
 const setupRoutes = (app: Express): void => {
   // Health check endpoint
-  app.get('/health', (req: Request, res: Response) => {
+  app.get('/health', (_req: Request, res: Response) => {
     res.json({ status: 'healthy', timestamp: new Date().toISOString() });
   });
 
   // Metrics endpoint for Prometheus
-  app.get('/metrics', (req: Request, res: Response) => {
+  app.get('/metrics', (_req: Request, res: Response) => {
     res.set('Content-Type', 'text/plain');
     // Implement metrics collection logic
     res.send('# API Gateway metrics...');

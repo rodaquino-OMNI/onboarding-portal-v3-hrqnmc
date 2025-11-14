@@ -33,7 +33,7 @@ interface ServiceOptions {
 // Plugin configuration interface
 interface PluginOptions {
   enabled: boolean;
-  config: Record<string, any>;
+  config: any;
 }
 
 /**
@@ -63,7 +63,7 @@ function getServiceConfig(serviceName: string, servicePort: number, options: Ser
  * @param pluginName - Name of the Kong plugin
  * @param options - Plugin configuration options
  */
-function getPluginConfig(pluginName: string, options: PluginOptions) {
+function getPluginConfig(pluginName: string, options: PluginOptions): any {
   return {
     name: pluginName,
     enabled: options.enabled,
@@ -254,6 +254,9 @@ const plugins = {
     }
   })
 };
+
+// Export plugins for use in middleware
+export { plugins };
 
 // Export comprehensive Kong configuration
 export const kongConfig: KongConfig = {

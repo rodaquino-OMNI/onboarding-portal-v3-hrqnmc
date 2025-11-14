@@ -1,7 +1,6 @@
 import cors from 'cors'; // @version ^2.8.5
 import { Request, Response, NextFunction } from 'express'; // @version ^4.18.2
-import { Logger } from 'winston'; // @version ^3.8.2
-import { plugins, security } from '../config/kong.config';
+import { plugins } from '../config/kong.config';
 
 // Environment variables
 const NODE_ENV = process.env.NODE_ENV || 'development';
@@ -60,7 +59,7 @@ const validateOrigin = (
 
   // Check cache first
   const cached = originCache.get(origin);
-  if (cached && Date.now() - cached.timestamp < CORS_CACHE_DURATION * 1000) {
+  if (cached && Date.now() - cached.timestamp < Number(CORS_CACHE_DURATION) * 1000) {
     return callback(null, cached.isValid);
   }
 
@@ -71,7 +70,7 @@ const validateOrigin = (
   }
 
   // Validate against allowed patterns
-  const isAllowed = plugins.cors.config.origins.some(pattern => {
+  const isAllowed = plugins.cors.config.origins.some((pattern: string) => {
     const regex = new RegExp('^' + pattern.replace('*', '.*') + '$');
     return regex.test(origin);
   });
@@ -107,7 +106,7 @@ const handleCorsError = (error: Error, origin: string): void => {
   if (originCache.size > 1000) {
     const now = Date.now();
     originCache.forEach((value, key) => {
-      if (now - value.timestamp > CORS_CACHE_DURATION * 1000) {
+      if (now - value.timestamp > Number(CORS_CACHE_DURATION) * 1000) {
         originCache.delete(key);
       }
     });
@@ -136,13 +135,14 @@ const configureCorsMiddleware = () => {
     }
 
     // Apply CORS middleware
-    return corsMiddleware(req, res, (err) => {
+    corsMiddleware(req, res, (err: any) => {
       if (err) {
         handleCorsError(err, req.headers.origin || 'unknown');
-        return res.status(403).json({
+        res.status(403).json({
           error: 'CORS Policy Violation',
           message: 'Access Denied by CORS Policy'
         });
+        return;
       }
       next();
     });
