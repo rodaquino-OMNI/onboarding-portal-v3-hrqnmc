@@ -28,12 +28,12 @@ class DatabaseSettings:
     def __init__(self):
         """Initialize database settings with enhanced security and performance configurations."""
         # Load database configuration from environment
-        self.host = "localhost"
-        self.port = 5432
-        self.database = "health_service"
-        self.username = "health_user"
+        self.host = os.getenv('DB_HOST', 'localhost')
+        self.port = int(os.getenv('DB_PORT', '5432'))
+        self.database = os.getenv('DB_NAME', 'health_service')
+        self.username = os.getenv('DB_USER', 'health_user')
         self.password = os.getenv('DB_PASSWORD', 'dev_password_CHANGE_IN_PROD')
-        self.schema = "public"
+        self.schema = os.getenv('DB_SCHEMA', 'public')
         
         # SSL Configuration
         self.ssl_enabled = True
@@ -76,7 +76,7 @@ class LLMSettings:
     def __init__(self):
         """Initialize LLM settings with failover and monitoring capabilities."""
         self.provider = DEFAULT_LLM_PROVIDER
-        self.api_key = ""
+        self.api_key = os.getenv('LLM_API_KEY', '')
         self.model_name = DEFAULT_LLM_MODEL
         self.azure_endpoint = None
         self.azure_deployment = None
@@ -143,7 +143,7 @@ class SecuritySettings:
 
     def __init__(self):
         """Initialize security settings with enhanced compliance and monitoring."""
-        self.encryption_key = ""
+        self.encryption_key = os.getenv('ENCRYPTION_KEY', '')
         self.encryption_algorithm = "AES-256-GCM"
         self.key_rotation_days = 30
         
@@ -216,9 +216,9 @@ class Settings(BaseSettings):
         self.environment = os.getenv('ENVIRONMENT', 'development')
         self.service_name = "health-service"
         self.version = "1.0.0"
-        self.api_port = 8000
-        self.log_level = "INFO"
-        self.redis_url = "redis://localhost"
+        self.api_port = int(os.getenv('API_PORT', '8000'))
+        self.log_level = os.getenv('LOG_LEVEL', 'INFO')
+        self.redis_url = os.getenv('REDIS_URL', 'redis://localhost')
 
         # Initialize sub-settings
         self.db = DatabaseSettings()
