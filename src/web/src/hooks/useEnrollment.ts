@@ -56,7 +56,6 @@ export function useEnrollment(
     data: enrollment,
     isLoading,
     isFetching,
-    isValidating,
     refetch
   } = useQuery(
     [ENROLLMENT_QUERY_KEY, enrollmentId],

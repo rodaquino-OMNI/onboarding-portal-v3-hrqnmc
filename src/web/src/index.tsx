@@ -15,13 +15,11 @@ import App from './App';
 import initI18n from './config/i18n.config';
 
 // Declare module.hot for HMR
-declare global {
-  interface NodeModule {
-    hot?: {
-      accept: (path?: string, callback?: () => void) => void;
-    };
-  }
-}
+declare const module: NodeModule & {
+  hot?: {
+    accept: (path?: string, callback?: () => void) => void;
+  };
+};
 
 // Constants
 const ROOT_ELEMENT_ID = 'root';
