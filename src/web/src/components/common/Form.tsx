@@ -280,6 +280,7 @@ const FormBase: React.FC<FormProps> = ({
           className
         )}
         noValidate
+        role="form"
       >
         {screenReaderInstructions && (
           <div className="sr-only" role="note">

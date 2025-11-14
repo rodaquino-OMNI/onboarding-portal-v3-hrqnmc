@@ -4,12 +4,17 @@ import '@testing-library/jest-dom';
 import { BrowserRouter } from 'react-router-dom';
 import LoginForm from '../LoginForm';
 
-// Mock dependencies
-jest.mock('../../../hooks/useAuth', () => ({
+// Mock AuthContext
+const mockLogin = jest.fn();
+jest.mock('../../../contexts/AuthContext', () => ({
   useAuth: () => ({
-    login: jest.fn(),
+    login: mockLogin,
     isLoading: false,
     error: null,
+    user: null,
+    isAuthenticated: false,
+    logout: jest.fn(),
+    refreshToken: jest.fn(),
   }),
 }));
 
@@ -30,6 +35,7 @@ const mockOnMFARequired = jest.fn();
 describe('LoginForm Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockLogin.mockResolvedValue({ success: true });
   });
 
   describe('Rendering', () => {
@@ -40,17 +46,17 @@ describe('LoginForm Component', () => {
 
     it('should render email input', () => {
       renderWithRouter(<LoginForm onSuccess={mockOnSuccess} onMFARequired={mockOnMFARequired} />);
-      expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
+      expect(screen.getByLabelText(/e-mail/i)).toBeInTheDocument();
     });
 
     it('should render password input', () => {
       renderWithRouter(<LoginForm onSuccess={mockOnSuccess} onMFARequired={mockOnMFARequired} />);
-      expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
+      expect(screen.getByLabelText(/senha/i)).toBeInTheDocument();
     });
 
     it('should render login button', () => {
       renderWithRouter(<LoginForm onSuccess={mockOnSuccess} onMFARequired={mockOnMFARequired} />);
-      expect(screen.getByRole('button', { name: /login|sign in/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /entrar/i })).toBeInTheDocument();
     });
 
     it('should render remember me checkbox', () => {
@@ -74,7 +80,7 @@ describe('LoginForm Component', () => {
     it('should validate empty email', async () => {
       renderWithRouter(<LoginForm onSuccess={mockOnSuccess} onMFARequired={mockOnMFARequired} />);
 
-      const submitButton = screen.getByRole('button', { name: /login|sign in/i });
+      const submitButton = screen.getByRole('button', { name: /entrar/i });
       fireEvent.click(submitButton);
 
       await waitFor(() => {
@@ -88,10 +94,10 @@ describe('LoginForm Component', () => {
     it('should validate invalid email format', async () => {
       renderWithRouter(<LoginForm onSuccess={mockOnSuccess} onMFARequired={mockOnMFARequired} />);
 
-      const emailInput = screen.getByLabelText(/email/i);
+      const emailInput = screen.getByLabelText(/e-mail/i);
       fireEvent.change(emailInput, { target: { value: 'invalid-email' } });
 
-      const submitButton = screen.getByRole('button', { name: /login|sign in/i });
+      const submitButton = screen.getByRole('button', { name: /entrar/i });
       fireEvent.click(submitButton);
 
       await waitFor(() => {
@@ -105,10 +111,10 @@ describe('LoginForm Component', () => {
     it('should validate empty password', async () => {
       renderWithRouter(<LoginForm onSuccess={mockOnSuccess} onMFARequired={mockOnMFARequired} />);
 
-      const emailInput = screen.getByLabelText(/email/i);
+      const emailInput = screen.getByLabelText(/e-mail/i);
       fireEvent.change(emailInput, { target: { value: 'test@example.com' } });
 
-      const submitButton = screen.getByRole('button', { name: /login|sign in/i });
+      const submitButton = screen.getByRole('button', { name: /entrar/i });
       fireEvent.click(submitButton);
 
       await waitFor(() => {
@@ -122,10 +128,10 @@ describe('LoginForm Component', () => {
     it('should validate minimum password length', async () => {
       renderWithRouter(<LoginForm onSuccess={mockOnSuccess} onMFARequired={mockOnMFARequired} />);
 
-      const passwordInput = screen.getByLabelText(/password/i);
+      const passwordInput = screen.getByLabelText(/senha/i);
       fireEvent.change(passwordInput, { target: { value: '123' } });
 
-      const submitButton = screen.getByRole('button', { name: /login|sign in/i });
+      const submitButton = screen.getByRole('button', { name: /entrar/i });
       fireEvent.click(submitButton);
 
       await waitFor(() => {
@@ -141,13 +147,13 @@ describe('LoginForm Component', () => {
     it('should submit form with valid credentials', async () => {
       renderWithRouter(<LoginForm onSuccess={mockOnSuccess} onMFARequired={mockOnMFARequired} />);
 
-      const emailInput = screen.getByLabelText(/email/i);
-      const passwordInput = screen.getByLabelText(/password/i);
+      const emailInput = screen.getByLabelText(/e-mail/i);
+      const passwordInput = screen.getByLabelText(/senha/i);
 
       fireEvent.change(emailInput, { target: { value: 'test@example.com' } });
       fireEvent.change(passwordInput, { target: { value: 'password123' } });
 
-      const submitButton = screen.getByRole('button', { name: /login|sign in/i });
+      const submitButton = screen.getByRole('button', { name: /entrar/i });
       fireEvent.click(submitButton);
 
       // Verify form is submitted
@@ -158,9 +164,9 @@ describe('LoginForm Component', () => {
     it('should disable submit button during submission', async () => {
       renderWithRouter(<LoginForm onSuccess={mockOnSuccess} onMFARequired={mockOnMFARequired} />);
 
-      const emailInput = screen.getByLabelText(/email/i);
-      const passwordInput = screen.getByLabelText(/password/i);
-      const submitButton = screen.getByRole('button', { name: /login|sign in/i });
+      const emailInput = screen.getByLabelText(/e-mail/i);
+      const passwordInput = screen.getByLabelText(/senha/i);
+      const submitButton = screen.getByRole('button', { name: /entrar/i });
 
       fireEvent.change(emailInput, { target: { value: 'test@example.com' } });
       fireEvent.change(passwordInput, { target: { value: 'password123' } });
@@ -175,7 +181,7 @@ describe('LoginForm Component', () => {
     it('should toggle password visibility', async () => {
       renderWithRouter(<LoginForm onSuccess={mockOnSuccess} onMFARequired={mockOnMFARequired} />);
 
-      const passwordInput = screen.getByLabelText(/password/i);
+      const passwordInput = screen.getByLabelText(/senha/i);
       expect(passwordInput).toHaveAttribute('type', 'password');
 
       const toggleButton = screen.queryByRole('button', { name: /show|hide|toggle password/i });
@@ -210,7 +216,7 @@ describe('LoginForm Component', () => {
     it('should have accessible error messages', async () => {
       renderWithRouter(<LoginForm onSuccess={mockOnSuccess} onMFARequired={mockOnMFARequired} />);
 
-      const submitButton = screen.getByRole('button', { name: /login|sign in/i });
+      const submitButton = screen.getByRole('button', { name: /entrar/i });
       fireEvent.click(submitButton);
 
       // Form should handle validation
@@ -220,8 +226,8 @@ describe('LoginForm Component', () => {
     it('should be keyboard navigable', () => {
       renderWithRouter(<LoginForm onSuccess={mockOnSuccess} onMFARequired={mockOnMFARequired} />);
 
-      const emailInput = screen.getByLabelText(/email/i);
-      const passwordInput = screen.getByLabelText(/password/i);
+      const emailInput = screen.getByLabelText(/e-mail/i);
+      const passwordInput = screen.getByLabelText(/senha/i);
 
       emailInput.focus();
       expect(emailInput).toHaveFocus();
@@ -236,14 +242,14 @@ describe('LoginForm Component', () => {
       renderWithRouter(<LoginForm onSuccess={mockOnSuccess} onMFARequired={mockOnMFARequired} />);
 
       // Simulate form submission that might result in errors
-      const submitButton = screen.getByRole('button', { name: /login|sign in/i });
+      const submitButton = screen.getByRole('button', { name: /entrar/i });
       expect(submitButton).toBeInTheDocument();
     });
 
     it('should clear errors on input change', async () => {
       renderWithRouter(<LoginForm onSuccess={mockOnSuccess} onMFARequired={mockOnMFARequired} />);
 
-      const emailInput = screen.getByLabelText(/email/i);
+      const emailInput = screen.getByLabelText(/e-mail/i);
       fireEvent.change(emailInput, { target: { value: 'test@example.com' } });
 
       // Errors should clear on valid input

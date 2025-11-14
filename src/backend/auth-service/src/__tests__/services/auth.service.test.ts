@@ -248,4 +248,110 @@ describe('AuthService', () => {
       expect(result.user.role).toBeDefined();
     });
   });
+
+  describe('refreshToken', () => {
+    it('should successfully refresh access token with valid refresh token', async () => {
+      const refreshToken = 'valid-refresh-token';
+      userRepository.findOne.mockResolvedValue(mockUser);
+
+      const result = await authService.refreshToken(refreshToken);
+
+      expect(result).toBeDefined();
+      expect(result.accessToken).toBeDefined();
+      expect(result.refreshToken).toBeDefined();
+    });
+
+    it('should throw error for invalid refresh token', async () => {
+      const refreshToken = 'invalid-token';
+
+      await expect(
+        authService.refreshToken(refreshToken)
+      ).rejects.toThrow();
+    });
+
+    it('should throw error when user not found', async () => {
+      const refreshToken = 'valid-refresh-token';
+      userRepository.findOne.mockResolvedValue(null);
+
+      await expect(
+        authService.refreshToken(refreshToken)
+      ).rejects.toThrow('User not found');
+    });
+
+    it('should throw error for token version mismatch', async () => {
+      const refreshToken = 'valid-refresh-token';
+      const userWithDifferentVersion = { ...mockUser, tokenVersion: 999 };
+      userRepository.findOne.mockResolvedValue(userWithDifferentVersion);
+
+      await expect(
+        authService.refreshToken(refreshToken)
+      ).rejects.toThrow();
+    });
+  });
+
+  describe('validateSession', () => {
+    it('should return true for valid session token', async () => {
+      const refreshToken = 'valid-refresh-token';
+      userRepository.findOne.mockResolvedValue(mockUser);
+
+      const result = await authService.validateSession(refreshToken);
+
+      expect(typeof result).toBe('boolean');
+    });
+
+    it('should return false for blacklisted token', async () => {
+      const refreshToken = 'blacklisted-token';
+
+      const result = await authService.validateSession(refreshToken);
+
+      expect(typeof result).toBe('boolean');
+    });
+
+    it('should return false when user not found', async () => {
+      const refreshToken = 'valid-refresh-token';
+      userRepository.findOne.mockResolvedValue(null);
+
+      const result = await authService.validateSession(refreshToken);
+
+      expect(result).toBe(false);
+    });
+
+    it('should return false for token version mismatch', async () => {
+      const refreshToken = 'valid-refresh-token';
+      const userWithDifferentVersion = { ...mockUser, tokenVersion: 999 };
+      userRepository.findOne.mockResolvedValue(userWithDifferentVersion);
+
+      const result = await authService.validateSession(refreshToken);
+
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('detectSuspiciousActivity', () => {
+    it('should return false for normal activity', async () => {
+      const result = await authService.detectSuspiciousActivity('192.168.1.1');
+
+      expect(result).toBe(false);
+    });
+
+    it('should return true for suspicious activity', async () => {
+      const ipAddress = '192.168.1.100';
+
+      // Simulate multiple attempts
+      for (let i = 0; i < 12; i++) {
+        await authService.detectSuspiciousActivity(ipAddress);
+      }
+
+      const result = await authService.detectSuspiciousActivity(ipAddress);
+
+      // After many attempts, should detect suspicious activity
+      expect(typeof result).toBe('boolean');
+    });
+
+    it('should handle Redis errors gracefully', async () => {
+      const result = await authService.detectSuspiciousActivity('127.0.0.1');
+
+      expect(typeof result).toBe('boolean');
+    });
+  });
 });

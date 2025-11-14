@@ -166,6 +166,12 @@ export const Input: React.FC<InputProps> = ({
     onFocus?.(event);
   }, [label, required, onFocus]);
 
+  // Build aria-describedby from multiple sources
+  const ariaDescribedByIds = [
+    ariaDescribedBy,
+    internalError ? errorId : null
+  ].filter(Boolean).join(' ');
+
   const baseInputProps = {
     id,
     name,
@@ -180,11 +186,7 @@ export const Input: React.FC<InputProps> = ({
     'aria-invalid': !!internalError,
     'aria-required': ariaRequired ?? required,
     'aria-label': ariaLabel ?? label,
-    'aria-describedby': classNames(
-      ariaDescribedBy,
-      internalError && errorId,
-      descriptionId
-    ),
+    'aria-describedby': ariaDescribedByIds || undefined,
     'data-testid': dataTestId,
     autoComplete: autoComplete ? 'on' : 'off',
     className: classNames(
