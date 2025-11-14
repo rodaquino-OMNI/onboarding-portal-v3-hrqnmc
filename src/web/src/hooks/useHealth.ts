@@ -37,6 +37,8 @@ export const useHealth = (beneficiaryId?: string) => {
   const [riskAssessment, setRiskAssessment] = useState<RiskAssessment | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [responses, setResponses] = useState<Map<string, QuestionResponse>>(new Map());
+  const [error, setError] = useState<Error | null>(null);
+  const [progress, setProgress] = useState<number>(0);
 
   const { showError, showSuccess } = useNotification();
 
@@ -162,6 +164,8 @@ export const useHealth = (beneficiaryId?: string) => {
     currentQuestion,
     riskAssessment,
     isLoading,
+    error,
+    progress,
     handleQuestionResponse,
     completeAssessment,
     validateResponse,

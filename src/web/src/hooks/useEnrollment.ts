@@ -221,6 +221,7 @@ export function useEnrollment(
     enrollment,
     isLoading,
     error,
+    refetch,
     createNewEnrollment,
     updateExistingEnrollment,
     changeEnrollmentStatus,
