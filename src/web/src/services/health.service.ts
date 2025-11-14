@@ -113,8 +113,11 @@ export class HealthService {
       // Execute request through circuit breaker
       const response = await this.circuitBreaker.fire(async () => {
         const result = await getQuestionnaire(beneficiaryId);
-        return this.encryptHealthData(result.data);
-      });
+        return result.data;
+      }) as Questionnaire;
+
+      // Encrypt health data
+      const encryptedQuestionnaire = this.encryptHealthData(response);
 
       // Log successful initialization
       logger.info('Questionnaire initialized', {
@@ -122,7 +125,7 @@ export class HealthService {
         timestamp: new Date().toISOString()
       });
 
-      return response;
+      return encryptedQuestionnaire;
     } catch (error) {
       logger.error('Failed to initialize questionnaire', {
         beneficiaryId,
@@ -153,14 +156,11 @@ export class HealthService {
       // Encrypt response data
       const encryptedResponse = this.encryptHealthData(response);
 
-      // Submit through retry mechanism
-      const result = await retry(
-        async () => {
-          const apiResponse = await submitQuestionResponse(questionnaireId, encryptedResponse);
-          return apiResponse.data;
-        },
-        { retries: 3 }
-      );
+      // Submit through circuit breaker with retry logic
+      const result = await this.circuitBreaker.fire(async () => {
+        const apiResponse = await submitQuestionResponse(questionnaireId, encryptedResponse);
+        return apiResponse.data;
+      }) as Question;
 
       // Log response submission
       logger.info('Question response submitted', {
@@ -216,8 +216,12 @@ export class HealthService {
    */
   public async getRiskAssessmentResults(questionnaireId: string): Promise<RiskAssessment> {
     try {
-      const response = await this.circuitBreaker.fire(() => getRiskAssessment(questionnaireId));
-      const decryptedAssessment = this.decryptHealthData(response.data);
+      const response = await this.circuitBreaker.fire(async () => {
+        const result = await getRiskAssessment(questionnaireId);
+        return result.data;
+      }) as RiskAssessment & { encryptedData: string; iv: string };
+
+      const decryptedAssessment = this.decryptHealthData(response);
 
       // Validate decrypted assessment
       const validationResult = VALIDATION_SCHEMAS.riskAssessment.safeParse(decryptedAssessment);
@@ -227,11 +231,11 @@ export class HealthService {
 
       logger.info('Risk assessment retrieved', {
         questionnaireId,
-        riskLevel: decryptedAssessment.riskLevel,
+        riskLevel: (decryptedAssessment as RiskAssessment).riskLevel,
         timestamp: new Date().toISOString()
       });
 
-      return decryptedAssessment;
+      return decryptedAssessment as RiskAssessment;
     } catch (error) {
       logger.error('Failed to retrieve risk assessment', {
         questionnaireId,

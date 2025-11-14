@@ -157,11 +157,11 @@ export class EnrollmentService {
         ...this.formatFilters(filters)
       });
 
-      const response = await this.apiService.get<EnrollmentSummary[]>(
+      const response = await this.apiService.get<PaginatedResponse<EnrollmentSummary>>(
         `${API_ENDPOINTS.ENROLLMENT.BASE}?${queryParams.toString()}`
       );
 
-      return response;
+      return response.data;
     } catch (error) {
       this.handleEnrollmentError(error);
       throw error;
@@ -199,7 +199,7 @@ export class EnrollmentService {
    * Encrypts sensitive data using AES-256
    */
   private encryptSensitiveData<T extends Record<string, any>>(data: T): T {
-    const encrypted = { ...data };
+    const encrypted: any = { ...data };
     for (const field of this.sensitiveFields) {
       if (encrypted[field]) {
         encrypted[field] = CryptoJS.AES.encrypt(
@@ -208,21 +208,21 @@ export class EnrollmentService {
         ).toString();
       }
     }
-    return encrypted;
+    return encrypted as T;
   }
 
   /**
    * Decrypts sensitive data using AES-256
    */
   private decryptSensitiveData<T extends Record<string, any>>(data: T): T {
-    const decrypted = { ...data };
+    const decrypted: any = { ...data };
     for (const field of this.sensitiveFields) {
       if (decrypted[field]) {
         const bytes = CryptoJS.AES.decrypt(decrypted[field], this.encryptionKey);
         decrypted[field] = bytes.toString(CryptoJS.enc.Utf8);
       }
     }
-    return decrypted;
+    return decrypted as T;
   }
 
   /**
@@ -242,8 +242,7 @@ export class EnrollmentService {
     userRole: string
   ): Promise<void> {
     const response = await this.apiService.get<{ authorized: boolean }>(
-      `${API_ENDPOINTS.ENROLLMENT.BASE}/${enrollmentId}/access`,
-      { params: { userRole } }
+      `${API_ENDPOINTS.ENROLLMENT.BASE}/${enrollmentId}/access?userRole=${userRole}`
     );
 
     if (!response.data.authorized) {

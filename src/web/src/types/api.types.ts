@@ -98,12 +98,15 @@ export interface PaginatedResponse<T> {
  * Extended API request configuration with security and retry policies
  */
 export interface ApiRequestConfig {
-  headers: Record<string, string>;
-  params: Record<string, string | number>;
-  timeout: number;
-  retryConfig: RetryConfig;
-  securityHeaders: SecurityHeaders;
-  validateStatus: (status: number) => boolean;
+  method?: string;
+  url?: string;
+  data?: any;
+  headers?: Record<string, string>;
+  params?: Record<string, string | number>;
+  timeout?: number;
+  retryConfig?: RetryConfig;
+  securityHeaders?: SecurityHeaders;
+  validateStatus?: (status: number) => boolean;
 }
 
 /**

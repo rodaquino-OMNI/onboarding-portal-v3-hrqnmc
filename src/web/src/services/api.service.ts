@@ -132,9 +132,9 @@ export class ApiService {
       const secureConfig = this.prepareRequestConfig(method, url, data, config, requestId);
 
       // Execute request through circuit breaker
-      const response = await this.circuitBreaker.fire(() =>
-        this.apiClient.request<ApiResponse<T>>(secureConfig)
-      );
+      const response = await this.circuitBreaker.fire(async () =>
+        await this.apiClient.request<ApiResponse<T>>(secureConfig)
+      ) as AxiosResponse;
 
       // Process and validate response
       const processedResponse = this.processResponse<T>(response);
@@ -164,11 +164,10 @@ export class ApiService {
     this.apiClient.interceptors.request.use(
       (config) => {
         // Add security headers
-        config.headers = {
-          ...config.headers,
-          'X-Request-ID': uuidv4(),
-          'X-Client-Version': process.env.VITE_APP_VERSION
-        };
+        if (config.headers) {
+          config.headers['X-Request-ID'] = uuidv4();
+          config.headers['X-Client-Version'] = process.env.VITE_APP_VERSION || '1.0.0';
+        }
 
         // Validate request data
         if (config.data) {

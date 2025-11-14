@@ -250,7 +250,9 @@ export class PolicyService {
    */
   private handlePolicyError(error: unknown): Error {
     if (isApiError(error)) {
-      return this.errorHandler.handle(error);
+      const err = new Error(error.message);
+      ErrorHandler.handle(err);
+      return err;
     }
     return new Error('An unexpected error occurred while processing the policy');
   }

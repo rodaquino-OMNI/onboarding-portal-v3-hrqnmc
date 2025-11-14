@@ -108,7 +108,7 @@ async function login(credentials: LoginRequest): Promise<AuthState> {
       deviceFingerprint: deviceId,
       ipAddress: '',
       userAgent: navigator.userAgent,
-      timestamp: new Date()
+      timestamp: Date.now()
     };
 
     // Perform login
