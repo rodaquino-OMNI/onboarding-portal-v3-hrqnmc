@@ -25,7 +25,7 @@ import SecurityIcon from '@mui/icons-material/Security';
 
 import { useAuth } from '../../hooks/useAuth';
 import { useNotification } from '../../hooks/useNotification';
-import { AuthLayout } from '../../layouts/AuthLayout';
+import AuthLayout from '../../layouts/AuthLayout';
 
 // MFA method types
 type MFAMethod = 'sms' | 'totp';

@@ -29,7 +29,7 @@ import SearchIcon from '@mui/icons-material/Search';
 import FilterListIcon from '@mui/icons-material/FilterList';
 
 import DataTable from '../../components/common/DataTable';
-import { DatePicker } from '../../components/common/DatePicker';
+import DatePicker from '../../components/common/DatePicker';
 import { useAuth } from '../../hooks/useAuth';
 import { useNotification } from '../../hooks/useNotification';
 
@@ -105,23 +105,23 @@ const SystemLogs: React.FC = () => {
   // Table columns configuration
   const columns = [
     {
-      id: 'timestamp',
-      label: t('admin.logs.timestamp'),
-      minWidth: 180,
-      format: (value: Date) => new Date(value).toLocaleString('pt-BR')
+      key: 'timestamp' as keyof LogEntry,
+      header: t('admin.logs.timestamp'),
+      width: '180px',
+      render: (row: LogEntry) => new Date(row.timestamp).toLocaleString('pt-BR')
     },
     {
-      id: 'userName',
-      label: t('admin.logs.user'),
-      minWidth: 150
+      key: 'userName' as keyof LogEntry,
+      header: t('admin.logs.user'),
+      width: '150px'
     },
     {
-      id: 'action',
-      label: t('admin.logs.action'),
-      minWidth: 120,
-      format: (value: string) => (
+      key: 'action' as keyof LogEntry,
+      header: t('admin.logs.action'),
+      width: '120px',
+      render: (row: LogEntry) => (
         <Chip
-          label={t(`admin.logs.actions.${value.toLowerCase()}`)}
+          label={t(`admin.logs.actions.${row.action.toLowerCase()}`)}
           size="small"
           color="primary"
           variant="outlined"
@@ -129,29 +129,29 @@ const SystemLogs: React.FC = () => {
       )
     },
     {
-      id: 'entity',
-      label: t('admin.logs.entity'),
-      minWidth: 150
+      key: 'entity' as keyof LogEntry,
+      header: t('admin.logs.entity'),
+      width: '150px'
     },
     {
-      id: 'entityId',
-      label: t('admin.logs.entityId'),
-      minWidth: 120
+      key: 'entityId' as keyof LogEntry,
+      header: t('admin.logs.entityId'),
+      width: '120px'
     },
     {
-      id: 'ipAddress',
-      label: t('admin.logs.ipAddress'),
-      minWidth: 130
+      key: 'ipAddress' as keyof LogEntry,
+      header: t('admin.logs.ipAddress'),
+      width: '130px'
     },
     {
-      id: 'status',
-      label: t('admin.logs.status'),
-      minWidth: 100,
-      format: (value: string) => (
+      key: 'status' as keyof LogEntry,
+      header: t('admin.logs.status'),
+      width: '100px',
+      render: (row: LogEntry) => (
         <Chip
-          label={t(`admin.logs.status.${value.toLowerCase()}`)}
+          label={t(`admin.logs.status.${row.status.toLowerCase()}`)}
           size="small"
-          color={value === 'SUCCESS' ? 'success' : 'error'}
+          color={row.status === 'SUCCESS' ? 'success' : 'error'}
         />
       )
     }
@@ -206,12 +206,12 @@ const SystemLogs: React.FC = () => {
     try {
       const csv = [
         // Headers
-        columns.map(col => col.label).join(','),
+        columns.map(col => col.header).join(','),
         // Data rows
         ...logs.map(log =>
           columns
             .map(col => {
-              const value = log[col.id as keyof LogEntry];
+              const value = log[col.key as keyof LogEntry];
               if (value instanceof Date) {
                 return value.toISOString();
               }
@@ -285,6 +285,8 @@ const SystemLogs: React.FC = () => {
               <Grid container spacing={2}>
                 <Grid item xs={12} sm={6} md={3}>
                   <DatePicker
+                    id="start-date"
+                    name="startDate"
                     label={t('admin.logs.startDate')}
                     value={filters.startDate}
                     onChange={(date) => handleFilterChange('startDate', date)}
@@ -293,6 +295,8 @@ const SystemLogs: React.FC = () => {
                 </Grid>
                 <Grid item xs={12} sm={6} md={3}>
                   <DatePicker
+                    id="end-date"
+                    name="endDate"
                     label={t('admin.logs.endDate')}
                     value={filters.endDate}
                     onChange={(date) => handleFilterChange('endDate', date)}
@@ -359,15 +363,17 @@ const SystemLogs: React.FC = () => {
         <Grid item xs={12}>
           <Card>
             <DataTable
-              columns={columns}
-              data={logs}
-              loading={isLoading}
-              page={page}
-              rowsPerPage={rowsPerPage}
-              totalCount={totalCount}
-              onPageChange={setPage}
-              onRowsPerPageChange={setRowsPerPage}
-              emptyMessage={t('admin.logs.noLogs')}
+              {...{
+                columns: columns as any,
+                data: logs,
+                loading: isLoading,
+                page,
+                rowsPerPage,
+                totalCount,
+                onPageChange: setPage,
+                onRowsPerPageChange: setRowsPerPage,
+                emptyMessage: t('admin.logs.noLogs')
+              } as any}
             />
           </Card>
         </Grid>

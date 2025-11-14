@@ -1,6 +1,6 @@
 import React from 'react'; // v18.0.0
 import classNames from 'classnames'; // v2.3.2
-import styles from '../../styles/theme.css';
+import '../../styles/theme.css';
 
 interface ButtonProps {
   /** Content to be rendered inside the button */
@@ -42,13 +42,13 @@ const Button = React.memo<ButtonProps>(({
 }) => {
   // Compose class names based on props
   const buttonClasses = classNames(
-    styles.button,
-    styles[`button--${variant}`],
+    'button',
+    `button--${variant}`,
     {
-      [styles['button--disabled']]: disabled,
-      [styles['button--loading']]: loading,
-      [styles['button--full-width']]: fullWidth,
-      [styles[`button--${size}`]]: size,
+      'button--disabled': disabled,
+      'button--loading': loading,
+      'button--full-width': fullWidth,
+      [`button--${size}`]: size,
     },
     className
   );
@@ -56,7 +56,7 @@ const Button = React.memo<ButtonProps>(({
   // Loading spinner component
   const LoadingSpinner = () => (
     <div
-      className={styles['button__spinner']}
+      className="button__spinner"
       role="progressbar"
       aria-valuetext="Loading"
     >
@@ -76,7 +76,7 @@ const Button = React.memo<ButtonProps>(({
           strokeLinecap="round"
           strokeDasharray="32"
           strokeDashoffset="32"
-          className={styles['button__spinner-circle']}
+          className="button__spinner-circle"
         />
       </svg>
     </div>
@@ -100,8 +100,8 @@ const Button = React.memo<ButtonProps>(({
     >
       {loading && <LoadingSpinner />}
       <span
-        className={classNames(styles['button__content'], {
-          [styles['button__content--hidden']]: loading,
+        className={classNames('button__content', {
+          'button__content--hidden': loading,
         })}
       >
         {children}

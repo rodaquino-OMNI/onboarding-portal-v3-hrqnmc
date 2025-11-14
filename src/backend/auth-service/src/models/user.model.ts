@@ -50,7 +50,7 @@ export class User {
 
   @Column({ unique: true })
   @IsEmail()
-  @Transform(({ value }) => value.toLowerCase())
+  @Transform(({ value }: { value: string }) => value.toLowerCase())
   email!: string;
 
   @Column()

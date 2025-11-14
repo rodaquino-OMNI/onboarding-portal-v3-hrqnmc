@@ -22,6 +22,7 @@ const MAX_RETRY_ATTEMPTS = 3;
  * Props interface for PrivateRoute component
  */
 interface PrivateRouteProps {
+  children?: React.ReactNode;
   allowedRoles?: UserRole[];
   requiresAuth?: boolean;
   sessionTimeout?: number;
@@ -42,17 +43,18 @@ const useRoleCheck = (allowedRoles?: UserRole[], userRoles?: UserRole[]): boolea
  * Enhanced PrivateRoute component with comprehensive security features
  */
 const PrivateRoute: React.FC<PrivateRouteProps> = ({
+  children,
   allowedRoles,
   requiresAuth = true,
   sessionTimeout = DEFAULT_SESSION_TIMEOUT,
   fallbackPath = LOGIN_PATH
 }) => {
   const location = useLocation();
-  const { 
+  const {
     isAuthenticated,
     isLoading,
     user,
-    refreshToken,
+    refreshSession,
     sessionExpiry
   } = useAuth();
 
@@ -66,14 +68,14 @@ const PrivateRoute: React.FC<PrivateRouteProps> = ({
    * Session validation and refresh handler
    */
   const validateAndRefreshSession = useCallback(async () => {
-    if (!sessionExpiry || !refreshToken) return;
+    if (!sessionExpiry || !refreshSession) return;
 
     const timeUntilExpiry = new Date(sessionExpiry).getTime() - Date.now();
     if (timeUntilExpiry < REFRESH_THRESHOLD) {
       let retryCount = 0;
       while (retryCount < MAX_RETRY_ATTEMPTS) {
         try {
-          await refreshToken();
+          await refreshSession();
           break;
         } catch (error) {
           retryCount++;
@@ -83,7 +85,7 @@ const PrivateRoute: React.FC<PrivateRouteProps> = ({
         }
       }
     }
-  }, [sessionExpiry, refreshToken]);
+  }, [sessionExpiry, refreshSession]);
 
   // Effect for session validation
   useEffect(() => {
@@ -120,7 +122,7 @@ const PrivateRoute: React.FC<PrivateRouteProps> = ({
   }
 
   // Render protected route content
-  return <Outlet />;
+  return <>{children || <Outlet />}</>;
 };
 
 export default PrivateRoute;

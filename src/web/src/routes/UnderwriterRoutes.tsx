@@ -47,13 +47,13 @@ const UnderwriterRoutes: React.FC<UnderwriterRoutesProps> = ({
   permissionLevel = 'standard'
 }) => {
   const location = useLocation();
-  const { user, checkSessionValidity } = useAuth();
+  const { user, checkSessionTimeout } = useAuth();
   const { showError } = useNotification();
 
   // Validate session and permissions on route change
   useEffect(() => {
     const validateAccess = async () => {
-      if (!checkSessionValidity()) {
+      if (checkSessionTimeout()) {
         showError('Your session has expired. Please log in again.');
         return;
       }
@@ -65,7 +65,7 @@ const UnderwriterRoutes: React.FC<UnderwriterRoutesProps> = ({
     };
 
     validateAccess();
-  }, [location.pathname, user, checkSessionValidity, showError]);
+  }, [location.pathname, user, checkSessionTimeout, showError]);
 
   // Handle route errors with audit logging
   const handleRouteError = useCallback((error: Error) => {

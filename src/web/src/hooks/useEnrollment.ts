@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from 'react'; // v18.0.0
-import { useQuery, useMutation, useQueryClient, UseQueryOptions } from 'react-query'; // ^4.0.0
+import { useQuery, useMutation, useQueryClient, UseQueryOptions } from '@tanstack/react-query'; // ^4.0.0
 import { isEqual } from 'lodash'; // ^4.17.21
 
 import {
@@ -36,7 +36,7 @@ const RETRY_DELAY = 1000; // 1 second
  */
 export function useEnrollment(
   enrollmentId?: string,
-  queryOptions?: UseQueryOptions<Enrollment>
+  queryOptions?: Partial<UseQueryOptions<Enrollment, Error>>
 ) {
   const { userRole, checkPermission } = useAuth();
   const { showSuccess, showError, showWarning } = useNotification();
@@ -56,20 +56,19 @@ export function useEnrollment(
     data: enrollment,
     isLoading,
     isFetching,
-    isValidating,
     refetch
-  } = useQuery(
-    [ENROLLMENT_QUERY_KEY, enrollmentId],
-    () => getEnrollment(enrollmentId!),
-    {
-      enabled: !!enrollmentId && checkPermission('view_enrollment'),
-      staleTime: STALE_TIME,
-      cacheTime: CACHE_TIME,
-      retry: MAX_RETRIES,
-      retryDelay: RETRY_DELAY,
-      ...queryOptions
-    }
-  );
+  } = useQuery({
+    queryKey: [ENROLLMENT_QUERY_KEY, enrollmentId],
+    queryFn: async () => {
+      const result = await getEnrollment(enrollmentId!);
+      return result.data;
+    },
+    enabled: !!enrollmentId && checkPermission('view_enrollment'),
+    staleTime: STALE_TIME,
+    cacheTime: CACHE_TIME,
+    retry: MAX_RETRIES,
+    ...queryOptions
+  });
 
   // Create enrollment mutation
   const createMutation = useMutation(
@@ -78,7 +77,7 @@ export function useEnrollment(
       onSuccess: (newEnrollment) => {
         if (isMounted.current) {
           queryClient.setQueryData(
-            [ENROLLMENT_QUERY_KEY, newEnrollment.id],
+            [ENROLLMENT_QUERY_KEY, newEnrollment.data.id],
             newEnrollment
           );
           showSuccess('Enrollment created successfully');
@@ -99,7 +98,7 @@ export function useEnrollment(
       onSuccess: (updatedEnrollment) => {
         if (isMounted.current) {
           queryClient.setQueryData(
-            [ENROLLMENT_QUERY_KEY, updatedEnrollment.id],
+            [ENROLLMENT_QUERY_KEY, updatedEnrollment.data.id],
             updatedEnrollment
           );
           showSuccess('Enrollment updated successfully');
@@ -120,7 +119,7 @@ export function useEnrollment(
       onSuccess: (updatedEnrollment) => {
         if (isMounted.current) {
           queryClient.setQueryData(
-            [ENROLLMENT_QUERY_KEY, updatedEnrollment.id],
+            [ENROLLMENT_QUERY_KEY, updatedEnrollment.data.id],
             updatedEnrollment
           );
           showSuccess('Status updated successfully');
@@ -200,7 +199,7 @@ export function useEnrollment(
       try {
         const response = await listEnrollments({ page, pageSize, ...filters });
         if (isMounted.current) {
-          queryClient.setQueryData(ENROLLMENT_LIST_QUERY_KEY, response);
+          queryClient.setQueryData([ENROLLMENT_LIST_QUERY_KEY], response);
         }
       } catch (error) {
         console.error('Fetch enrollment list error:', error);
@@ -224,12 +223,12 @@ export function useEnrollment(
     enrollment,
     isLoading,
     error,
+    refetch,
     createNewEnrollment,
     updateExistingEnrollment,
     changeEnrollmentStatus,
     fetchEnrollmentList,
     isFetching,
-    isValidating,
     retryFailedOperation
   };
 }

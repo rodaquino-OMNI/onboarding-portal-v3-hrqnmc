@@ -14,12 +14,14 @@ import { useAuth } from '../hooks/useAuth';
 import { UserRole } from '../types/auth.types';
 
 // Lazy-loaded broker components for better performance
-const BrokerDashboard = React.lazy(() => import('../pages/broker/BrokerDashboard'));
+const Dashboard = React.lazy(() => import('../pages/broker/Dashboard'));
 const NewEnrollment = React.lazy(() => import('../pages/broker/NewEnrollment'));
-const EnrollmentList = React.lazy(() => import('../pages/broker/EnrollmentList'));
-const EnrollmentDetails = React.lazy(() => import('../pages/broker/EnrollmentDetails'));
-const CommissionReports = React.lazy(() => import('../pages/broker/CommissionReports'));
-const BrokerProfile = React.lazy(() => import('../pages/broker/BrokerProfile'));
+const Reports = React.lazy(() => import('../pages/broker/Reports'));
+// const BrokerDashboard = React.lazy(() => import('../pages/broker/BrokerDashboard'));
+// const EnrollmentList = React.lazy(() => import('../pages/broker/EnrollmentList'));
+// const EnrollmentDetails = React.lazy(() => import('../pages/broker/EnrollmentDetails'));
+// const CommissionReports = React.lazy(() => import('../pages/broker/CommissionReports'));
+// const BrokerProfile = React.lazy(() => import('../pages/broker/BrokerProfile'));
 
 // Constants for route configuration
 const BROKER_ROLE = UserRole.BROKER;
@@ -92,40 +94,46 @@ const BrokerRoutes: React.FC = React.memo(() => {
       <Suspense fallback={<RouteLoadingFallback />}>
         <Routes>
           {/* Broker dashboard route */}
-          <Route 
-            path="dashboard" 
-            element={<BrokerDashboard />} 
+          <Route
+            path="dashboard"
+            element={<Dashboard />}
           />
 
           {/* New enrollment route */}
-          <Route 
-            path="enrollments/new" 
-            element={<NewEnrollment />} 
+          <Route
+            path="enrollments/new"
+            element={<NewEnrollment />}
           />
 
-          {/* Enrollment list route */}
-          <Route 
-            path="enrollments" 
-            element={<EnrollmentList />} 
+          {/* Reports route */}
+          <Route
+            path="reports"
+            element={<Reports />}
           />
 
-          {/* Enrollment details route */}
-          <Route 
-            path="enrollments/:id" 
-            element={<EnrollmentDetails />} 
-          />
+          {/* Enrollment list route - TODO: Implement */}
+          {/* <Route
+            path="enrollments"
+            element={<EnrollmentList />}
+          /> */}
 
-          {/* Commission reports route */}
-          <Route 
-            path="reports/commission" 
-            element={<CommissionReports />} 
-          />
+          {/* Enrollment details route - TODO: Implement */}
+          {/* <Route
+            path="enrollments/:id"
+            element={<EnrollmentDetails />}
+          /> */}
 
-          {/* Broker profile route */}
-          <Route 
-            path="profile" 
-            element={<BrokerProfile />} 
-          />
+          {/* Commission reports route - TODO: Implement */}
+          {/* <Route
+            path="reports/commission"
+            element={<CommissionReports />}
+          /> */}
+
+          {/* Broker profile route - TODO: Implement */}
+          {/* <Route
+            path="profile"
+            element={<BrokerProfile />}
+          /> */}
 
           {/* Default redirect to dashboard */}
           <Route 

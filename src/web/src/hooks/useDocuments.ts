@@ -46,7 +46,7 @@ interface PerformanceMetrics {
  * Custom hook for managing document operations with security and performance monitoring
  * @param enrollmentId - The enrollment ID for document association
  */
-export const useDocuments = (enrollmentId: string) => {
+export const useDocuments = (enrollmentId?: string) => {
   const queryClient = useQueryClient();
   const documentService = new DocumentService(null);
   const performanceMonitor = usePerformanceMonitor();
@@ -179,9 +179,27 @@ export const useDocuments = (enrollmentId: string) => {
     return deleteMutation.mutateAsync(documentId);
   }, [deleteMutation]);
 
+  // Get document by ID handler
+  const getDocumentById = useCallback(async (documentId: string) => {
+    return await documentService.getDocumentById(documentId);
+  }, [documentService]);
+
+  // Use document access handler
+  const useDocumentAccess = useCallback(async (documentId: string, accessLevel?: string) => {
+    // Stub implementation - would verify document access permissions
+    return { hasAccess: true, accessLevel: accessLevel || 'read', verified: true };
+  }, []);
+
   // Monitor document processing status
   useEffect(() => {
-    if (documents?.items.some(doc => doc.status === DocumentStatus.PROCESSING)) {
+    const processingStatuses = [
+      DocumentStatus.VALIDATING,
+      DocumentStatus.SCANNING,
+      DocumentStatus.OCR_PROCESSING,
+      DocumentStatus.CLASSIFYING,
+      DocumentStatus.ENCRYPTING
+    ];
+    if (documents?.items.some(doc => processingStatuses.includes(doc.status))) {
       const interval = setInterval(refreshDocuments, 2000);
       return () => clearInterval(interval);
     }
@@ -205,6 +223,8 @@ export const useDocuments = (enrollmentId: string) => {
     error,
     uploadDocument,
     deleteDocument,
+    getDocumentById,
+    useDocumentAccess,
     refreshDocuments,
     processingStatus,
     encryptionStatus,

@@ -26,6 +26,7 @@ enum SecurityLevel {
  * Props interface for PublicRoute component
  */
 interface PublicRouteProps {
+  children?: React.ReactNode;
   restricted?: boolean;
   requireMfa?: boolean;
   requireConsent?: boolean;
@@ -37,17 +38,11 @@ interface PublicRouteProps {
  */
 const getRedirectPath = (
   role: string | undefined,
-  mfaVerified: boolean,
-  consentVerified: boolean
+  requiresMfa: boolean
 ): string => {
   // Check MFA verification requirement
-  if (!mfaVerified && ROUTES.AUTH.MFA_VERIFICATION) {
+  if (requiresMfa) {
     return ROUTES.AUTH.MFA_VERIFICATION;
-  }
-
-  // Check LGPD consent requirement
-  if (!consentVerified && ROUTES.AUTH.CONSENT_VERIFICATION) {
-    return ROUTES.AUTH.CONSENT_VERIFICATION;
   }
 
   // Return role-specific dashboard
@@ -81,16 +76,15 @@ const validateSecurityContext = (
   }
 
   // Validate session integrity
-  if (!context.sessionId || Date.now() - context.timestamp > 3600000) {
+  const sessionAge = Date.now() - new Date(context.timestamp).getTime();
+  if (!context.sessionId || sessionAge > 3600000) {
     return false;
   }
 
   // Additional security checks based on required level
   switch (requiredLevel) {
     case SecurityLevel.HIGH:
-      return context.mfaVerified && context.consentVerified;
     case SecurityLevel.MEDIUM:
-      return context.consentVerified;
     case SecurityLevel.LOW:
     default:
       return true;
@@ -101,12 +95,13 @@ const validateSecurityContext = (
  * PublicRoute component that handles public route access control
  */
 const PublicRoute: React.FC<PublicRouteProps> = ({
+  children,
   restricted = false,
   requireMfa = false,
   requireConsent = true,
   securityLevel = SecurityLevel.LOW
 }) => {
-  const { isAuthenticated, user, mfaVerified, consentVerified, securityContext } = useAuth();
+  const { isAuthenticated, user, requiresMFA, securityContext } = useAuth();
   const [isValidating, setIsValidating] = useState(true);
   const [isSecure, setIsSecure] = useState(false);
 
@@ -121,7 +116,7 @@ const PublicRoute: React.FC<PublicRouteProps> = ({
 
       // Validate security context
       const isContextValid = validateSecurityContext(securityContext, securityLevel);
-      
+
       setIsSecure(isContextValid);
       setIsValidating(false);
     };
@@ -143,14 +138,13 @@ const PublicRoute: React.FC<PublicRouteProps> = ({
   if (isAuthenticated && restricted) {
     const redirectPath = getRedirectPath(
       user?.role,
-      mfaVerified || !requireMfa,
-      consentVerified || !requireConsent
+      requireMfa && requiresMFA
     );
     return <Navigate to={redirectPath} replace />;
   }
 
-  // Render child routes
-  return <Outlet />;
+  // Render children or outlet
+  return <>{children || <Outlet />}</>;
 };
 
 export default PublicRoute;

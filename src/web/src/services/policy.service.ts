@@ -30,9 +30,9 @@ export class PolicyService {
   private readonly CACHE_TTL = 60000; // 1 minute cache TTL
 
   constructor(
-    private readonly apiService: ApiService,
-    private readonly errorHandler: ErrorHandler,
-    private readonly logger: Logger
+    private readonly apiService: ApiService = new ApiService(),
+    private readonly errorHandler: ErrorHandler = new ErrorHandler(),
+    private readonly logger: Logger = console as any
   ) {
     this.policyCache = new Map();
   }
@@ -250,7 +250,9 @@ export class PolicyService {
    */
   private handlePolicyError(error: unknown): Error {
     if (isApiError(error)) {
-      return this.errorHandler.handle(error);
+      const err = new Error(error.message);
+      ErrorHandler.handle(err);
+      return err;
     }
     return new Error('An unexpected error occurred while processing the policy');
   }

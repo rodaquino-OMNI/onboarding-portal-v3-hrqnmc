@@ -16,8 +16,8 @@ import {
   useMediaQuery 
 } from '@mui/material'; // ^5.0.0
 
-import { useAuth } from '../../contexts/AuthContext';
-import MFAVerification from '../../components/auth/MFAVerification';
+import { useAuth } from '../contexts/AuthContext';
+import MFAVerification from '../components/auth/MFAVerification';
 
 // Interface for AuthLayout props
 interface AuthLayoutProps {

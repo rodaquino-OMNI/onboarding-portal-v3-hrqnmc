@@ -10,9 +10,9 @@ const MAX_NOTIFICATIONS = 3;
 const ANIMATION_DURATION = 300;
 
 // Types
-type NotificationType = 'success' | 'error' | 'warning' | 'info';
+export type NotificationType = 'success' | 'error' | 'warning' | 'info';
 
-interface NotificationConfig extends Partial<Omit<ToastProps, 'message' | 'onClose'>> {
+export interface NotificationConfig extends Partial<Omit<ToastProps, 'message' | 'onClose'>> {
   duration?: number | null;
   preserveOnRouteChange?: boolean;
   preventDuplicates?: boolean;
@@ -58,6 +58,8 @@ const defaultNotificationConfig: Required<NotificationConfig> = {
   'aria-atomic': false,
   'data-testid': undefined,
   tabIndex: 0,
+  action: undefined,
+  icon: undefined,
 };
 
 // Custom hook for accessing notification context

@@ -7,7 +7,13 @@ import Loading from './Loading';
 
 // Interface for Card component props
 interface CardProps {
-  children: React.ReactNode;
+  children?: React.ReactNode;
+  title?: string;
+  subtitle?: string;
+  headerActions?: React.ReactNode;
+  footer?: React.ReactNode;
+  variant?: string;
+  padding?: string;
   elevation?: number;
   loading?: boolean;
   noPadding?: boolean;
@@ -15,6 +21,11 @@ interface CardProps {
   testId?: string;
   ariaLabel?: string;
   role?: string;
+  style?: React.CSSProperties;
+  onClick?: (event: React.MouseEvent) => void;
+  onKeyDown?: (event: React.KeyboardEvent) => void;
+  hoverable?: boolean;
+  tabIndex?: number;
 }
 
 // Define custom props for styled component
@@ -70,6 +81,9 @@ const Card = React.memo<CardProps>(({
   testId = 'card',
   ariaLabel,
   role = 'region',
+  onClick,
+  onKeyDown,
+  tabIndex,
 }) => {
   const theme = useTheme();
 
@@ -82,6 +96,9 @@ const Card = React.memo<CardProps>(({
       aria-label={ariaLabel}
       role={role}
       aria-busy={loading}
+      onClick={onClick}
+      onKeyDown={onKeyDown}
+      tabIndex={tabIndex}
     >
       {loading ? (
         <Loading

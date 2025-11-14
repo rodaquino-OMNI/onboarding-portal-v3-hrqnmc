@@ -122,6 +122,20 @@ export class DocumentService {
   }
 
   /**
+   * Retrieves a single document by ID
+   */
+  public async getDocumentById(documentId: string): Promise<Document> {
+    try {
+      const response = await this.apiService.get<Document>(
+        API_ENDPOINTS.DOCUMENT.VERIFY.replace(':id', documentId)
+      );
+      return response.data;
+    } catch (error) {
+      throw this.handleDocumentError(error);
+    }
+  }
+
+  /**
    * Deletes a document with secure cleanup
    */
   public async deleteDocument(documentId: string): Promise<void> {

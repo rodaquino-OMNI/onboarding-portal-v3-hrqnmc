@@ -6,7 +6,7 @@ import { ErrorBoundary } from 'react-error-boundary';
 import FingerprintJS from '@fingerprintjs/fingerprintjs';
 
 import { LoginForm } from '../../components/auth/LoginForm';
-import { AuthLayout } from '../../layouts/AuthLayout';
+import AuthLayout from '../../layouts/AuthLayout';
 import { useAuth } from '../../contexts/AuthContext';
 
 // Role-specific dashboard routes

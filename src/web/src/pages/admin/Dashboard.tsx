@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { Grid, Typography, CircularProgress, Skeleton, Alert } from '@mui/material'; // ^5.0.0
-import { BarChart, LineChart, PieChart, ResponsiveContainer } from '@mui/x-charts'; // ^6.0.0
+import { Grid, Typography, CircularProgress, Skeleton, Alert, Button, Box } from '@mui/material'; // ^5.0.0
+import { BarChart, LineChart, PieChart, ResponsiveChartContainer } from '@mui/x-charts'; // ^6.0.0
 
 import AdminLayout from '../../layouts/AdminLayout';
 import Card from '../../components/common/Card';
@@ -66,9 +66,8 @@ const AdminDashboard: React.FC = React.memo(() => {
   // Fetch dashboard metrics with error handling and caching
   const fetchMetrics = useCallback(async () => {
     try {
-      const response = await apiService.getCached<DashboardMetrics>(
-        '/api/v1/admin/metrics',
-        { duration: CACHE_DURATION }
+      const response = await apiService.get<DashboardMetrics>(
+        '/api/v1/admin/metrics'
       );
 
       setMetrics(response.data);
@@ -232,17 +231,21 @@ const AdminDashboard: React.FC = React.memo(() => {
             <Typography variant="h6" gutterBottom>
               Métricas de Performance
             </Typography>
-            <ResponsiveContainer width="100%" height={CHART_HEIGHT}>
+            <Box sx={{ width: '100%', height: CHART_HEIGHT }}>
               <LineChart
-                data={[
+                series={[
                   {
-                    time: metrics?.processingTime.average || 0,
-                    peak: metrics?.processingTime.peak || 0,
-                    current: metrics?.processingTime.current || 0
+                    data: [
+                      metrics?.processingTime.average || 0,
+                      metrics?.processingTime.peak || 0,
+                      metrics?.processingTime.current || 0
+                    ]
                   }
                 ]}
+                width={500}
+                height={CHART_HEIGHT}
               />
-            </ResponsiveContainer>
+            </Box>
           </Card>
         </Grid>
 

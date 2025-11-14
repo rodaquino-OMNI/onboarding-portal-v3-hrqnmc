@@ -99,7 +99,7 @@ const NotFoundPage: React.FC = React.memo(() => {
             variant="primary"
             size="lg"
             ariaLabel={t('error.404.returnHome')}
-            sx={{
+            style={{
               marginTop: THEME.SPACING.XLARGE,
               minWidth: '200px'
             }}

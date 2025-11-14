@@ -4,19 +4,19 @@ import { z } from 'zod'; // v3.22.0
 import CryptoJS from 'crypto-js'; // v4.1.1
 import currencyFormatter from 'currency-formatter'; // v1.5.9
 import Form from '../common/Form';
-import Input from '../common/Input';
+import Input, { InputMaskType } from '../common/Input';
 import { ARIA_LABELS } from '../../utils/form.utils';
 
 // Payment method constants
 const PAYMENT_METHODS = {
-  PIX: 'pix',
-  CREDIT_CARD: 'credit_card',
-  BOLETO: 'boleto'
+  PIX: 'PIX',
+  CREDIT_CARD: 'CREDIT_CARD',
+  BOLETO: 'BOLETO'
 } as const;
 
 // Validation schema with Brazilian-specific rules
 const VALIDATION_SCHEMA = z.object({
-  paymentMethod: z.enum(['pix', 'credit_card', 'boleto']),
+  paymentMethod: z.enum(['PIX', 'CREDIT_CARD', 'BOLETO']),
   cardNumber: z.string().regex(/^\d{16}$/).optional(),
   cardHolder: z.string().min(3).max(100).optional(),
   expiryDate: z.string().regex(/^(0[1-9]|1[0-2])\/([0-9]{2})$/).optional(),
@@ -46,6 +46,9 @@ interface PaymentData {
   pixKey?: string;
   boletoEmail?: string;
 }
+
+// Type alias for encrypted payment data
+type EncryptedPaymentData = PaymentData;
 
 // Encryption key management (in production, this would be fetched from a secure key management service)
 const ENCRYPTION_KEY = process.env.REACT_APP_PAYMENT_ENCRYPTION_KEY || 'development-key';
@@ -184,8 +187,8 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
           value={formValues.cpf}
           onChange={(value) => handleFieldChange('cpf', value)}
           required
-          maskType="cpf"
-          aria-required="true"
+          maskType={InputMaskType.CPF}
+          aria-required={true}
         />
 
         {selectedMethod === PAYMENT_METHODS.CREDIT_CARD && (
@@ -198,7 +201,7 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
               value={formValues.cardNumber}
               onChange={(value) => handleFieldChange('cardNumber', value)}
               required
-              aria-required="true"
+              aria-required={true}
             />
             <Input
               id="cardHolder"
@@ -208,7 +211,7 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
               value={formValues.cardHolder}
               onChange={(value) => handleFieldChange('cardHolder', value)}
               required
-              aria-required="true"
+              aria-required={true}
             />
             <div className="payment-card-row">
               <Input
@@ -219,7 +222,7 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
                 value={formValues.expiryDate}
                 onChange={(value) => handleFieldChange('expiryDate', value)}
                 required
-                aria-required="true"
+                aria-required={true}
               />
               <Input
                 id="cvv"
@@ -229,7 +232,7 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
                 value={formValues.cvv}
                 onChange={(value) => handleFieldChange('cvv', value)}
                 required
-                aria-required="true"
+                aria-required={true}
               />
             </div>
           </>
@@ -244,7 +247,7 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
             value={formValues.pixKey}
             onChange={(value) => handleFieldChange('pixKey', value)}
             required
-            aria-required="true"
+            aria-required={true}
           />
         )}
 
@@ -257,7 +260,7 @@ const PaymentForm: React.FC<PaymentFormProps> = ({
             value={formValues.boletoEmail}
             onChange={(value) => handleFieldChange('boletoEmail', value)}
             required
-            aria-required="true"
+            aria-required={true}
           />
         )}
 

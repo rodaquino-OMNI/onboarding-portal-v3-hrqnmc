@@ -4,7 +4,7 @@ import { Navigate, useLocation } from 'react-router-dom';
 import { styled } from '@mui/material/styles';
 
 import { Header } from '../components/common/Header';
-import { Sidebar } from '../components/common/Sidebar';
+import Sidebar from '../components/common/Sidebar';
 import ErrorBoundary from '../components/common/ErrorBoundary';
 import { useAuth } from '../contexts/AuthContext';
 import { ROUTES } from '../constants/routes.constants';
@@ -35,7 +35,7 @@ const MainContent = styled(Box)(({ theme }) => ({
   backgroundColor: theme.palette.background.default,
 }));
 
-const SkipLink = styled(Box)(({ theme }) => ({
+const SkipLink = styled('a')(({ theme }) => ({
   position: 'absolute',
   top: -9999,
   left: '50%',
@@ -43,6 +43,8 @@ const SkipLink = styled(Box)(({ theme }) => ({
   backgroundColor: theme.palette.background.paper,
   padding: theme.spacing(1, 2),
   zIndex: theme.zIndex.tooltip + 1,
+  textDecoration: 'none',
+  color: theme.palette.text.primary,
   '&:focus': {
     top: 0,
   },
@@ -93,7 +95,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = React.memo(({ children, required
     return <Navigate to={ROUTES.AUTH.LOGIN} state={{ from: location }} replace />;
   }
 
-  if (requiredRole && !checkRole(requiredRole)) {
+  if (requiredRole && !checkRole(requiredRole as any)) {
     return <Navigate to={ROUTES.ERROR.FORBIDDEN} replace />;
   }
 
@@ -109,7 +111,6 @@ const AdminLayout: React.FC<AdminLayoutProps> = React.memo(({ children, required
       >
         {/* Skip to main content link for accessibility */}
         <SkipLink
-          component="a"
           href="#main-content"
           tabIndex={0}
           onClick={(e) => {

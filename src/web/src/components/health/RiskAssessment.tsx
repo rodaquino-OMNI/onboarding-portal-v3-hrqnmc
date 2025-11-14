@@ -135,7 +135,7 @@ const RiskAssessment: React.FC<RiskAssessmentProps> = React.memo(({
         </RiskScore>
         
         <StatusBadge
-          status={riskAssessment.riskLevel}
+          status={riskAssessment.riskLevel as any}
           type="enrollment"
           size="large"
         />

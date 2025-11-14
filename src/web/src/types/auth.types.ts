@@ -34,6 +34,7 @@ export interface User {
   email: string;
   firstName: string;
   lastName: string;
+  name?: string; // Full name (for display purposes)
   cpf: string;
   role: UserRole;
   mfaEnabled: boolean;
@@ -50,6 +51,8 @@ export interface User {
   passwordLastChanged: Date;
   failedLoginAttempts: number;
   avatarUrl?: string;
+  dateOfBirth?: Date; // Date of birth for beneficiaries
+  address?: string; // User address
 }
 
 /**
@@ -149,7 +152,7 @@ export interface SecurityContext {
   deviceId: string;
   ipAddress: string;
   userAgent: string;
-  timestamp: Date;
+  timestamp: number;
   geolocation?: {
     country: string;
     city: string;

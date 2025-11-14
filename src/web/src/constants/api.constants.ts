@@ -124,6 +124,7 @@ export const API_ENDPOINTS = {
     DELETE: '/documents/:id'
   },
   POLICY: {
+    BASE: '/policies',
     CREATE: '/policies/create',
     UPDATE: '/policies/:id',
     STATUS: '/policies/:id/status',

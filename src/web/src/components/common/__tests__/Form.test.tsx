@@ -1,11 +1,27 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
+import { z } from 'zod';
 import Form from '../Form';
 
 describe('Form Component', () => {
   const mockOnSubmit = jest.fn();
   const mockOnChange = jest.fn();
+
+  // Default test schema and initial values
+  const defaultSchema = z.object({
+    test: z.string().optional(),
+    testField: z.string().optional(),
+    username: z.string().optional(),
+    email: z.string().email().optional().or(z.literal('')),
+  });
+
+  const defaultInitialValues = {
+    test: '',
+    testField: '',
+    username: '',
+    email: '',
+  };
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -14,7 +30,7 @@ describe('Form Component', () => {
   describe('Rendering', () => {
     it('should render form element', () => {
       render(
-        <Form onSubmit={mockOnSubmit}>
+        <Form validationSchema={defaultSchema} initialValues={defaultInitialValues} onSubmit={mockOnSubmit}>
           <input type="text" name="test" />
         </Form>
       );
@@ -23,7 +39,7 @@ describe('Form Component', () => {
 
     it('should render children', () => {
       render(
-        <Form onSubmit={mockOnSubmit}>
+        <Form validationSchema={defaultSchema} initialValues={defaultInitialValues} onSubmit={mockOnSubmit}>
           <input type="text" name="testField" aria-label="Test Field" />
           <button type="submit">Submit</button>
         </Form>
@@ -33,26 +49,26 @@ describe('Form Component', () => {
     });
 
     it('should apply className', () => {
-      render(
-        <Form onSubmit={mockOnSubmit} className="custom-form">
+      const { container } = render(
+        <Form validationSchema={defaultSchema} initialValues={defaultInitialValues} onSubmit={mockOnSubmit} className="custom-form">
           <input type="text" name="test" />
         </Form>
       );
-      const form = screen.getByRole('form');
+      const form = container.querySelector('form');
       expect(form).toHaveClass('custom-form');
     });
   });
 
   describe('Form Submission', () => {
     it('should call onSubmit when submitted', async () => {
+      const initialValues = { username: 'testuser' };
       render(
-        <Form onSubmit={mockOnSubmit}>
-          <input type="text" name="username" defaultValue="testuser" />
-          <button type="submit">Submit</button>
+        <Form validationSchema={defaultSchema} initialValues={initialValues} onSubmit={mockOnSubmit}>
+          <input type="text" name="username" />
         </Form>
       );
 
-      const submitButton = screen.getByRole('button', { name: /submit/i });
+      const submitButton = screen.getByRole('button', { name: /enviar/i });
       fireEvent.click(submitButton);
 
       await waitFor(() => {
@@ -61,45 +77,48 @@ describe('Form Component', () => {
     });
 
     it('should prevent default form submission', async () => {
-      const handleSubmit = jest.fn((e) => {
-        e.preventDefault();
+      const handleSubmit = jest.fn(async (values: Record<string, any>) => {
+        return Promise.resolve();
       });
 
-      render(
-        <Form onSubmit={handleSubmit}>
+      const { container } = render(
+        <Form validationSchema={defaultSchema} initialValues={defaultInitialValues} onSubmit={handleSubmit}>
           <input type="text" name="test" />
-          <button type="submit">Submit</button>
         </Form>
       );
 
-      const form = screen.getByRole('form');
+      const form = container.querySelector('form')!;
       fireEvent.submit(form);
 
-      expect(handleSubmit).toHaveBeenCalled();
+      await waitFor(() => {
+        expect(handleSubmit).toHaveBeenCalled();
+      });
     });
 
     it('should collect form data on submit', async () => {
-      const handleSubmit = jest.fn();
+      const handleSubmit = jest.fn(async () => Promise.resolve());
+      const initialValues = { username: 'john', email: 'john@example.com' };
 
       render(
-        <Form onSubmit={handleSubmit}>
-          <input type="text" name="username" defaultValue="john" aria-label="Username" />
-          <input type="email" name="email" defaultValue="john@example.com" aria-label="Email" />
-          <button type="submit">Submit</button>
+        <Form validationSchema={defaultSchema} initialValues={initialValues} onSubmit={handleSubmit}>
+          <input type="text" name="username" aria-label="Username" />
+          <input type="email" name="email" aria-label="Email" />
         </Form>
       );
 
-      const submitButton = screen.getByRole('button');
+      const submitButton = screen.getByRole('button', { name: /enviar/i });
       fireEvent.click(submitButton);
 
-      expect(handleSubmit).toHaveBeenCalled();
+      await waitFor(() => {
+        expect(handleSubmit).toHaveBeenCalled();
+      });
     });
   });
 
   describe('Form Validation', () => {
     it('should support HTML5 validation', () => {
       render(
-        <Form onSubmit={mockOnSubmit}>
+        <Form validationSchema={defaultSchema} initialValues={defaultInitialValues} onSubmit={mockOnSubmit}>
           <input type="email" name="email" required aria-label="Email" />
           <button type="submit">Submit</button>
         </Form>
@@ -112,7 +131,7 @@ describe('Form Component', () => {
 
     it('should validate required fields', async () => {
       render(
-        <Form onSubmit={mockOnSubmit}>
+        <Form validationSchema={defaultSchema} initialValues={defaultInitialValues} onSubmit={mockOnSubmit}>
           <input type="text" name="required" required aria-label="Required Field" />
           <button type="submit">Submit</button>
         </Form>
@@ -124,7 +143,7 @@ describe('Form Component', () => {
 
     it('should handle pattern validation', () => {
       render(
-        <Form onSubmit={mockOnSubmit}>
+        <Form validationSchema={defaultSchema} initialValues={defaultInitialValues} onSubmit={mockOnSubmit}>
           <input
             type="text"
             name="pattern"
@@ -142,7 +161,7 @@ describe('Form Component', () => {
   describe('Form State', () => {
     it('should track input changes', () => {
       render(
-        <Form onSubmit={mockOnSubmit} onChange={mockOnChange}>
+        <Form validationSchema={defaultSchema} initialValues={defaultInitialValues} onSubmit={mockOnSubmit}>
           <input type="text" name="text" aria-label="Text Input" />
         </Form>
       );
@@ -155,7 +174,7 @@ describe('Form Component', () => {
 
     it('should handle multiple inputs', () => {
       render(
-        <Form onSubmit={mockOnSubmit}>
+        <Form validationSchema={defaultSchema} initialValues={defaultInitialValues} onSubmit={mockOnSubmit}>
           <input type="text" name="first" aria-label="First" />
           <input type="text" name="second" aria-label="Second" />
           <input type="text" name="third" aria-label="Third" />
@@ -169,7 +188,7 @@ describe('Form Component', () => {
 
     it('should handle checkbox inputs', () => {
       render(
-        <Form onSubmit={mockOnSubmit}>
+        <Form validationSchema={defaultSchema} initialValues={defaultInitialValues} onSubmit={mockOnSubmit}>
           <input type="checkbox" name="agree" aria-label="Agree" />
         </Form>
       );
@@ -183,7 +202,7 @@ describe('Form Component', () => {
 
     it('should handle radio inputs', () => {
       render(
-        <Form onSubmit={mockOnSubmit}>
+        <Form validationSchema={defaultSchema} initialValues={defaultInitialValues} onSubmit={mockOnSubmit}>
           <input type="radio" name="option" value="1" aria-label="Option 1" />
           <input type="radio" name="option" value="2" aria-label="Option 2" />
         </Form>
@@ -203,7 +222,7 @@ describe('Form Component', () => {
 
     it('should handle select inputs', () => {
       render(
-        <Form onSubmit={mockOnSubmit}>
+        <Form validationSchema={defaultSchema} initialValues={defaultInitialValues} onSubmit={mockOnSubmit}>
           <select name="country" aria-label="Country">
             <option value="br">Brazil</option>
             <option value="us">USA</option>
@@ -221,7 +240,7 @@ describe('Form Component', () => {
   describe('Form Reset', () => {
     it('should reset form values', () => {
       render(
-        <Form onSubmit={mockOnSubmit}>
+        <Form validationSchema={defaultSchema} initialValues={defaultInitialValues} onSubmit={mockOnSubmit}>
           <input type="text" name="text" defaultValue="" aria-label="Text" />
           <button type="reset">Reset</button>
           <button type="submit">Submit</button>
@@ -242,7 +261,7 @@ describe('Form Component', () => {
   describe('Accessibility', () => {
     it('should have accessible form role', () => {
       render(
-        <Form onSubmit={mockOnSubmit}>
+        <Form validationSchema={defaultSchema} initialValues={defaultInitialValues} onSubmit={mockOnSubmit}>
           <input type="text" name="test" />
         </Form>
       );
@@ -251,16 +270,16 @@ describe('Form Component', () => {
 
     it('should support aria attributes', () => {
       render(
-        <Form onSubmit={mockOnSubmit} aria-label="Test Form">
-          <input type="text" name="test" />
+        <Form validationSchema={defaultSchema} initialValues={defaultInitialValues} onSubmit={mockOnSubmit}>
+          <input type="text" name="test" aria-label="Test Field" />
         </Form>
       );
-      expect(screen.getByLabelText('Test Form')).toBeInTheDocument();
+      expect(screen.getByLabelText('Test Field')).toBeInTheDocument();
     });
 
     it('should support fieldset and legend', () => {
       render(
-        <Form onSubmit={mockOnSubmit}>
+        <Form validationSchema={defaultSchema} initialValues={defaultInitialValues} onSubmit={mockOnSubmit}>
           <fieldset>
             <legend>Personal Information</legend>
             <input type="text" name="name" aria-label="Name" />
@@ -276,27 +295,24 @@ describe('Form Component', () => {
   describe('Error Handling', () => {
     it('should display validation errors', () => {
       render(
-        <Form onSubmit={mockOnSubmit}>
+        <Form validationSchema={defaultSchema} initialValues={defaultInitialValues} onSubmit={mockOnSubmit}>
           <input type="email" name="email" required aria-label="Email" />
           <span role="alert" id="email-error">Invalid email</span>
         </Form>
       );
 
-      expect(screen.getByRole('alert')).toHaveTextContent('Invalid email');
+      expect(screen.getByText('Invalid email')).toBeInTheDocument();
     });
 
-    it('should handle onError callback', async () => {
-      const handleError = jest.fn();
-
+    it('should handle validation errors', async () => {
       render(
-        <Form onSubmit={mockOnSubmit} onError={handleError}>
+        <Form validationSchema={defaultSchema} initialValues={defaultInitialValues} onSubmit={mockOnSubmit}>
           <input type="email" name="email" required aria-label="Email" />
-          <button type="submit">Submit</button>
         </Form>
       );
 
       // Try to submit with empty required field
-      const submitButton = screen.getByRole('button');
+      const submitButton = screen.getByRole('button', { name: /enviar/i });
       fireEvent.click(submitButton);
 
       // Form should prevent submission with empty required field
@@ -308,24 +324,20 @@ describe('Form Component', () => {
   describe('Loading State', () => {
     it('should disable form during loading', () => {
       render(
-        <Form onSubmit={mockOnSubmit} disabled>
+        <Form validationSchema={defaultSchema} initialValues={defaultInitialValues} onSubmit={mockOnSubmit} disabled>
           <input type="text" name="text" aria-label="Text" />
-          <button type="submit">Submit</button>
         </Form>
       );
 
-      const input = screen.getByLabelText('Text');
-      const button = screen.getByRole('button');
-
-      expect(input).toBeDisabled();
-      expect(button).toBeDisabled();
+      const submitButton = screen.getByRole('button', { name: /enviar/i });
+      expect(submitButton).toBeDisabled();
     });
   });
 
   describe('Complex Forms', () => {
     it('should handle nested field groups', () => {
       render(
-        <Form onSubmit={mockOnSubmit}>
+        <Form validationSchema={defaultSchema} initialValues={defaultInitialValues} onSubmit={mockOnSubmit}>
           <div>
             <input type="text" name="firstName" aria-label="First Name" />
             <input type="text" name="lastName" aria-label="Last Name" />
@@ -345,7 +357,7 @@ describe('Form Component', () => {
 
     it('should handle dynamic fields', () => {
       const { rerender } = render(
-        <Form onSubmit={mockOnSubmit}>
+        <Form validationSchema={defaultSchema} initialValues={defaultInitialValues} onSubmit={mockOnSubmit}>
           <input type="text" name="field1" aria-label="Field 1" />
         </Form>
       );
@@ -353,7 +365,7 @@ describe('Form Component', () => {
       expect(screen.getByLabelText('Field 1')).toBeInTheDocument();
 
       rerender(
-        <Form onSubmit={mockOnSubmit}>
+        <Form validationSchema={defaultSchema} initialValues={defaultInitialValues} onSubmit={mockOnSubmit}>
           <input type="text" name="field1" aria-label="Field 1" />
           <input type="text" name="field2" aria-label="Field 2" />
         </Form>

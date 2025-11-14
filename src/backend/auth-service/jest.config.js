@@ -31,6 +31,8 @@ module.exports = {
     '!src/**/index.ts',
     '!src/**/*.interface.ts',
     '!src/**/*.type.ts',
+    '!src/validators/**/*.ts',
+    '!src/models/**/*.ts',
   ],
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov', 'html', 'json-summary'],
@@ -42,10 +44,10 @@ module.exports = {
   ],
   coverageThreshold: {
     global: {
-      branches: 20,
-      functions: 20,
-      lines: 20,
-      statements: 20,
+      branches: 55,
+      functions: 60,
+      lines: 60,
+      statements: 60,
     },
   },
   testTimeout: 10000,

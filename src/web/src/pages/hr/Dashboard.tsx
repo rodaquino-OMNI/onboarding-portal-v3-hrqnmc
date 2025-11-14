@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 
 import MainLayout from '../../layouts/MainLayout';
 import DataTable, { DataTableColumn } from '../../components/common/DataTable';
+import StatusBadge from '../../components/common/StatusBadge';
 import ErrorBoundary from '../../components/common/ErrorBoundary';
 import { useEnrollment } from '../../hooks/useEnrollment';
 import { EnrollmentStatus, EnrollmentSummary } from '../../types/enrollment.types';
@@ -120,7 +121,13 @@ const HRDashboard: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        await fetchEnrollmentList(currentPage, ITEMS_PER_PAGE, filters);
+        const enrollmentFilters = {
+          status: filters.status[0],
+          startDate: filters.dateRange.start,
+          endDate: filters.dateRange.end,
+          searchTerm: filters.search,
+        };
+        await fetchEnrollmentList(currentPage, ITEMS_PER_PAGE, enrollmentFilters);
       } catch (error) {
         console.error('Failed to fetch enrollments:', error);
       }

@@ -35,7 +35,7 @@ import NavigateBeforeIcon from '@mui/icons-material/NavigateBefore';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 
-import { DatePicker } from '../../components/common/DatePicker';
+import DatePicker from '../../components/common/DatePicker';
 import FileUpload from '../../components/common/FileUpload';
 import { useAuth } from '../../hooks/useAuth';
 import { useNotification } from '../../hooks/useNotification';
@@ -228,6 +228,8 @@ const DependentManagement: React.FC = () => {
             </Grid>
             <Grid item xs={12} sm={6}>
               <DatePicker
+                id="dateOfBirth"
+                name="dateOfBirth"
                 label={t('guardian.dependentManagement.dateOfBirth')}
                 value={formData.dateOfBirth}
                 onChange={(date) => handleInputChange('dateOfBirth', date)}

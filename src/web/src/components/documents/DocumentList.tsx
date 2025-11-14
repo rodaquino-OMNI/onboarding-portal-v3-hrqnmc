@@ -13,7 +13,7 @@ import { DocumentType, DocumentStatus } from '../../types/document.types';
 import { useDocuments } from '../../hooks/useDocuments';
 
 interface DocumentListProps {
-  enrollmentId: string;
+  enrollmentId?: string;
   onDocumentClick?: (document: Document) => void;
   className?: string;
   virtualScrolling?: boolean;

@@ -4,7 +4,8 @@ import { useDebounce } from 'use-debounce';
 import DataTable, { DataTableColumn } from '../../components/common/DataTable';
 import Card from '../../components/common/Card';
 import ErrorBoundary from '../../components/common/ErrorBoundary';
-import EnrollmentService from '../../services/enrollment.service';
+import { ApiService } from '../../services/api.service';
+import { EnrollmentService } from '../../services/enrollment.service';
 import { EnrollmentSummary, EnrollmentStatus } from '../../types/enrollment.types';
 import { useNotificationContext } from '../../contexts/NotificationContext';
 import { THEME } from '../../constants/app.constants';
@@ -45,7 +46,7 @@ const useEmployeeData = (
   const [total, setTotal] = useState(0);
   const [error, setError] = useState<Error | null>(null);
   const { showNotification } = useNotificationContext();
-  const enrollmentService = useMemo(() => new EnrollmentService(), []);
+  const enrollmentService = useMemo(() => new EnrollmentService(new ApiService()), []);
 
   const fetchData = useCallback(async () => {
     try {
@@ -94,7 +95,7 @@ const Employees: React.FC = () => {
   // Memoized table columns with proper accessibility and formatting
   const columns = useMemo<DataTableColumn<EnrollmentSummary>[]>(() => [
     {
-      key: 'beneficiaryName',
+      key: 'beneficiaryName' as keyof EnrollmentSummary,
       header: t('employees.table.name'),
       width: '25%',
       sortable: true,
@@ -103,14 +104,14 @@ const Employees: React.FC = () => {
       ariaLabel: t('employees.aria.name'),
     },
     {
-      key: 'cpf',
+      key: 'cpf' as keyof EnrollmentSummary,
       header: t('employees.table.cpf'),
       width: '15%',
       sortable: true,
       render: (row) => row.cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4'),
     },
     {
-      key: 'status',
+      key: 'status' as keyof EnrollmentSummary,
       header: t('employees.table.status'),
       width: '20%',
       sortable: true,
@@ -122,14 +123,14 @@ const Employees: React.FC = () => {
       })),
     },
     {
-      key: 'createdAt',
+      key: 'createdAt' as keyof EnrollmentSummary,
       header: t('employees.table.enrollmentDate'),
       width: '20%',
       sortable: true,
       render: (row) => new Intl.DateTimeFormat('pt-BR').format(new Date(row.createdAt)),
     },
     {
-      key: 'actions',
+      key: 'id' as keyof EnrollmentSummary,
       header: t('employees.table.actions'),
       width: '20%',
       render: (row) => (

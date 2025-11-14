@@ -29,11 +29,7 @@
   },
   "references": [
     { "path": "./auth-service" },
-    { "path": "./api-gateway" },
-    { "path": "./document-service" },
-    { "path": "./enrollment-service" },
-    { "path": "./health-service" },
-    { "path": "./policy-service" }
+    { "path": "./api-gateway" }
   ],
   "exclude": [
     "node_modules",

@@ -4,6 +4,7 @@ import { z } from 'zod';
 import FingerprintJS from '@fingerprintjs/fingerprintjs';
 
 import Form from '../../components/common/Form';
+import { InputMaskType } from '../../components/common/Input';
 import { useAuth } from '../../contexts/AuthContext';
 import { UserRole } from '../../types/auth.types';
 import { authService } from '../../services/auth.service';
@@ -93,25 +94,21 @@ const Register: React.FC = () => {
       setIsLoading(true);
 
       // Validate device fingerprint
-      const deviceInfo = await authService.validateDevice({
-        fingerprint: deviceFingerprint,
-        userAgent: navigator.userAgent,
-        platform: navigator.platform
-      });
+      const isDeviceValid = await authService.validateDevice(deviceFingerprint);
 
-      if (!deviceInfo.isValid) {
+      if (!isDeviceValid) {
         throw new Error('Dispositivo não autorizado');
       }
 
       // Register user with enhanced security
-      await authService.register({
+      const registrationResult = await authService.register({
         ...values,
         deviceFingerprint,
         ipAddress: window.location.hostname
       });
 
       // Perform initial login
-      await login({
+      const loginResult = await login({
         email: values.email,
         password: values.password,
         deviceFingerprint,
@@ -119,12 +116,13 @@ const Register: React.FC = () => {
       });
 
       // Set up MFA if required for role
-      if (values.role === UserRole.BROKER || 
+      if (values.role === UserRole.BROKER ||
           values.role === UserRole.ADMINISTRATOR) {
-        await authService.setupMFA({
-          phoneNumber: values.phoneNumber,
-          deviceFingerprint
-        });
+        // Get user ID from login result or registration result
+        const userId = loginResult?.user?.id || registrationResult?.user?.id || '';
+        if (userId) {
+          await authService.setupMFA(userId);
+        }
         navigate('/auth/mfa-setup');
       } else {
         navigate('/dashboard');
@@ -164,15 +162,15 @@ const Register: React.FC = () => {
             id="firstName"
             name="firstName"
             label="Nome"
-            required
-            autoComplete="given-name"
+            required={true}
+            autoComplete={true}
           />
           <Form.Input
             id="lastName"
             name="lastName"
             label="Sobrenome"
-            required
-            autoComplete="family-name"
+            required={true}
+            autoComplete={true}
           />
         </div>
 
@@ -181,26 +179,26 @@ const Register: React.FC = () => {
           name="email"
           label="Email"
           type="email"
-          required
-          autoComplete="email"
+          required={true}
+          autoComplete={true}
         />
 
         <Form.Input
           id="cpf"
           name="cpf"
           label="CPF"
-          required
-          maskType="cpf"
-          autoComplete="off"
+          required={true}
+          maskType={InputMaskType.CPF}
+          autoComplete={false}
         />
 
         <Form.Input
           id="phoneNumber"
           name="phoneNumber"
           label="Telefone"
-          required
-          maskType="phone"
-          autoComplete="tel"
+          required={true}
+          maskType={InputMaskType.PHONE}
+          autoComplete={true}
         />
 
         <Form.Input
@@ -208,8 +206,8 @@ const Register: React.FC = () => {
           name="password"
           label="Senha"
           type="password"
-          required
-          autoComplete="new-password"
+          required={true}
+          autoComplete={false}
         />
 
         <Form.Input
@@ -217,8 +215,8 @@ const Register: React.FC = () => {
           name="confirmPassword"
           label="Confirmar Senha"
           type="password"
-          required
-          autoComplete="new-password"
+          required={true}
+          autoComplete={false}
         />
 
         <Form.Select

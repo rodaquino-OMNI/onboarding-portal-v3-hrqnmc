@@ -23,7 +23,7 @@ const ResetPassword: React.FC = () => {
   const handlePasswordResetSuccess = useCallback(async (email: string) => {
     try {
       // Log successful password reset for LGPD compliance
-      await auditLog('password-reset-success', {
+      auditLog.log('password-reset-success', {
         email,
         timestamp: new Date().toISOString(),
         ipAddress: window.clientInformation?.platform || 'unknown'
@@ -55,7 +55,7 @@ const ResetPassword: React.FC = () => {
   const handlePasswordResetError = useCallback(async (error: Error) => {
     try {
       // Log error for security monitoring
-      await auditLog('password-reset-error', {
+      auditLog.log('password-reset-error', {
         error: error.message,
         timestamp: new Date().toISOString(),
         ipAddress: window.clientInformation?.platform || 'unknown'

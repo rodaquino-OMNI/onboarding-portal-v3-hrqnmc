@@ -71,8 +71,9 @@ export const Table = <T extends object>({
   // Render header cell with accessibility attributes
   const renderHeaderCell = useCallback((column: TableColumn<T>) => {
     const isSorted = sortBy === column.key;
+    const ariaSort: 'ascending' | 'descending' | undefined =
+      isSorted ? (sortOrder === 'asc' ? 'ascending' : 'descending') : undefined;
     const headerProps: React.ThHTMLAttributes<HTMLTableHeaderCellElement> = {
-      key: String(column.key),
       className: classNames('table-header-cell', {
         'sortable': column.sortable,
         'sorted': isSorted
@@ -87,12 +88,12 @@ export const Table = <T extends object>({
       },
       role: column.sortable ? 'columnheader button' : 'columnheader',
       tabIndex: column.sortable ? 0 : undefined,
-      'aria-sort': isSorted ? (sortOrder === 'asc' ? 'ascending' : 'descending') as const : undefined,
+      'aria-sort': ariaSort,
       'aria-label': column.ariaLabel || column.header
     };
 
     return (
-      <th {...headerProps}>
+      <th key={String(column.key)} {...headerProps}>
         {column.header}
         {column.sortable && (
           <SortIndicator 
@@ -138,9 +139,8 @@ export const Table = <T extends object>({
     const rowKeyName = Object.keys(row)[0] as keyof T;
     const rowKey = row[rowKeyName];
     const isSelected = selectedRows.includes(rowKeyName);
-    
+
     const rowProps: React.HTMLAttributes<HTMLTableRowElement> = {
-      key: String(rowKey),
       className: classNames('table-row', {
         'selected': isSelected,
         'clickable': !!onRowClick
@@ -153,7 +153,7 @@ export const Table = <T extends object>({
     };
 
     return (
-      <tr {...rowProps}>
+      <tr key={String(rowKey)} {...rowProps}>
         {onRowSelect && (
           <td className="table-cell selection-cell">
             <input

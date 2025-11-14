@@ -26,7 +26,7 @@ import { authConfig } from '../config/auth.config';
  */
 export class LoginDto {
   @IsEmail({}, { message: 'Invalid email format' })
-  @Transform(({ value }) => value.toLowerCase())
+  @Transform(({ value }: { value: string }) => value.toLowerCase())
   @IsNotEmpty()
   email!: string;
 
@@ -55,7 +55,7 @@ export class LoginDto {
  */
 export class RegisterDto {
   @IsEmail({}, { message: 'Invalid email format' })
-  @Transform(({ value }) => value.toLowerCase())
+  @Transform(({ value }: { value: string }) => value.toLowerCase())
   @IsNotEmpty()
   email!: string;
 
@@ -103,7 +103,7 @@ export class RegisterDto {
   deviceId!: string;
 
   @IsObject()
-  @ValidateIf(o => o.role === UserRole.BENEFICIARY || o.role === UserRole.PARENT_GUARDIAN)
+  @ValidateIf((o: RegisterDto) => o.role === UserRole.BENEFICIARY || o.role === UserRole.PARENT_GUARDIAN)
   securityQuestions!: {
     [key: string]: string;
   };
@@ -144,7 +144,7 @@ export class MfaVerificationDto {
  */
 export class PasswordResetDto {
   @IsEmail({}, { message: 'Invalid email format' })
-  @Transform(({ value }) => value.toLowerCase())
+  @Transform(({ value }: { value: string }) => value.toLowerCase())
   @IsNotEmpty()
   email!: string;
 

@@ -24,7 +24,7 @@ import {
   WaitingPeriod,
   RoleAccess
 } from '../../types/policy.types';
-import PolicyService from '../../services/policy.service';
+import { PolicyService } from '../../services/policy.service';
 
 interface PolicyDetailsProps {
   policyId: string;

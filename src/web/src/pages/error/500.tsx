@@ -21,9 +21,9 @@ const ErrorContainer = styled(Box)(({ theme }) => ({
 }));
 
 const ErrorCode = styled(Typography)(({ theme }) => ({
-  fontSize: {
-    xs: 80,
-    md: 120
+  fontSize: 80,
+  [theme.breakpoints.up('md')]: {
+    fontSize: 120
   },
   fontWeight: 700,
   color: theme.palette.error.main,
@@ -32,9 +32,9 @@ const ErrorCode = styled(Typography)(({ theme }) => ({
 }));
 
 const ErrorMessage = styled(Typography)(({ theme }) => ({
-  fontSize: {
-    xs: 18,
-    md: 24
+  fontSize: 18,
+  [theme.breakpoints.up('md')]: {
+    fontSize: 24
   },
   color: theme.palette.text.primary,
   marginBottom: theme.spacing(4),
@@ -44,15 +44,15 @@ const ErrorMessage = styled(Typography)(({ theme }) => ({
 
 const ActionContainer = styled(Box)(({ theme }) => ({
   display: 'flex',
-  flexDirection: {
-    xs: 'column',
-    sm: 'row'
+  flexDirection: 'column',
+  [theme.breakpoints.up('sm')]: {
+    flexDirection: 'row'
   },
   gap: theme.spacing(2),
   marginTop: theme.spacing(2),
-  width: {
-    xs: '100%',
-    sm: 'auto'
+  width: '100%',
+  [theme.breakpoints.up('sm')]: {
+    width: 'auto'
   }
 }));
 
@@ -97,25 +97,17 @@ const InternalServerError: React.FC = React.memo(() => {
 
         <ActionContainer>
           <Button
-            variant="contained"
+            variant="primary"
             onClick={handleRetry}
             aria-label="Tentar novamente"
-            fullWidth={{
-              xs: true,
-              sm: false
-            }}
           >
             Tentar novamente
           </Button>
 
           <Button
-            variant="outlined"
+            variant="outline"
             onClick={handleReturnToDashboard}
             aria-label="Voltar ao início"
-            fullWidth={{
-              xs: true,
-              sm: false
-            }}
           >
             Voltar ao início
           </Button>

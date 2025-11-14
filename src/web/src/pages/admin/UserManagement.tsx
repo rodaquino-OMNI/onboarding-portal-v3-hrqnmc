@@ -58,6 +58,8 @@ const USER_STATUS = ['ACTIVE', 'INACTIVE', 'LOCKED', 'PENDING'] as const;
 interface User {
   id: string;
   name: string;
+  firstName: string;
+  lastName: string;
   email: string;
   cpf: string;
   role: typeof USER_ROLES[number];
@@ -66,6 +68,7 @@ interface User {
   lastLogin?: Date;
   createdAt: Date;
   isLocked: boolean;
+  isActive: boolean;
 }
 
 interface UserFormData {
@@ -111,28 +114,29 @@ const UserManagement: React.FC = () => {
   // Table columns configuration
   const columns = [
     {
-      id: 'name',
-      label: t('admin.users.name'),
-      minWidth: 170
+      key: 'firstName' as keyof User,
+      header: t('admin.users.name'),
+      width: '170px',
+      render: (row: User) => `${row.firstName} ${row.lastName}`
     },
     {
-      id: 'email',
-      label: t('admin.users.email'),
-      minWidth: 200
+      key: 'email' as keyof User,
+      header: t('admin.users.email'),
+      width: '200px'
     },
     {
-      id: 'cpf',
-      label: t('admin.users.cpf'),
-      minWidth: 130,
-      format: (value: string) => value.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4')
+      key: 'cpf' as keyof User,
+      header: t('admin.users.cpf'),
+      width: '130px',
+      render: (row: User) => row.cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4')
     },
     {
-      id: 'role',
-      label: t('admin.users.role'),
-      minWidth: 150,
-      format: (value: string) => (
+      key: 'role' as keyof User,
+      header: t('admin.users.role'),
+      width: '150px',
+      render: (row: User) => (
         <Chip
-          label={t(`admin.users.roles.${value.toLowerCase()}`)}
+          label={t(`admin.users.roles.${row.role.toLowerCase()}`)}
           size="small"
           color="primary"
           variant="outlined"
@@ -140,35 +144,35 @@ const UserManagement: React.FC = () => {
       )
     },
     {
-      id: 'status',
-      label: t('admin.users.status'),
-      minWidth: 120,
-      format: (value: string) => (
+      key: 'isActive' as keyof User,
+      header: t('admin.users.status'),
+      width: '120px',
+      render: (row: User) => (
         <Chip
-          label={t(`admin.users.statuses.${value.toLowerCase()}`)}
+          label={row.isActive ? t('admin.users.statuses.active') : t('admin.users.statuses.inactive')}
           size="small"
-          color={value === 'ACTIVE' ? 'success' : value === 'LOCKED' ? 'error' : 'default'}
+          color={row.isActive ? 'success' : 'error'}
         />
       )
     },
     {
-      id: 'mfaEnabled',
-      label: t('admin.users.mfa'),
-      minWidth: 100,
-      format: (value: boolean) => (
+      key: 'mfaEnabled' as keyof User,
+      header: t('admin.users.mfa'),
+      width: '100px',
+      render: (row: User) => (
         <Chip
           icon={<SecurityIcon />}
-          label={value ? t('common.yes') : t('common.no')}
+          label={row.mfaEnabled ? t('common.yes') : t('common.no')}
           size="small"
-          color={value ? 'success' : 'default'}
+          color={row.mfaEnabled ? 'success' : 'default'}
         />
       )
     },
     {
-      id: 'actions',
-      label: t('common.actions'),
-      minWidth: 200,
-      format: (_value: any, row: User) => (
+      key: 'id' as keyof User,
+      header: t('common.actions'),
+      width: '200px',
+      render: (row: User) => (
         <Box>
           <Tooltip title={t('admin.users.edit')}>
             <IconButton
@@ -208,7 +212,7 @@ const UserManagement: React.FC = () => {
     setIsLoading(true);
     try {
       // Simulated API call - replace with actual API service
-      const mockUsers: User[] = Array.from({ length: 20 }, (_, i) => ({
+      const mockUsers: any = Array.from({ length: 20 }, (_, i) => ({
         id: `user-${i}`,
         name: `Usuário ${i + 1}`,
         email: `usuario${i + 1}@exemplo.com`,
@@ -393,15 +397,17 @@ const UserManagement: React.FC = () => {
         <Grid item xs={12}>
           <Card>
             <DataTable
-              columns={columns}
-              data={users}
-              loading={isLoading}
-              page={page}
-              rowsPerPage={rowsPerPage}
-              totalCount={totalCount}
-              onPageChange={setPage}
-              onRowsPerPageChange={setRowsPerPage}
-              emptyMessage={t('admin.users.noUsers')}
+              {...{
+                columns: columns as any,
+                data: users,
+                loading: isLoading,
+                page,
+                rowsPerPage,
+                totalCount,
+                onPageChange: setPage,
+                onRowsPerPageChange: setRowsPerPage,
+                emptyMessage: t('admin.users.noUsers')
+              } as any}
             />
           </Card>
         </Grid>
@@ -409,10 +415,10 @@ const UserManagement: React.FC = () => {
 
       {/* Create/Edit Modal */}
       <Modal
-        open={isModalOpen}
+        isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         title={t(modalMode === 'create' ? 'admin.users.createUser' : 'admin.users.editUser')}
-        maxWidth="sm"
+        size="sm"
       >
         <Grid container spacing={2}>
           <Grid item xs={12}>

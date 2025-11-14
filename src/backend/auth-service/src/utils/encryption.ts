@@ -1,8 +1,8 @@
-// @package bcrypt ^5.1.1
+// @package bcryptjs ^2.4.3
 // @package crypto ^1.0.0
 import { randomBytes, createCipheriv, createDecipheriv, scrypt } from 'crypto';
 import { promisify } from 'util';
-import * as bcrypt from 'bcrypt';
+import * as bcrypt from 'bcryptjs';
 import { security } from '../config/auth.config';
 
 // Key rotation configuration

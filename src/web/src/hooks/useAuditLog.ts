@@ -20,8 +20,18 @@ export const useAuditLog = () => {
     });
   }, []);
 
+  const logAccess = useCallback((action: string, details?: Record<string, any>) => {
+    console.log('[AUDIT ACCESS]', {
+      action,
+      details,
+      timestamp: new Date(),
+      userId: 'current-user', // Would be from auth context
+    });
+  }, []);
+
   return {
     logAction,
+    logAccess,
   };
 };
 

@@ -44,8 +44,11 @@ const ERROR_MESSAGES = {
 interface LoginFormProps {
   onSuccess: () => void;
   onMFARequired: () => void;
+  onError?: (error: Error) => void;
   className?: string;
   maxAttempts?: number;
+  isLoading?: boolean;
+  deviceFingerprint?: string;
   theme?: 'light' | 'dark' | 'high-contrast';
   locale?: string;
 }
@@ -78,7 +81,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
       const result = await fp.get();
       setDeviceInfo({
         visitorId: result.visitorId,
-        confidence: result.confidence,
+        confidence: result.confidence.score,
         components: result.components
       });
     };

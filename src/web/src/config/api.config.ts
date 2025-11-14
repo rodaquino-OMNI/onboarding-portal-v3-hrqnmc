@@ -23,6 +23,7 @@ import {
  * Interface for enhanced API configuration options
  */
 interface ApiConfigOptions {
+  baseURL: string;
   enableRetry: boolean;
   enableCircuitBreaker: boolean;
   timeout: number;
@@ -41,6 +42,7 @@ interface ApiConfigOptions {
  * Default API configuration with telemetry and security features
  */
 export const apiConfig: ApiConfigOptions = {
+  baseURL: `${API_CONFIG.BASE_URL}/api/${API_CONFIG.VERSION}`,
   enableRetry: true,
   enableCircuitBreaker: true,
   timeout: API_PERFORMANCE.TIMEOUT,
@@ -96,8 +98,6 @@ export const circuitBreakerConfig = {
  * @returns Enhanced Axios configuration
  */
 export function createAxiosConfig(customConfig?: Partial<AxiosRequestConfig>): AxiosRequestConfig {
-  const tracer = trace.getTracer('api-client');
-
   const config: AxiosRequestConfig = {
     baseURL: `${API_CONFIG.BASE_URL}/api/${API_CONFIG.VERSION}`,
     timeout: apiConfig.timeout,
@@ -106,41 +106,55 @@ export function createAxiosConfig(customConfig?: Partial<AxiosRequestConfig>): A
       ...customConfig?.headers
     },
     validateStatus: apiConfig.security.validateStatus,
-    withCredentials: apiConfig.security.withCredentials,
-
-    // Request interceptor for telemetry
-    interceptors: {
-      request: [(config) => {
-        const span = tracer.startSpan('http_request');
-        span.setAttribute('http.url', config.url!);
-        span.setAttribute('http.method', config.method!.toUpperCase());
-        return config;
-      }],
-      response: [
-        (response) => {
-          const span = trace.getSpan(trace.getActiveContext());
-          if (span) {
-            span.setStatus({ code: SpanStatusCode.OK });
-            span.end();
-          }
-          return response;
-        },
-        (error) => {
-          const span = trace.getSpan(trace.getActiveContext());
-          if (span) {
-            span.setStatus({
-              code: SpanStatusCode.ERROR,
-              message: error.message
-            });
-            span.end();
-          }
-          return Promise.reject(error);
-        }
-      ]
-    }
+    withCredentials: apiConfig.security.withCredentials
   };
 
   return { ...config, ...customConfig };
+}
+
+/**
+ * Sets up telemetry interceptors for an axios instance
+ * Note: This should be called after creating the axios instance
+ */
+export function setupTelemetryInterceptors(axiosInstance: any): void {
+  const tracer = trace.getTracer('api-client');
+
+  axiosInstance.interceptors.request.use((config: any) => {
+    const span = tracer.startSpan('http_request');
+    span.setAttribute('http.url', config.url!);
+    span.setAttribute('http.method', config.method!.toUpperCase());
+    return config;
+  });
+
+  axiosInstance.interceptors.response.use(
+    (response: any) => {
+      try {
+        const span = trace.getActiveSpan();
+        if (span) {
+          span.setStatus({ code: SpanStatusCode.OK });
+          span.end();
+        }
+      } catch (e) {
+        // Telemetry error - continue without throwing
+      }
+      return response;
+    },
+    (error: any) => {
+      try {
+        const span = trace.getActiveSpan();
+        if (span) {
+          span.setStatus({
+            code: SpanStatusCode.ERROR,
+            message: error.message
+          });
+          span.end();
+        }
+      } catch (e) {
+        // Telemetry error - continue without throwing
+      }
+      return Promise.reject(error);
+    }
+  );
 }
 
 /**

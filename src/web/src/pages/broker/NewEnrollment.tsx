@@ -10,6 +10,7 @@ import { useAuth } from '../../hooks/useAuth';
 import ErrorBoundary from '../../components/common/ErrorBoundary';
 
 import { Beneficiary, Guardian } from '../../types/enrollment.types';
+import { UserRole } from '../../types/auth.types';
 import { THEME } from '../../constants/app.constants';
 
 // Step type for enrollment flow
@@ -30,8 +31,8 @@ const NewEnrollment: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const analytics = useAnalytics();
-  const { validateBrokerRole } = useAuth();
-  const { createNewEnrollment, isLoading, enrollmentError } = useEnrollment();
+  const { checkRole } = useAuth();
+  const { createNewEnrollment, isLoading, error: enrollmentError } = useEnrollment();
 
   // Component state
   const [state, setState] = useState<NewEnrollmentState>({
@@ -45,14 +46,14 @@ const NewEnrollment: React.FC = () => {
 
   // Validate broker role on mount
   useEffect(() => {
-    const validateAccess = async () => {
-      const hasAccess = await validateBrokerRole();
+    const validateAccess = () => {
+      const hasAccess = checkRole(UserRole.BROKER);
       if (!hasAccess) {
         navigate('/unauthorized', { replace: true });
       }
     };
     validateAccess();
-  }, [validateBrokerRole, navigate]);
+  }, [checkRole, navigate]);
 
   // Track enrollment progress
   useEffect(() => {
@@ -191,7 +192,7 @@ const NewEnrollment: React.FC = () => {
             initialData={state.beneficiaryData}
             userRole="BROKER"
             encryptionKey={process.env.VITE_ENCRYPTION_KEY!}
-            auditLogger={analytics.logEvent}
+            auditLogger={analytics.trackEvent}
           />
         )}
 

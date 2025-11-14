@@ -10,7 +10,7 @@ import axios, { AxiosInstance, AxiosResponse, AxiosError } from 'axios'; // ^1.5
 import axiosRetry from 'axios-retry'; // ^3.8.0
 import CircuitBreaker from 'opossum'; // ^7.1.0
 import sanitizeHtml from 'sanitize-html'; // ^2.11.0
-import { ApplicationInsights } from '@microsoft/applicationinsights-web'; // ^2.5.0
+// import { ApplicationInsights } from '@microsoft/applicationinsights-web'; // ^2.5.0 - Optional
 import { v4 as uuidv4 } from 'uuid'; // ^9.0.0
 
 import { apiConfig, retryConfig, circuitBreakerConfig } from '../config/api.config';
@@ -29,9 +29,10 @@ import { API_SECURITY, HTTP_STATUS, API_PERFORMANCE } from '../constants/api.con
  * Enhanced API Service with comprehensive security and monitoring
  */
 export class ApiService {
+  private static instance: ApiService;
   private readonly apiClient: AxiosInstance;
   private readonly circuitBreaker: CircuitBreaker;
-  private readonly telemetry: ApplicationInsights;
+  private readonly telemetry: any; // ApplicationInsights - optional
   private readonly responseCache: Map<string, { data: any; timestamp: number }>;
 
   constructor(config?: Partial<ApiRequestConfig>) {
@@ -63,14 +64,15 @@ export class ApiService {
       resetTimeout: circuitBreakerConfig.resetTimeout
     });
 
-    // Initialize telemetry
-    this.telemetry = new ApplicationInsights({
-      config: {
-        instrumentationKey: process.env.VITE_APPINSIGHTS_KEY,
-        enableAutoRouteTracking: true
-      }
-    });
-    this.telemetry.loadAppInsights();
+    // Initialize telemetry (optional)
+    this.telemetry = null; // ApplicationInsights disabled
+    // this.telemetry = new ApplicationInsights({
+    //   config: {
+    //     instrumentationKey: process.env.VITE_APPINSIGHTS_KEY,
+    //     enableAutoRouteTracking: true
+    //   }
+    // });
+    // this.telemetry.loadAppInsights();
 
     // Initialize response cache
     this.responseCache = new Map();
@@ -130,9 +132,9 @@ export class ApiService {
       const secureConfig = this.prepareRequestConfig(method, url, data, config, requestId);
 
       // Execute request through circuit breaker
-      const response = await this.circuitBreaker.fire(() =>
-        this.apiClient.request<ApiResponse<T>>(secureConfig)
-      );
+      const response = await this.circuitBreaker.fire(async () =>
+        await this.apiClient.request<ApiResponse<T>>(secureConfig)
+      ) as AxiosResponse;
 
       // Process and validate response
       const processedResponse = this.processResponse<T>(response);
@@ -162,11 +164,10 @@ export class ApiService {
     this.apiClient.interceptors.request.use(
       (config) => {
         // Add security headers
-        config.headers = {
-          ...config.headers,
-          'X-Request-ID': uuidv4(),
-          'X-Client-Version': process.env.VITE_APP_VERSION
-        };
+        if (config.headers) {
+          config.headers['X-Request-ID'] = uuidv4();
+          config.headers['X-Client-Version'] = process.env.VITE_APP_VERSION || '1.0.0';
+        }
 
         // Validate request data
         if (config.data) {
@@ -333,4 +334,68 @@ export class ApiService {
       timestamp: Date.now()
     });
   }
+
+  /**
+   * Gets cached response if available (public instance method)
+   */
+  public getCached<T>(url: string): ApiResponse<T> | null {
+    return this.getCachedResponse<T>(url);
+  }
+
+  /**
+   * Gets singleton instance of ApiService
+   */
+  private static getInstance(): ApiService {
+    if (!ApiService.instance) {
+      ApiService.instance = new ApiService();
+    }
+    return ApiService.instance;
+  }
+
+  /**
+   * Static GET method for convenience
+   */
+  static async get<T>(url: string, config?: ApiRequestConfig): Promise<ApiResponse<T>> {
+    return ApiService.getInstance().get<T>(url, config);
+  }
+
+  /**
+   * Static PUT method for convenience
+   */
+  static async put<T>(url: string, data: any, config?: ApiRequestConfig): Promise<ApiResponse<T>> {
+    return ApiService.getInstance().put<T>(url, data, config);
+  }
+
+  /**
+   * Static POST method for convenience
+   */
+  static async post<T>(url: string, data: any, config?: ApiRequestConfig): Promise<ApiResponse<T>> {
+    return ApiService.getInstance().post<T>(url, data, config);
+  }
+
+  /**
+   * Static DELETE method for convenience
+   */
+  static async delete<T>(url: string, config?: ApiRequestConfig): Promise<ApiResponse<T>> {
+    return ApiService.getInstance().delete<T>(url, config);
+  }
+
+  /**
+   * Audit log method for tracking user actions
+   */
+  static async auditLog(action: string, metadata?: Record<string, any>): Promise<void> {
+    try {
+      await ApiService.getInstance().post('/api/v1/audit/log', {
+        action,
+        metadata,
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      // Log but don't throw - audit failures shouldn't break functionality
+      console.error('Audit log failed:', error);
+    }
+  }
 }
+
+// Default export for backward compatibility
+export default ApiService;

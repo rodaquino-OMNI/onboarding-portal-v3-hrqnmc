@@ -96,16 +96,16 @@ const UnderwriterDashboard: React.FC = () => {
   // Table columns configuration with accessibility support
   const columns = [
     {
-      key: 'beneficiaryName',
+      key: 'beneficiaryName' as keyof PendingAssessment,
       header: t('dashboard.table.beneficiary'),
       width: '25%',
       sortable: true,
       filterable: true,
-      filterType: 'text',
+      filterType: 'text' as const,
       ariaLabel: t('aria.table.beneficiary')
     },
     {
-      key: 'submissionDate',
+      key: 'submissionDate' as keyof PendingAssessment,
       header: t('dashboard.table.submitted'),
       width: '20%',
       sortable: true,
@@ -113,7 +113,7 @@ const UnderwriterDashboard: React.FC = () => {
       ariaLabel: t('aria.table.submissionDate')
     },
     {
-      key: 'riskScore',
+      key: 'riskScore' as keyof PendingAssessment,
       header: t('dashboard.table.riskScore'),
       width: '15%',
       sortable: true,
@@ -124,18 +124,18 @@ const UnderwriterDashboard: React.FC = () => {
       )
     },
     {
-      key: 'status',
+      key: 'status' as keyof PendingAssessment,
       header: t('dashboard.table.status'),
       width: '20%',
       sortable: true,
       filterable: true,
-      filterType: 'status',
+      filterType: 'status' as const,
       render: (row: PendingAssessment) => (
         <StatusBadge status={row.status} type="enrollment" />
       )
     },
     {
-      key: 'priority',
+      key: 'priority' as keyof PendingAssessment,
       header: t('dashboard.table.priority'),
       width: '20%',
       sortable: true,

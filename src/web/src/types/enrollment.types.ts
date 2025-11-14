@@ -52,8 +52,10 @@ export interface Guardian {
   phone: string;
   address: Address;
   relationshipToMinor: string;
+  relationship: string; // Alias for relationshipToMinor
   dateOfBirth: Date;
   authorizationDocument?: string;
+  documents?: string[]; // Array of document URLs
 }
 
 /**
@@ -149,7 +151,19 @@ export type EnrollmentFilters = {
   riskLevel?: RiskLevel;
   documentStatus?: 'complete' | 'incomplete';
   healthAssessmentStatus?: 'complete' | 'incomplete';
+  page?: number;
+  pageSize?: number;
 };
+
+/**
+ * Enrollment error type for error handling
+ */
+export interface EnrollmentError {
+  code: string;
+  message: string;
+  details?: Record<string, any>;
+  timestamp: Date;
+}
 
 /**
  * Zod schema for Address validation

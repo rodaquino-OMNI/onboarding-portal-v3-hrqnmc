@@ -15,7 +15,7 @@ import Loading from './Loading';
 import StatusBadge from './StatusBadge';
 
 // Extended column interface with filtering and accessibility support
-export interface DataTableColumn<T> extends TableColumn<T> {
+export interface DataTableColumn<T extends Record<string, any>> extends TableColumn<T> {
   filterable?: boolean;
   filterType?: 'text' | 'select' | 'date' | 'status' | 'number';
   filterOptions?: Array<{ value: string; label: string }>;
@@ -35,6 +35,7 @@ export interface DataTableProps<T extends object> {
   onPageChange?: (page: number) => void;
   onFilterChange?: (filters: Record<string, any>) => void;
   onSortChange?: (sortBy: keyof T, sortOrder: 'asc' | 'desc') => void;
+  onRowClick?: (row: T) => void;
   virtualScroll?: boolean;
   emptyMessage?: string;
   className?: string;

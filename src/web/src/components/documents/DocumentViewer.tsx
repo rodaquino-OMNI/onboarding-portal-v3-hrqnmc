@@ -106,13 +106,13 @@ const DocumentViewer: React.FC<DocumentViewerProps> = React.memo(({
       }));
 
       setSecureContent({
-        content: document.content,
+        content: (document as any).content || null,
         encryptionInfo: {
           algorithm: document.encryptionInfo.algorithm,
           keyId: document.encryptionInfo.keyId,
           iv: document.encryptionInfo.iv
         },
-        accessToken: document.accessToken
+        accessToken: (document as any).accessToken || ''
       });
 
       onDocumentLoad?.({

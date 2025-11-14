@@ -3,7 +3,6 @@ import Redis from 'ioredis'; // @version ^5.3.0
 import RedisStore from 'rate-limit-redis'; // @version ^3.0.0
 import CircuitBreaker from 'opossum'; // @version ^7.1.0
 import winston from 'winston'; // @version ^3.8.0
-import { kongConfig } from '../config/kong.config';
 
 // Environment variables
 const REDIS_URL = process.env.REDIS_URL || 'redis://localhost:6379';
@@ -70,12 +69,12 @@ if (NODE_ENV !== 'production') {
 }
 
 // Initialize Redis client with cluster support
-const createRedisClient = (): Redis => {
+const createRedisClient = async (): Promise<Redis> => {
   if (REDIS_CLUSTER_URLS.length > 0) {
     return new Redis.Cluster(REDIS_CLUSTER_URLS, {
       ...REDIS_OPTIONS,
       redisOptions: REDIS_OPTIONS
-    });
+    }) as any;
   }
   return new Redis(REDIS_URL, REDIS_OPTIONS);
 };
@@ -117,7 +116,7 @@ export const monitorRateLimits = async (endpoint: string, hits: number): Promise
     }
 
     // Update metrics in Redis
-    const redis = await redisBreaker.fire();
+    const redis = await redisBreaker.fire() as Redis | null;
     if (redis) {
       await redis.hincrby('rate_limit_metrics', endpoint, 1);
     }
@@ -132,9 +131,9 @@ export const createRateLimiter = (options: Partial<typeof DEFAULT_RATE_LIMIT> = 
 
   return async (req: any, res: any, next: any) => {
     try {
-      const redis = await redisBreaker.fire();
+      const redis = await redisBreaker.fire() as Redis | null;
       const store = redis ? new RedisStore({
-        sendCommand: (...args: any[]) => redis.call(...args),
+        sendCommand: (...args: any[]) => (redis as any).call(...args),
       }) : undefined;
 
       const endpoint = req.path;
@@ -164,7 +163,7 @@ export const createRateLimiter = (options: Partial<typeof DEFAULT_RATE_LIMIT> = 
         skip: (req: any) => {
           return req.ip === '127.0.0.1' && NODE_ENV === 'development';
         },
-        onLimitReached: (req: any) => {
+        onLimitReached: (_req: any) => {
           monitorRateLimits(endpoint, config.max);
         }
       };

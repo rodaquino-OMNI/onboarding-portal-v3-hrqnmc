@@ -8,6 +8,7 @@ import DataTable, { DataTableColumn } from '../common/DataTable';
 import StatusBadge from '../common/StatusBadge';
 import Loading from '../common/Loading';
 import EnrollmentService from '../../services/enrollment.service';
+import { ApiService } from '../../services/api.service';
 
 import { 
   EnrollmentSummary, 
@@ -50,7 +51,7 @@ export const EnrollmentList: React.FC<EnrollmentListProps> = ({
   const [filters, setFilters] = useState<EnrollmentFilters>(initialFilters || {});
 
   // Services initialization
-  const enrollmentService = useMemo(() => new EnrollmentService(), []);
+  const enrollmentService = useMemo(() => new EnrollmentService(new ApiService()), []);
 
   // Fetch enrollments with error handling and retry logic
   const fetchEnrollments = useCallback(async (page: number, currentFilters: EnrollmentFilters) => {
