@@ -1,3 +1,4 @@
+import os
 from typing import Dict, List, Optional
 from pydantic import dataclasses
 from pydantic_settings import BaseSettings
@@ -31,7 +32,7 @@ class DatabaseSettings:
         self.port = 5432
         self.database = "health_service"
         self.username = "health_user"
-        self.password = "health_pass"
+        self.password = os.getenv('DB_PASSWORD', 'dev_password_CHANGE_IN_PROD')
         self.schema = "public"
         
         # SSL Configuration
@@ -212,17 +213,21 @@ class Settings(BaseSettings):
     def __init__(self):
         """Initialize all service settings with enhanced validation and monitoring."""
         super().__init__()
-        self.environment = "development"
+        self.environment = os.getenv('ENVIRONMENT', 'development')
         self.service_name = "health-service"
         self.version = "1.0.0"
         self.api_port = 8000
         self.log_level = "INFO"
         self.redis_url = "redis://localhost"
-        
+
         # Initialize sub-settings
         self.db = DatabaseSettings()
         self.llm = LLMSettings()
         self.security = SecuritySettings()
+
+        # Production security validation
+        if self.environment == 'production' and self.db.password == 'dev_password_CHANGE_IN_PROD':
+            raise ValueError("Production must use DB_PASSWORD environment variable")
         
         # Feature flags
         self.feature_flags = {
