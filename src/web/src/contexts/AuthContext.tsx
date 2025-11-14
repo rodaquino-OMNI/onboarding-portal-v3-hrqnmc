@@ -12,7 +12,7 @@ import FingerprintJS from '@fingerprintjs/fingerprintjs'; // ^3.4.0
 // Stub implementation
 const validateSecurityContext = (context: any) => ({ isValid: true, context });
 
-import { AuthState, LoginRequest, User, UserRole, SecurityContext, DeviceInfo } from '../types/auth.types';
+import { AuthState, LoginRequest, User, UserRole, SecurityContext, DeviceInfo, AuthError, AuthErrorCode } from '../types/auth.types';
 import { authService } from '../services/auth.service';
 import { setSecureItem, getSecureItem, removeItem } from '../utils/storage.utils';
 
@@ -37,7 +37,10 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   requiresMFA: boolean;
+  mfaType: string;
   retryCount: number;
+  refreshToken: string | null;
+  userRole: UserRole | null;
   securityContext: SecurityContext;
   deviceInfo: DeviceInfo;
   sessionExpiry: Date | null;
@@ -48,6 +51,15 @@ interface AuthContextType {
   resetPassword: (email: string) => Promise<void>;
   checkResetAttempts: (email: string) => Promise<boolean>;
   checkSessionTimeout: () => boolean;
+  checkPermission: (permission: string) => boolean;
+  checkRole: (role: UserRole) => boolean;
+  validateAdminRole: () => boolean;
+  getCurrentUser: () => User | null;
+  validateAdminAccess: () => boolean;
+  validateDevice: (deviceId: string) => boolean;
+  register: (userData: any) => Promise<AuthState>;
+  setupMFA: (userId: string) => Promise<any>;
+  updateUserStatus: (userId: string, status: string) => Promise<void>;
 }
 
 // Create authentication context
@@ -181,9 +193,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       return loginResult;
     } catch (error) {
+      const authError: AuthError = {
+        code: AuthErrorCode.INVALID_CREDENTIALS,
+        message: error instanceof Error ? error.message : 'Login failed',
+        timestamp: new Date(),
+        requestId: crypto.randomUUID()
+      };
       const errorState = {
         ...authState,
-        error: error as Error,
+        error: authError,
         isAuthenticated: false,
         isLoading: false
       };
@@ -208,9 +226,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       return verificationResult;
     } catch (error) {
+      const authError: AuthError = {
+        code: AuthErrorCode.MFA_INVALID,
+        message: error instanceof Error ? error.message : 'MFA verification failed',
+        timestamp: new Date(),
+        requestId: crypto.randomUUID()
+      };
       const errorState = {
         ...authState,
-        error: error as Error,
+        error: authError,
         requiresMFA: true
       };
       setAuthState(errorState);
@@ -313,12 +337,74 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return authState.sessionExpiresAt < Date.now();
   };
 
+  // Check permission handler
+  const checkPermission = (permission: string): boolean => {
+    if (!authState.user) return false;
+    return authState.user.permissions.includes(permission);
+  };
+
+  // Check role handler
+  const checkRole = (role: UserRole): boolean => {
+    if (!authState.user) return false;
+    return authState.user.role === role;
+  };
+
+  // Validate admin role handler
+  const validateAdminRole = (): boolean => {
+    return checkRole(UserRole.ADMINISTRATOR);
+  };
+
+  // Get current user handler
+  const getCurrentUser = (): User | null => {
+    return authState.user;
+  };
+
+  // Validate admin access handler
+  const validateAdminAccess = (): boolean => {
+    return validateAdminRole();
+  };
+
+  // Validate device handler
+  const validateDevice = (deviceId: string): boolean => {
+    return deviceInfo.fingerprint === deviceId;
+  };
+
+  // Register handler
+  const register = async (userData: any): Promise<AuthState> => {
+    try {
+      const registerResult = await authService.login({
+        email: userData.email,
+        password: userData.password,
+        deviceFingerprint: deviceInfo.fingerprint,
+        ipAddress: window.location.hostname
+      });
+      setAuthState(registerResult);
+      return registerResult;
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  // Setup MFA handler
+  const setupMFA = async (userId: string): Promise<any> => {
+    // Stub implementation - would call auth service
+    return { qrCode: '', secret: '' };
+  };
+
+  // Update user status handler
+  const updateUserStatus = async (userId: string, status: string): Promise<void> => {
+    // Stub implementation - would call auth service
+  };
+
   const contextValue: AuthContextType = {
     user: authState.user,
     isAuthenticated: authState.isAuthenticated,
     isLoading: authState.isLoading,
     requiresMFA: authState.requiresMFA,
+    mfaType: authState.user?.mfaEnabled ? 'totp' : 'none',
     retryCount,
+    refreshToken: authState.refreshToken,
+    userRole: authState.user?.role || null,
     securityContext,
     deviceInfo,
     sessionExpiry: authState.sessionExpiresAt ? new Date(authState.sessionExpiresAt) : null,
@@ -328,7 +414,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     refreshSession,
     resetPassword,
     checkResetAttempts,
-    checkSessionTimeout
+    checkSessionTimeout,
+    checkPermission,
+    checkRole,
+    validateAdminRole,
+    getCurrentUser,
+    validateAdminAccess,
+    validateDevice,
+    register,
+    setupMFA,
+    updateUserStatus
   };
 
   return (

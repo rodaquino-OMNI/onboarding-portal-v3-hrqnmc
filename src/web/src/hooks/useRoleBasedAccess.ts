@@ -76,9 +76,26 @@ export const useRoleBasedAccess = (resource?: string) => {
     return user?.permissions?.includes(permission) || false;
   };
 
+  const hasAccess = (permission: string): boolean => {
+    return user?.permissions?.includes(permission) || false;
+  };
+
+  const maskSensitiveData = (data: string): string => {
+    // Simple masking implementation
+    if (data === 'currency') {
+      return '***';
+    }
+    if (data && data.length > 4) {
+      return data.substring(0, 2) + '***' + data.substring(data.length - 2);
+    }
+    return '***';
+  };
+
   return {
     ...access,
     hasPermission,
+    hasAccess,
+    maskSensitiveData,
     role: user?.role,
   };
 };

@@ -179,6 +179,17 @@ export const useDocuments = (enrollmentId: string) => {
     return deleteMutation.mutateAsync(documentId);
   }, [deleteMutation]);
 
+  // Get document by ID handler
+  const getDocumentById = useCallback(async (documentId: string) => {
+    return await documentService.getDocumentById(documentId);
+  }, [documentService]);
+
+  // Use document access handler
+  const useDocumentAccess = useCallback(async (documentId: string, accessLevel?: string) => {
+    // Stub implementation - would verify document access permissions
+    return { hasAccess: true, accessLevel: accessLevel || 'read' };
+  }, []);
+
   // Monitor document processing status
   useEffect(() => {
     if (documents?.items.some(doc => doc.status === DocumentStatus.PROCESSING)) {
@@ -205,6 +216,8 @@ export const useDocuments = (enrollmentId: string) => {
     error,
     uploadDocument,
     deleteDocument,
+    getDocumentById,
+    useDocumentAccess,
     refreshDocuments,
     processingStatus,
     encryptionStatus,
