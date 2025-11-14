@@ -14,15 +14,20 @@ const RETRY_DELAY = 1000;
 const CHUNK_SIZE = 2 * 1024 * 1024; // 2MB chunks
 
 interface FileUploadProps {
-  enrollmentId: string;
-  documentType: DocumentType;
-  onUploadComplete: (document: Document) => void;
-  onUploadError: (error: UploadError) => void;
+  enrollmentId?: string;
+  documentType?: DocumentType;
+  onUploadComplete?: (document: Document) => void;
+  onUploadError?: (error: UploadError) => void;
   onUploadProgress?: (progress: UploadProgress) => void;
+  onUpload?: (files: File[] | any) => void | Promise<void>;
+  acceptedFormats?: string[];
+  maxSizeMB?: number;
+  maxFiles?: number;
   maxSize?: number;
   allowedTypes?: string[];
   maxRetries?: number;
   className?: string;
+  label?: string;
   multiple?: boolean;
   concurrent?: boolean;
 }

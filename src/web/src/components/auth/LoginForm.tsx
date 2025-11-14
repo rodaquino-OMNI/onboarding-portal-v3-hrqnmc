@@ -44,8 +44,11 @@ const ERROR_MESSAGES = {
 interface LoginFormProps {
   onSuccess: () => void;
   onMFARequired: () => void;
+  onError?: (error: Error) => void;
   className?: string;
   maxAttempts?: number;
+  isLoading?: boolean;
+  deviceFingerprint?: string;
   theme?: 'light' | 'dark' | 'high-contrast';
   locale?: string;
 }

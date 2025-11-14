@@ -228,6 +228,8 @@ const DependentManagement: React.FC = () => {
             </Grid>
             <Grid item xs={12} sm={6}>
               <DatePicker
+                id="dateOfBirth"
+                name="dateOfBirth"
                 label={t('guardian.dependentManagement.dateOfBirth')}
                 value={formData.dateOfBirth}
                 onChange={(date) => handleInputChange('dateOfBirth', date)}
