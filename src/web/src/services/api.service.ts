@@ -10,7 +10,7 @@ import axios, { AxiosInstance, AxiosResponse, AxiosError } from 'axios'; // ^1.5
 import axiosRetry from 'axios-retry'; // ^3.8.0
 import CircuitBreaker from 'opossum'; // ^7.1.0
 import sanitizeHtml from 'sanitize-html'; // ^2.11.0
-import { ApplicationInsights } from '@microsoft/applicationinsights-web'; // ^2.5.0
+// import { ApplicationInsights } from '@microsoft/applicationinsights-web'; // ^2.5.0 - Optional
 import { v4 as uuidv4 } from 'uuid'; // ^9.0.0
 
 import { apiConfig, retryConfig, circuitBreakerConfig } from '../config/api.config';
@@ -32,7 +32,7 @@ export class ApiService {
   private static instance: ApiService;
   private readonly apiClient: AxiosInstance;
   private readonly circuitBreaker: CircuitBreaker;
-  private readonly telemetry: ApplicationInsights;
+  private readonly telemetry: any; // ApplicationInsights - optional
   private readonly responseCache: Map<string, { data: any; timestamp: number }>;
 
   constructor(config?: Partial<ApiRequestConfig>) {
@@ -64,14 +64,15 @@ export class ApiService {
       resetTimeout: circuitBreakerConfig.resetTimeout
     });
 
-    // Initialize telemetry
-    this.telemetry = new ApplicationInsights({
-      config: {
-        instrumentationKey: process.env.VITE_APPINSIGHTS_KEY,
-        enableAutoRouteTracking: true
-      }
-    });
-    this.telemetry.loadAppInsights();
+    // Initialize telemetry (optional)
+    this.telemetry = null; // ApplicationInsights disabled
+    // this.telemetry = new ApplicationInsights({
+    //   config: {
+    //     instrumentationKey: process.env.VITE_APPINSIGHTS_KEY,
+    //     enableAutoRouteTracking: true
+    //   }
+    // });
+    // this.telemetry.loadAppInsights();
 
     // Initialize response cache
     this.responseCache = new Map();

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Grid, Typography, Button, IconButton, Tooltip } from '@mui/material';
-import { useWebSocket } from 'react-use-websocket';
+import useWebSocket from 'react-use-websocket';
 import { ErrorBoundary } from 'react-error-boundary';
 
 import Card from '../../components/common/Card';
@@ -10,8 +10,37 @@ import { useEnrollment } from '../../hooks/useEnrollment';
 import { useAuth } from '../../hooks/useAuth';
 import { useNotification } from '../../hooks/useNotification';
 
-import { DashboardStats, FilterOptions } from '../../types/enrollment.types';
+import { EnrollmentStatus } from '../../types/enrollment.types';
 import { THEME } from '../../constants/app.constants';
+
+// Temporary type definitions
+interface DashboardStats {
+  totalEnrollments: number;
+  pendingReview: number;
+  approved: number;
+  rejected: number;
+  pending?: number;
+  completed?: number;
+  thisMonth?: number;
+  commission?: number;
+  trends?: {
+    enrollments: number;
+    conversion: number;
+    revenue: number;
+  };
+  performance?: {
+    avgProcessingTime: number;
+    completionRate: number;
+  };
+}
+
+interface FilterOptions {
+  status?: EnrollmentStatus[];
+  dateRange?: { start: Date | null; end: Date | null };
+  searchTerm?: string;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+}
 
 // WebSocket configuration
 const WS_URL = process.env.VITE_WS_URL || 'ws://localhost:8080';

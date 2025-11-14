@@ -24,7 +24,7 @@ import {
   riskAssessmentSchema
 } from '../types/health.types';
 import { z } from 'zod'; // v3.22.0
-import { retry } from 'axios-retry'; // v3.8.0
+// import { retry } from 'axios-retry'; // v3.8.0 - Not needed
 import CryptoJS from 'crypto-js'; // v4.1.1
 import CircuitBreaker from 'opossum'; // v7.1.0
 import winston from 'winston'; // v3.10.0

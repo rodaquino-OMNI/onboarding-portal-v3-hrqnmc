@@ -2,12 +2,15 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
 import { ErrorBoundary } from 'react-error-boundary';
-import { maskCPF, maskPhone } from '@brazilian-utils/data-mask';
 
 import Form from '../../components/common/Form';
 import Card from '../../components/common/Card';
 import { authService } from '../../services/auth.service';
 import { THEME, VALIDATION, ACCESSIBILITY } from '../../constants/app.constants';
+
+// Simple mask functions
+const maskCPF = (cpf: string) => cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+const maskPhone = (phone: string) => phone.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
 
 // Profile form validation schema with Brazilian rules
 const profileValidationSchema = z.object({
