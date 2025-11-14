@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { Grid, Typography, CircularProgress, Skeleton, Alert } from '@mui/material'; // ^5.0.0
-import { BarChart, LineChart, PieChart, ResponsiveContainer } from '@mui/x-charts'; // ^6.0.0
+import { Grid, Typography, CircularProgress, Skeleton, Alert, Button } from '@mui/material'; // ^5.0.0
+import { BarChart, LineChart, PieChart, ResponsiveChartContainer } from '@mui/x-charts'; // ^6.0.0
 
 import AdminLayout from '../../layouts/AdminLayout';
 import Card from '../../components/common/Card';
@@ -232,7 +232,7 @@ const AdminDashboard: React.FC = React.memo(() => {
             <Typography variant="h6" gutterBottom>
               Métricas de Performance
             </Typography>
-            <ResponsiveContainer width="100%" height={CHART_HEIGHT}>
+            <ResponsiveChartContainer width="100%" height={CHART_HEIGHT}>
               <LineChart
                 data={[
                   {
@@ -242,7 +242,7 @@ const AdminDashboard: React.FC = React.memo(() => {
                   }
                 ]}
               />
-            </ResponsiveContainer>
+            </ResponsiveChartContainer>
           </Card>
         </Grid>
 
