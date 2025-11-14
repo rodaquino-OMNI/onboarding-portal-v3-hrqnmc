@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from 'react'; // v18.0.0
-import { useQuery, useMutation, useQueryClient, UseQueryOptions } from 'react-query'; // ^4.0.0
+import { useQuery, useMutation, useQueryClient, UseQueryOptions } from '@tanstack/react-query'; // ^4.0.0
 import { isEqual } from 'lodash'; // ^4.17.21
 
 import {

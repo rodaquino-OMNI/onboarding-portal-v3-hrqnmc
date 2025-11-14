@@ -192,7 +192,14 @@ export const useDocuments = (enrollmentId: string) => {
 
   // Monitor document processing status
   useEffect(() => {
-    if (documents?.items.some(doc => doc.status === DocumentStatus.PROCESSING)) {
+    const processingStatuses = [
+      DocumentStatus.VALIDATING,
+      DocumentStatus.SCANNING,
+      DocumentStatus.OCR_PROCESSING,
+      DocumentStatus.CLASSIFYING,
+      DocumentStatus.ENCRYPTING
+    ];
+    if (documents?.items.some(doc => processingStatuses.includes(doc.status))) {
       const interval = setInterval(refreshDocuments, 2000);
       return () => clearInterval(interval);
     }

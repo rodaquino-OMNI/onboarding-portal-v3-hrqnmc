@@ -42,5 +42,7 @@ export const usePerformanceMonitor = (componentName?: string) => {
     startMeasure,
     endMeasure,
     recordMetric,
+    startOperation: startMeasure, // Alias for compatibility
+    endOperation: endMeasure, // Alias for compatibility
   };
 };
