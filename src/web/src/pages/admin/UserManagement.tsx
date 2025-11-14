@@ -409,10 +409,10 @@ const UserManagement: React.FC = () => {
 
       {/* Create/Edit Modal */}
       <Modal
-        open={isModalOpen}
+        isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         title={t(modalMode === 'create' ? 'admin.users.createUser' : 'admin.users.editUser')}
-        maxWidth="sm"
+        size="sm"
       >
         <Grid container spacing={2}>
           <Grid item xs={12}>

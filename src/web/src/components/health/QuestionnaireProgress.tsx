@@ -89,8 +89,8 @@ const QuestionnaireProgress: React.FC<QuestionnaireProgressProps> = ({
       aria-label={ariaLabel || t('health.questionnaire.progress.label')}
     >
       <div className="progress__status">
-        <StatusBadge 
-          status={questionnaire.status}
+        <StatusBadge
+          status={questionnaire.status as any}
           type="enrollment"
         />
         {showQuestionCount && (

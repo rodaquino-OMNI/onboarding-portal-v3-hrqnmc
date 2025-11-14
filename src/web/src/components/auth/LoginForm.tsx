@@ -78,7 +78,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
       const result = await fp.get();
       setDeviceInfo({
         visitorId: result.visitorId,
-        confidence: result.confidence,
+        confidence: result.confidence.score,
         components: result.components
       });
     };

@@ -60,6 +60,7 @@ const HeaderActions = styled('div')(({ theme }) => ({
 interface HeaderProps {
   className?: string;
   testId?: string;
+  onMenuClick?: () => void;
 }
 
 // Custom hook for session monitoring
@@ -72,9 +73,10 @@ const useSessionMonitor = () => {
   }, [checkSessionTimeout]);
 };
 
-export const Header: React.FC<HeaderProps> = React.memo(({ 
+export const Header: React.FC<HeaderProps> = React.memo(({
   className,
-  testId = 'header'
+  testId = 'header',
+  onMenuClick
 }) => {
   const { t } = useTranslation();
   const { user, logout } = useAuth();
