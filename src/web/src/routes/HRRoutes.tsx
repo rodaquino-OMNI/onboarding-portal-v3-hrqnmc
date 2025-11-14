@@ -19,11 +19,12 @@ import { HR } from '../constants/routes.constants';
 // Lazy load HR components for code splitting
 const HRDashboard = React.lazy(() => import('../pages/hr/Dashboard'));
 const EmployeeList = React.lazy(() => import('../pages/hr/Employees'));
-const EmployeeDetails = React.lazy(() => import('../pages/hr/EmployeeDetails'));
+const EmployeeManagement = React.lazy(() => import('../pages/hr/EmployeeManagement'));
 const BulkEnrollment = React.lazy(() => import('../pages/hr/BulkEnrollment'));
 const Reports = React.lazy(() => import('../pages/hr/Reports'));
-const CompanyProfile = React.lazy(() => import('../pages/hr/CompanyProfile'));
-const PlanManagement = React.lazy(() => import('../pages/hr/PlanManagement'));
+// const EmployeeDetails = React.lazy(() => import('../pages/hr/EmployeeDetails'));
+// const CompanyProfile = React.lazy(() => import('../pages/hr/CompanyProfile'));
+// const PlanManagement = React.lazy(() => import('../pages/hr/PlanManagement'));
 
 // Error fallback component for route loading failures
 const RouteErrorFallback = () => (
@@ -58,7 +59,7 @@ const HRRoutes: React.FC = React.memo(() => {
             />
           }
         >
-          <Route element={<MainLayout />}>
+          <Route element={<></>}>
             {/* Dashboard Route */}
             <Route
               path={HR.DASHBOARD}
@@ -82,7 +83,7 @@ const HRRoutes: React.FC = React.memo(() => {
               path={HR.EMPLOYEE_DETAILS}
               element={
                 <Suspense fallback={<RouteLoadingFallback />}>
-                  <EmployeeDetails />
+                  <EmployeeManagement />
                 </Suspense>
               }
             />
@@ -107,25 +108,25 @@ const HRRoutes: React.FC = React.memo(() => {
               }
             />
 
-            {/* Company Profile Route */}
-            <Route
+            {/* Company Profile Route - TODO: Implement */}
+            {/* <Route
               path={HR.COMPANY_PROFILE}
               element={
                 <Suspense fallback={<RouteLoadingFallback />}>
                   <CompanyProfile />
                 </Suspense>
               }
-            />
+            /> */}
 
-            {/* Plan Management Route */}
-            <Route
+            {/* Plan Management Route - TODO: Implement */}
+            {/* <Route
               path={HR.PLAN_MANAGEMENT}
               element={
                 <Suspense fallback={<RouteLoadingFallback />}>
                   <PlanManagement />
                 </Suspense>
               }
-            />
+            /> */}
 
             {/* Default Route - Redirect to Dashboard */}
             <Route
