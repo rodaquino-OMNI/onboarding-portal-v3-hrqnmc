@@ -4,7 +4,7 @@ import { Navigate, useLocation } from 'react-router-dom';
 import { styled } from '@mui/material/styles';
 
 import { Header } from '../components/common/Header';
-import { Sidebar } from '../components/common/Sidebar';
+import Sidebar from '../components/common/Sidebar';
 import ErrorBoundary from '../components/common/ErrorBoundary';
 import { useAuth } from '../contexts/AuthContext';
 import { ROUTES } from '../constants/routes.constants';

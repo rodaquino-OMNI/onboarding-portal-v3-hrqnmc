@@ -29,7 +29,7 @@ import SearchIcon from '@mui/icons-material/Search';
 import FilterListIcon from '@mui/icons-material/FilterList';
 
 import DataTable from '../../components/common/DataTable';
-import { DatePicker } from '../../components/common/DatePicker';
+import DatePicker from '../../components/common/DatePicker';
 import { useAuth } from '../../hooks/useAuth';
 import { useNotification } from '../../hooks/useNotification';
 
