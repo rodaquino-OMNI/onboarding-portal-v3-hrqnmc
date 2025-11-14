@@ -166,14 +166,14 @@ const Register: React.FC = () => {
             name="firstName"
             label="Nome"
             required={true}
-            autoComplete="given-name"
+            autoComplete={true}
           />
           <Form.Input
             id="lastName"
             name="lastName"
             label="Sobrenome"
             required={true}
-            autoComplete="family-name"
+            autoComplete={true}
           />
         </div>
 
@@ -183,7 +183,7 @@ const Register: React.FC = () => {
           label="Email"
           type="email"
           required={true}
-          autoComplete="email"
+          autoComplete={true}
         />
 
         <Form.Input
@@ -192,7 +192,7 @@ const Register: React.FC = () => {
           label="CPF"
           required={true}
           maskType={InputMaskType.CPF}
-          autoComplete="off"
+          autoComplete={false}
         />
 
         <Form.Input
@@ -201,7 +201,7 @@ const Register: React.FC = () => {
           label="Telefone"
           required={true}
           maskType={InputMaskType.PHONE}
-          autoComplete="tel"
+          autoComplete={true}
         />
 
         <Form.Input
@@ -210,7 +210,7 @@ const Register: React.FC = () => {
           label="Senha"
           type="password"
           required={true}
-          autoComplete="new-password"
+          autoComplete={false}
         />
 
         <Form.Input
@@ -219,7 +219,7 @@ const Register: React.FC = () => {
           label="Confirmar Senha"
           type="password"
           required={true}
-          autoComplete="new-password"
+          autoComplete={false}
         />
 
         <Form.Select
