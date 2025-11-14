@@ -30,9 +30,9 @@ export class PolicyService {
   private readonly CACHE_TTL = 60000; // 1 minute cache TTL
 
   constructor(
-    private readonly apiService: ApiService,
-    private readonly errorHandler: ErrorHandler,
-    private readonly logger: Logger
+    private readonly apiService: ApiService = new ApiService(),
+    private readonly errorHandler: ErrorHandler = new ErrorHandler(),
+    private readonly logger: Logger = console as any
   ) {
     this.policyCache = new Map();
   }

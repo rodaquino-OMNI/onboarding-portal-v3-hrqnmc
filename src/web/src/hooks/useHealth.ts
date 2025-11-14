@@ -30,7 +30,7 @@ const ERROR_MESSAGES = {
  * Custom hook for managing health assessment state and operations with LGPD compliance
  * @param beneficiaryId - Unique identifier of the beneficiary
  */
-export const useHealth = (beneficiaryId: string) => {
+export const useHealth = (beneficiaryId?: string) => {
   // State management with security considerations
   const [questionnaire, setQuestionnaire] = useState<Questionnaire | null>(null);
   const [currentQuestion, setCurrentQuestion] = useState<Question | null>(null);
