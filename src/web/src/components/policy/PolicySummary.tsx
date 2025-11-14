@@ -75,7 +75,7 @@ const PolicySummary: React.FC<PolicySummaryProps> = React.memo(({
 
   // WebSocket connection for real-time updates
   const { lastMessage } = useWebSocket(`${process.env.WS_URL}/policies/${policy.id}`, {
-    shouldReconnect: true,
+    shouldReconnect: () => true,
     reconnectInterval: 3000,
   });
 
