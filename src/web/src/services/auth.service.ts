@@ -18,13 +18,27 @@ import {
   User,
   AuthState,
   UserRole,
-  SecurityContext
+  SecurityContext,
+  AuthError,
+  AuthErrorCode
 } from '../types/auth.types';
 import {
   setSecureItem,
-  getSecureItem,
-  validateStorageIntegrity
+  getSecureItem
 } from '../utils/storage.utils';
+
+/**
+ * Helper function to convert Error to AuthError
+ */
+function toAuthError(error: unknown): AuthError {
+  const err = error as Error;
+  return {
+    code: AuthErrorCode.INVALID_CREDENTIALS,
+    message: err.message || 'An authentication error occurred',
+    timestamp: new Date(),
+    requestId: CryptoJS.lib.WordArray.random(8).toString()
+  };
+}
 
 // Storage keys for authentication data
 const AUTH_STORAGE_KEYS = {
@@ -91,7 +105,10 @@ async function login(credentials: LoginRequest): Promise<AuthState> {
     const securityContext: SecurityContext = {
       deviceId,
       sessionId: CryptoJS.lib.WordArray.random(16).toString(),
-      timestamp: Date.now()
+      deviceFingerprint: deviceId,
+      ipAddress: '',
+      userAgent: navigator.userAgent,
+      timestamp: new Date()
     };
 
     // Perform login
@@ -165,7 +182,7 @@ async function login(credentials: LoginRequest): Promise<AuthState> {
       user: null,
       accessToken: null,
       refreshToken: null,
-      error: error as Error,
+      error: toAuthError(error),
       isSessionExpired: false,
       sessionExpiresAt: 0
     };
@@ -187,9 +204,10 @@ async function verifyMFA(
     }
 
     // Get MFA session
-    const mfaSession = await getSecureItem(AUTH_STORAGE_KEYS.MFA_SESSION, {
-      type: 'session'
-    });
+    const mfaSession = await getSecureItem<{ sessionToken: string; expiresAt: number }>(
+      AUTH_STORAGE_KEYS.MFA_SESSION,
+      { type: 'session' }
+    );
 
     if (!mfaSession.success || !mfaSession.data) {
       throw new Error('MFA session expired');
@@ -235,7 +253,7 @@ async function verifyMFA(
       user: null,
       accessToken: null,
       refreshToken: null,
-      error: error as Error,
+      error: toAuthError(error),
       isSessionExpired: false,
       sessionExpiresAt: 0
     };
@@ -318,7 +336,7 @@ async function getSecurityContext(): Promise<SecurityContext | null> {
  */
 async function resetPassword(email: string): Promise<void> {
   try {
-    await authApi.resetPassword({ email });
+    await authApi.resetPassword(email);
   } catch (error) {
     throw new Error('Failed to initiate password reset. Please try again.');
   }
@@ -369,7 +387,8 @@ async function register(userData: any): Promise<AuthState> {
     const response = await authApi.login({
       email: userData.email,
       password: userData.password,
-      deviceFingerprint: deviceId
+      deviceFingerprint: deviceId,
+      ipAddress: userData.ipAddress || ''
     });
 
     await setSecureItem(AUTH_STORAGE_KEYS.TOKEN, response.accessToken, {
@@ -404,7 +423,7 @@ async function register(userData: any): Promise<AuthState> {
       user: null,
       accessToken: null,
       refreshToken: null,
-      error: error as Error,
+      error: toAuthError(error),
       isSessionExpired: false,
       sessionExpiresAt: 0
     };
