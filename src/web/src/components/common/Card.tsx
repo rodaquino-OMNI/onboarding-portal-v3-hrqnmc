@@ -20,6 +20,8 @@ interface CardProps {
   className?: string;
   testId?: string;
   ariaLabel?: string;
+  'aria-label'?: string;
+  'aria-describedby'?: string;
   role?: string;
   style?: React.CSSProperties;
   onClick?: (event: React.MouseEvent) => void;
@@ -74,18 +76,28 @@ const StyledCard = styled(Paper, {
  */
 const Card = React.memo<CardProps>(({
   children,
+  title,
+  subtitle,
+  headerActions,
+  footer,
   elevation = 1,
   loading = false,
   noPadding = false,
   className,
   testId = 'card',
   ariaLabel,
+  'aria-label': ariaLabelProp,
+  'aria-describedby': ariaDescribedBy,
   role = 'region',
+  style,
   onClick,
   onKeyDown,
   tabIndex,
 }) => {
   const theme = useTheme();
+
+  // Prefer aria-label prop over ariaLabel for consistency
+  const effectiveAriaLabel = ariaLabelProp || ariaLabel;
 
   return (
     <StyledCard
@@ -93,9 +105,11 @@ const Card = React.memo<CardProps>(({
       noPadding={noPadding}
       className={className}
       data-testid={testId}
-      aria-label={ariaLabel}
+      aria-label={effectiveAriaLabel}
+      aria-describedby={ariaDescribedBy}
       role={role}
       aria-busy={loading}
+      style={style}
       onClick={onClick}
       onKeyDown={onKeyDown}
       tabIndex={tabIndex}
@@ -107,7 +121,33 @@ const Card = React.memo<CardProps>(({
           testId={`${testId}-loading`}
         />
       ) : (
-        children
+        <>
+          {(title || subtitle || headerActions) && (
+            <div style={{ marginBottom: theme.spacing(2) }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div>
+                  {title && (
+                    <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 500 }}>
+                      {title}
+                    </h2>
+                  )}
+                  {subtitle && (
+                    <p style={{ margin: '4px 0 0 0', color: theme.palette.text.secondary, fontSize: '0.875rem' }}>
+                      {subtitle}
+                    </p>
+                  )}
+                </div>
+                {headerActions && <div>{headerActions}</div>}
+              </div>
+            </div>
+          )}
+          {children}
+          {footer && (
+            <div style={{ marginTop: theme.spacing(2), borderTop: `1px solid ${theme.palette.divider}`, paddingTop: theme.spacing(2) }}>
+              {footer}
+            </div>
+          )}
+        </>
       )}
     </StyledCard>
   );

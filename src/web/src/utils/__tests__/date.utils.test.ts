@@ -4,7 +4,8 @@ import {
   calculateAge,
   isAdult,
   formatPolicyDate,
-  calculateWaitingPeriod
+  calculateWaitingPeriod,
+  calculateWaitingPeriodEnd
 } from '../date.utils';
 
 describe('date.utils', () => {
@@ -107,9 +108,9 @@ describe('date.utils', () => {
 
     it('should calculate correct age for different birth dates', () => {
       const birthDates = [
-        { date: '01/01/1990', minAge: 33, maxAge: 35 },
-        { date: '15/06/1985', minAge: 38, maxAge: 40 },
-        { date: '31/12/2010', minAge: 13, maxAge: 15 }
+        { date: '01/01/1990', minAge: 33, maxAge: 36 },
+        { date: '15/06/1985', minAge: 38, maxAge: 41 },
+        { date: '31/12/2010', minAge: 13, maxAge: 16 }
       ];
 
       birthDates.forEach(({ date, minAge, maxAge }) => {

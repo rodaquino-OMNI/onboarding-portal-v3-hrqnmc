@@ -209,8 +209,8 @@ describe('LoginForm Component', () => {
     it('should have accessible form labels', () => {
       renderWithRouter(<LoginForm onSuccess={mockOnSuccess} onMFARequired={mockOnMFARequired} />);
 
-      expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
-      expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
+      expect(screen.getByLabelText(/e-mail/i)).toBeInTheDocument();
+      expect(screen.getByLabelText(/senha/i)).toBeInTheDocument();
     });
 
     it('should have accessible error messages', async () => {
