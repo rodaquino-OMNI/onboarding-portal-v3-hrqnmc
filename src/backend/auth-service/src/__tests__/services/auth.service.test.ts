@@ -1,15 +1,55 @@
-import { describe, it, expect, jest, beforeEach, afterEach } from '@jest/globals';
+import { describe, it, expect, jest, beforeAll, beforeEach, afterEach } from '@jest/globals';
 import { Repository } from 'typeorm';
 import { AuthService } from '../../services/auth.service';
 import { MFAService } from '../../services/mfa.service';
 import { User, UserRole } from '../../models/user.model';
 
 // Mock dependencies
-jest.mock('ioredis');
+jest.mock('ioredis', () => {
+  return jest.fn().mockImplementation(() => ({
+    get: jest.fn().mockResolvedValue(null),
+    set: jest.fn().mockResolvedValue('OK'),
+    del: jest.fn().mockResolvedValue(1),
+    expire: jest.fn().mockResolvedValue(1),
+    incr: jest.fn().mockResolvedValue(1),
+    decr: jest.fn().mockResolvedValue(1),
+    // Rate limiting methods required by rate-limiter-flexible
+    rlflxIncr: jest.fn().mockResolvedValue([0, 1]),
+    rlflxReset: jest.fn().mockResolvedValue('OK'),
+    multi: jest.fn().mockReturnValue({
+      exec: jest.fn().mockResolvedValue([[null, 1], [null, 1]]),
+      incr: jest.fn().mockReturnThis(),
+      pexpire: jest.fn().mockReturnThis(),
+      expire: jest.fn().mockReturnThis()
+    }),
+    // Connection methods
+    on: jest.fn(),
+    connect: jest.fn().mockResolvedValue(undefined),
+    disconnect: jest.fn().mockResolvedValue(undefined),
+    quit: jest.fn().mockResolvedValue('OK'),
+    pipeline: jest.fn().mockReturnValue({
+      exec: jest.fn().mockResolvedValue([]),
+      set: jest.fn().mockReturnThis(),
+      expire: jest.fn().mockReturnThis()
+    })
+  }));
+});
+
 jest.mock('../../utils/encryption', () => ({
-  encryptData: jest.fn().mockResolvedValue('encrypted'),
+  encryptData: jest.fn().mockResolvedValue({
+    iv: 'test-iv',
+    encryptedData: 'encrypted',
+    authTag: 'tag',
+    keyVersion: 1,
+    salt: 'test-salt'
+  }),
   decryptData: jest.fn().mockResolvedValue('decrypted'),
   generateSecureToken: jest.fn().mockResolvedValue('secure-token-123')
+}));
+
+jest.mock('jsonwebtoken', () => ({
+  sign: jest.fn().mockReturnValue('mocked-jwt-token'),
+  verify: jest.fn().mockReturnValue({ userId: 'user-123', tokenVersion: 1 })
 }));
 
 describe('AuthService', () => {
@@ -17,6 +57,14 @@ describe('AuthService', () => {
   let userRepository: jest.Mocked<Repository<User>>;
   let mfaService: jest.Mocked<MFAService>;
   let mockUser: User;
+
+  // Setup test environment variables
+  beforeAll(() => {
+    process.env.JWT_SECRET = 'test-jwt-secret-key-for-testing-purposes';
+    process.env.ENCRYPTION_KEY = 'test-encryption-key-32-bytes!!';
+    process.env.REDIS_HOST = 'localhost';
+    process.env.REDIS_PORT = '6379';
+  });
 
   beforeEach(() => {
     // Create mock user
@@ -200,9 +248,13 @@ describe('AuthService', () => {
 
     it('should handle logout errors gracefully', async () => {
       // This test verifies error handling in the logout method
+      // Make encryptData throw an error to test error handling
+      const { encryptData } = require('../../utils/encryption');
+      encryptData.mockRejectedValueOnce(new Error('Encryption failed'));
+
       await expect(
         authService.logout('user-123', 'invalid-token')
-      ).rejects.toThrow();
+      ).rejects.toThrow('Encryption failed');
     });
   });
 

@@ -139,3 +139,9 @@ export const formatPolicyDate = (date: Date | string): string => {
     throw new Error(`${ERROR_MESSAGES.INVALID_FORMAT}: ${error.message}`);
   }
 };
+
+/**
+ * Alias for calculateWaitingPeriod for backward compatibility
+ * @deprecated Use calculateWaitingPeriod instead
+ */
+export const calculateWaitingPeriodEnd = calculateWaitingPeriod;

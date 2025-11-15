@@ -185,6 +185,43 @@ export function validateHealthcareProvider(
  * Validates Brazilian address with enhanced postal code validation
  */
 export function validateAddress(address: Address): ValidationResult {
+  // Validate required fields
+  if (!address.street || address.street.trim() === '') {
+    return {
+      isValid: false,
+      error: {
+        field: 'street',
+        message: ERROR_MESSAGES.ADDRESS_INVALID,
+        code: ERROR_CODES.ADDRESS_INVALID,
+        context: { missingField: 'street' }
+      }
+    };
+  }
+
+  if (!address.neighborhood || address.neighborhood.trim() === '') {
+    return {
+      isValid: false,
+      error: {
+        field: 'neighborhood',
+        message: ERROR_MESSAGES.ADDRESS_INVALID,
+        code: ERROR_CODES.ADDRESS_INVALID,
+        context: { missingField: 'neighborhood' }
+      }
+    };
+  }
+
+  if (!address.city || address.city.trim() === '') {
+    return {
+      isValid: false,
+      error: {
+        field: 'city',
+        message: ERROR_MESSAGES.ADDRESS_INVALID,
+        code: ERROR_CODES.ADDRESS_INVALID,
+        context: { missingField: 'city' }
+      }
+    };
+  }
+
   // Validate state
   if (!isBrazilianState(address.state)) {
     return {
@@ -281,6 +318,25 @@ export function validatePhone(phone: string): ValidationResult {
         context: { format: '+55 (XX) XXXXX-XXXX' }
       }
     };
+  }
+
+  // Extract and validate area code
+  const areaCodeMatch = phone.match(/\((\d{2})\)/);
+  if (areaCodeMatch) {
+    const areaCode = parseInt(areaCodeMatch[1]);
+    // Valid Brazilian area codes range from 11 to 99, excluding some ranges
+    // Area codes 10 and below don't exist, and 99 is not valid
+    if (areaCode < 11 || areaCode === 99) {
+      return {
+        isValid: false,
+        error: {
+          field: 'phone',
+          message: ERROR_MESSAGES.PHONE_INVALID,
+          code: ERROR_CODES.PHONE_INVALID,
+          context: { format: '+55 (XX) XXXXX-XXXX', invalidAreaCode: areaCode }
+        }
+      };
+    }
   }
 
   return { isValid: true };

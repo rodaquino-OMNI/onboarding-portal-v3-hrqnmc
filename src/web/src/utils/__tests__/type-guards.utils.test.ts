@@ -17,9 +17,9 @@ describe('type-guards.utils', () => {
   describe('isUserRole', () => {
     it('should return true for valid UserRole values', () => {
       expect(isUserRole(UserRole.BENEFICIARY)).toBe(true);
-      expect(isUserRole(UserRole.ADMIN)).toBe(true);
+      expect(isUserRole(UserRole.ADMINISTRATOR)).toBe(true);
       expect(isUserRole(UserRole.BROKER)).toBe(true);
-      expect(isUserRole(UserRole.HR)).toBe(true);
+      expect(isUserRole(UserRole.HR_PERSONNEL)).toBe(true);
       expect(isUserRole(UserRole.UNDERWRITER)).toBe(true);
     });
 
@@ -63,7 +63,7 @@ describe('type-guards.utils', () => {
   describe('toUserRole', () => {
     it('should convert valid strings to UserRole', () => {
       expect(toUserRole(UserRole.BENEFICIARY)).toBe(UserRole.BENEFICIARY);
-      expect(toUserRole(UserRole.ADMIN)).toBe(UserRole.ADMIN);
+      expect(toUserRole(UserRole.ADMINISTRATOR)).toBe(UserRole.ADMINISTRATOR);
       expect(toUserRole(UserRole.BROKER)).toBe(UserRole.BROKER);
     });
 
@@ -102,22 +102,22 @@ describe('type-guards.utils', () => {
 
   describe('toUserRoleArray', () => {
     it('should convert array of valid strings to UserRole array', () => {
-      const input = [UserRole.BENEFICIARY, UserRole.ADMIN, UserRole.BROKER];
+      const input = [UserRole.BENEFICIARY, UserRole.ADMINISTRATOR, UserRole.BROKER];
       const result = toUserRoleArray(input);
 
       expect(result).toHaveLength(3);
       expect(result).toContain(UserRole.BENEFICIARY);
-      expect(result).toContain(UserRole.ADMIN);
+      expect(result).toContain(UserRole.ADMINISTRATOR);
       expect(result).toContain(UserRole.BROKER);
     });
 
     it('should filter out invalid values', () => {
-      const input = [UserRole.BENEFICIARY, 'INVALID', UserRole.ADMIN, ''];
+      const input = [UserRole.BENEFICIARY, 'INVALID', UserRole.ADMINISTRATOR, ''];
       const result = toUserRoleArray(input);
 
       expect(result).toHaveLength(2);
       expect(result).toContain(UserRole.BENEFICIARY);
-      expect(result).toContain(UserRole.ADMIN);
+      expect(result).toContain(UserRole.ADMINISTRATOR);
       expect(result).not.toContain('INVALID');
     });
 
@@ -180,7 +180,7 @@ describe('type-guards.utils', () => {
       expect(Array.isArray(result)).toBe(true);
       expect(result.length).toBeGreaterThan(0);
       expect(result).toContain(UserRole.BENEFICIARY);
-      expect(result).toContain(UserRole.ADMIN);
+      expect(result).toContain(UserRole.ADMINISTRATOR);
     });
 
     it('should work with custom enums', () => {
@@ -201,7 +201,7 @@ describe('type-guards.utils', () => {
 
   describe('isUserRoleArray', () => {
     it('should return true for valid UserRole arrays', () => {
-      const validArray = [UserRole.BENEFICIARY, UserRole.ADMIN];
+      const validArray = [UserRole.BENEFICIARY, UserRole.ADMINISTRATOR];
       expect(isUserRoleArray(validArray)).toBe(true);
     });
 
@@ -215,7 +215,7 @@ describe('type-guards.utils', () => {
     });
 
     it('should return false for arrays with mixed valid/invalid values', () => {
-      const mixedArray = [UserRole.ADMIN, UserRole.BROKER, 'WRONG'];
+      const mixedArray = [UserRole.ADMINISTRATOR, UserRole.BROKER, 'WRONG'];
       expect(isUserRoleArray(mixedArray)).toBe(false);
     });
 
